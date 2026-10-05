@@ -1,0 +1,493 @@
+/**
+ * AUTORE — V01 "SIGNAL" DIZAYN QATLAMI
+ * Signal Blue (#0057FF) + Porcelain (#F8F7F4) + Graphite (#23262F)
+ * Bu fayl main.scss'ning oxirida import qilinadi va mavjud stillar ustidan
+ * faqat ko'rinishni o'zgartiradi (mantiq va komponent tuzilishi o'zgarmagan).
+ */
+
+body {
+	background: $c-bg;
+	color: $c-text;
+	font-family: $font;
+}
+
+/* ---------- LOGO ---------- */
+.autore-logo {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	cursor: pointer;
+	.autore-logo-text {
+		font-family: $font;
+		font-size: 20px;
+		font-weight: 800;
+		letter-spacing: 0.14em;
+		color: $c-text;
+	}
+	&.dark .autore-logo-text {
+		color: #ffffff;
+	}
+}
+
+#pc-wrap {
+	/* ---------- NAVBAR ---------- */
+	#top .navbar .navbar-main {
+		background: rgba(248, 247, 244, 0.92);
+		backdrop-filter: blur(12px);
+		border-top: none;
+		border-bottom: 1px solid $c-line;
+		&.transparent {
+			background: rgba(248, 247, 244, 0.97);
+			box-shadow: 0 6px 24px rgba(35, 38, 47, 0.06);
+		}
+		.container {
+			.logo-box {
+				display: flex;
+				align-items: center;
+			}
+			.router-box div {
+				color: $c-muted;
+				transition: color 0.2s;
+				&:hover {
+					color: $c-text;
+				}
+			}
+			.user-box .join-box {
+				border: none;
+				border-radius: $r-md;
+				background: $c-primary;
+				transition: background 0.2s;
+				&:hover {
+					background: $c-primary-dark;
+				}
+				svg,
+				span {
+					color: #ffffff;
+				}
+				span {
+					font-weight: 800;
+				}
+			}
+			.lan-box .notification-icon {
+				color: $c-text;
+			}
+		}
+	}
+
+	/* ---------- HERO (bosh sahifa) — "showroom": butun kenglikdagi video ---------- */
+	.hero-main.hero-showroom {
+		position: relative;
+		z-index: 3; // qidiruv dropdownlari keyingi bo'limlar ustida ochilishi uchun
+		padding-top: 87px; // fixed navbar balandligi
+		height: 867px;
+		box-sizing: border-box;
+		background: #101116;
+		.hero-media {
+			position: absolute;
+			top: 87px;
+			left: 0;
+			right: 0;
+			height: 780px;
+			overflow: hidden;
+			.hero-video {
+				display: block;
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+			}
+			// kinematografik to'q video ustida oq matn o'qilishi uchun pastdan Graphite gradient
+			&::after {
+				content: '';
+				position: absolute;
+				inset: 0;
+				background: linear-gradient(
+					0deg,
+					rgba(16, 17, 22, 0.92) 0%,
+					rgba(16, 17, 22, 0.55) 38%,
+					rgba(16, 17, 22, 0) 70%
+				);
+				pointer-events: none;
+			}
+		}
+		.hero-overlay {
+			position: absolute;
+			left: 0;
+			right: 0;
+			bottom: 56px;
+			z-index: 2;
+			gap: 32px;
+		}
+		.hero-text {
+			max-width: 600px;
+			gap: 18px;
+			.hero-chip {
+				align-self: flex-start;
+				display: inline-flex;
+				align-items: center;
+				gap: 8px;
+				padding: 8px 14px;
+				border-radius: 999px;
+				background: rgba(255, 255, 255, 0.14);
+				backdrop-filter: blur(8px);
+				color: #ffffff;
+				font-family: $font;
+				font-size: 13px;
+				font-weight: 700;
+				i {
+					width: 8px;
+					height: 8px;
+					border-radius: 50%;
+					background: $c-primary;
+				}
+			}
+			h1 {
+				margin: 0;
+				color: #ffffff;
+				font-family: $font;
+				font-size: 76px;
+				font-weight: 800;
+				line-height: 1;
+				letter-spacing: -0.035em;
+			}
+			p {
+				margin: 0;
+				color: rgba(255, 255, 255, 0.78);
+				font-family: $font;
+				font-size: 18px;
+				line-height: 1.55;
+			}
+		}
+		.header-main.hero-search .container {
+			margin-top: 0;
+		}
+	}
+
+	/* ---------- QIDIRUV PANELI (HeaderFilter) ---------- */
+	.header-main.hero-search {
+		height: auto;
+		background: transparent;
+		background-image: none;
+		.container {
+			margin-top: 32px;
+			.search-box {
+				margin-top: 0;
+				padding: 8px;
+				width: 100%;
+				height: 76px;
+				align-items: center;
+				box-sizing: border-box;
+				background: $c-surface;
+				border: 1px solid $c-line;
+				border-radius: $r-lg;
+				box-shadow: $shadow;
+				.select-box {
+					flex: 1;
+					width: auto;
+					.box {
+						flex: 1;
+						padding: 0 24px;
+						width: auto;
+						height: 60px;
+						border-radius: 0;
+						background: transparent;
+						border-right: 1px solid $c-line;
+						span {
+							color: $c-text;
+							font-size: 16px;
+							font-weight: 700;
+							text-transform: capitalize;
+						}
+						svg {
+							color: $c-muted;
+						}
+						&.on {
+							border: none;
+							border-right: 1px solid $c-line;
+							border-radius: $r-sm;
+							background: $c-surface-2;
+						}
+					}
+				}
+				.search-box-other {
+					.advanced-filter {
+						padding: 0 22px;
+						img {
+							width: 22px;
+							height: 20px;
+							filter: brightness(0.15); // oq ikonkani to'q qiladi
+						}
+						span {
+							color: $c-text;
+							font-size: 15px;
+							font-weight: 700;
+						}
+					}
+					.search-btn {
+						margin-left: 4px;
+						padding: 0 28px;
+						width: auto;
+						height: 60px;
+						gap: 10px;
+						border-radius: $r-md;
+						background: $c-primary;
+						transition: background 0.2s;
+						&:hover {
+							background: $c-primary-dark;
+						}
+						img {
+							width: 20px;
+							height: 20px;
+						}
+						span {
+							color: #ffffff;
+							font-family: $font;
+							font-size: 16px;
+							font-weight: 800;
+						}
+					}
+				}
+				.filter-location,
+				.filter-type,
+				.filter-rooms {
+					top: 88px;
+					width: 100%;
+					border: 1px solid $c-line;
+					border-radius: $r-lg;
+					box-shadow: $shadow;
+				}
+				.filter-location div span {
+					color: $c-text;
+				}
+				.filter-type div {
+					border-radius: $r-md;
+					span {
+						color: $c-text;
+						background: transparent;
+						font-size: 17px;
+						text-transform: uppercase;
+					}
+				}
+				.filter-rooms span {
+					color: $c-text;
+					font-size: 16px;
+					font-weight: 600;
+				}
+			}
+		}
+	}
+
+	/* ---------- ICHKI SAHIFALAR SARLAVHASI (LayoutBasic) ---------- */
+	.header-basic {
+		height: 360px;
+		background: $c-surface-2 !important; // inline rasm va soyani bekor qiladi
+		background-image: none !important;
+		box-shadow: none !important;
+		border-bottom: 1px solid $c-line;
+		&.auth {
+			height: 260px;
+		}
+		.container {
+			margin-top: 150px;
+			flex-direction: column;
+			gap: 10px;
+			strong {
+				color: $c-text;
+				font-size: 52px;
+				font-weight: 800;
+				letter-spacing: -0.035em;
+			}
+			span {
+				color: $c-muted;
+				font-size: 16px;
+			}
+		}
+		&.auth .container {
+			margin-top: 130px;
+		}
+	}
+
+	/* ---------- BOSH SAHIFA BO'LIMLARI ---------- */
+	.home-page {
+		background: $c-bg;
+		.info-box .left {
+			gap: 8px;
+			span {
+				font-size: 40px;
+				font-weight: 800;
+				line-height: 1.1;
+				letter-spacing: -0.035em;
+			}
+			p {
+				color: $c-muted;
+				font-size: 15px;
+			}
+		}
+		.info-box .right .more-box span {
+			font-weight: 800;
+		}
+		.swiper-pagination-bullet.swiper-pagination-bullet-active {
+			background: $c-primary !important;
+		}
+	}
+
+	/* kartalar: V01 klassik karta — oq fon, yupqa chegara, 16px burchak */
+	.trend-card-box,
+	.popular-card-box,
+	.top-card-box,
+	.car-card-box,
+	.car-big-card-box {
+		.card-img {
+			border-radius: $r-md $r-md 0 0;
+			background-color: $c-surface-2;
+		}
+		.info {
+			border-color: $c-line;
+			border-radius: 0 0 $r-md $r-md;
+			box-shadow: none;
+		}
+	}
+
+	/* /car ro'yxatidagi karta: yil · probeg · yoqilg'i bir qatorda */
+	.card-config .bottom .options {
+		gap: 12px;
+		.option p {
+			white-space: nowrap;
+			font-size: 13px;
+		}
+	}
+
+	/* ---------- BROWSE BY TYPE ---------- */
+	.car-types {
+		padding: 72px 0 24px;
+		background: $c-bg;
+		.container {
+			flex-direction: column;
+			gap: 32px;
+		}
+		.section-head {
+			gap: 10px;
+			.eyebrow {
+				color: $c-primary-dark;
+				font-family: $font;
+				font-size: 13px;
+				font-weight: 800;
+				letter-spacing: 0.14em;
+			}
+			h2 {
+				margin: 0;
+				color: $c-text;
+				font-family: $font;
+				font-size: 40px;
+				font-weight: 800;
+				letter-spacing: -0.035em;
+			}
+		}
+		.type-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 16px;
+		}
+		.type-tile {
+			height: 112px;
+			padding: 0 16px 0 22px;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 8px;
+			background: $c-surface;
+			border: 1px solid $c-line;
+			border-radius: $r-md;
+			cursor: pointer;
+			transition: border-color 0.2s, transform 0.2s;
+			&:hover {
+				border-color: $c-primary;
+				transform: translateY(-2px);
+			}
+			.type-name {
+				display: flex;
+				flex-direction: column;
+				align-items: flex-start;
+				gap: 4px;
+				strong {
+					color: $c-text;
+					font-family: $font;
+					font-size: 18px;
+					font-weight: 800;
+					text-transform: capitalize;
+				}
+				span {
+					color: $c-muted;
+					font-family: $font;
+					font-size: 13px;
+					font-weight: 600;
+				}
+			}
+		}
+	}
+
+	/* ---------- BRENDLAR QATORI ---------- */
+	.brand-strip {
+		height: 96px;
+		background: $c-bg;
+		border-top: 1px solid $c-line;
+		border-bottom: 1px solid $c-line;
+		.container {
+			height: 100%;
+			flex-direction: row; // MUI Stack standart ustun yo'nalishini bekor qiladi
+			align-items: center;
+			justify-content: space-between;
+		}
+		button {
+			padding: 8px 0;
+			background: none;
+			border: none;
+			color: $c-muted;
+			font-family: $font;
+			font-size: 14px;
+			font-weight: 700;
+			letter-spacing: 0.16em;
+			cursor: pointer;
+			transition: color 0.2s;
+			&:hover {
+				color: $c-primary;
+			}
+		}
+	}
+
+	/* ---------- EVENTS: rasm ustidagi matn o'qilishi uchun ---------- */
+	.events .event-card .info {
+		strong,
+		span {
+			color: #ffffff;
+			text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+		}
+	}
+
+	/* ---------- COMMUNITY: uzun sarlavhalar kesilsin ---------- */
+	.community-board .vertical-card strong {
+		display: block;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+
+	/* ---------- FOOTER ---------- */
+	#footer .footer-container .main .left .footer-box {
+		.logo {
+			width: auto;
+			height: auto;
+		}
+		.autore-logo .autore-logo-text {
+			color: #ffffff;
+			font-size: 20px;
+			font-weight: 800;
+			text-transform: none;
+		}
+	}
+}
+
+/* MUI tugmalari va kirish maydonlari uchun umumiy burchak */
+.MuiButton-root {
+	font-family: $font !important;
+	text-transform: none !important;
+}
