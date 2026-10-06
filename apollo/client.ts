@@ -82,7 +82,7 @@ function createIsomorphicLink() {
 	
 		/* WEBSOCKET SUBSCRIPTION LINK */
 		const wsLink = new WebSocketLink({
-			uri: process.env.REACT_APP_API_WS ?? 'ws://127.0.0.1:3007', // WebSocket server manzili
+			uri: process.env.REACT_APP_API_WS ?? 'ws://127.0.0.1:3009', // WebSocket server manzili
 			options: {
 				reconnect: false, // uzilsa avtomatik qayta ulanmaydi
 				timeout: 30000, // 30 soniya kutish vaqti

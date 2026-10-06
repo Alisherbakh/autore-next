@@ -85,7 +85,7 @@ const AdminCars: NextPage = ({ initialInquiry, ...props }: any) => {
 		setAnchorEl([]);
 	};
 
-	// tab (All/Active/Sold/Delete) bosilganda: filtrni tanlangan statusga o'zgartiradi
+	// tab (All/Active/Reserved/Sold/Delete) bosilganda: filtrni tanlangan statusga o'zgartiradi
 	const tabChangeHandler = async (event: any, newValue: string) => {
 		setValue(newValue);
 
@@ -94,6 +94,9 @@ const AdminCars: NextPage = ({ initialInquiry, ...props }: any) => {
 		switch (newValue) {
 			case 'ACTIVE':
 				setCarsInquiry({ ...carsInquiry, search: { carStatus: CarStatus.ACTIVE } });
+				break;
+			case 'RESERVED':
+				setCarsInquiry({ ...carsInquiry, search: { carStatus: CarStatus.RESERVED } });
 				break;
 			case 'SOLD':
 				setCarsInquiry({ ...carsInquiry, search: { carStatus: CarStatus.SOLD } });
@@ -192,6 +195,13 @@ const AdminCars: NextPage = ({ initialInquiry, ...props }: any) => {
 									className={value === 'ACTIVE' ? 'li on' : 'li'}
 								>
 									Active
+								</ListItem>
+								<ListItem
+									onClick={(e) => tabChangeHandler(e, 'RESERVED')}
+									value="RESERVED"
+									className={value === 'RESERVED' ? 'li on' : 'li'}
+								>
+									Reserved
 								</ListItem>
 								<ListItem
 									onClick={(e) => tabChangeHandler(e, 'SOLD')}

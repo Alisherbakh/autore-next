@@ -91,7 +91,7 @@ export const CarCard = (props: CarCardProps) => {
 						PaperProps={{
 							elevation: 0,
 							sx: {
-								width: '70px',
+								minWidth: '90px',
 								mt: 1,
 								ml: '10px',
 								overflow: 'visible',
@@ -105,18 +105,36 @@ export const CarCard = (props: CarCardProps) => {
 						}}
 					>
 						{car.carStatus === 'ACTIVE' && (
-							<>
-								<MenuItem
-									disableRipple
-									onClick={() => {
-										handleClose();
-										updateCarHandler(CarStatus.SOLD, car?._id);
-									}}
-								>
-									Sold
-								</MenuItem>
-							</>
+							<MenuItem
+								disableRipple
+								onClick={() => {
+									handleClose();
+									updateCarHandler(CarStatus.RESERVED, car?._id);
+								}}
+							>
+								Reserved
+							</MenuItem>
 						)}
+						{car.carStatus === 'RESERVED' && (
+							<MenuItem
+								disableRipple
+								onClick={() => {
+									handleClose();
+									updateCarHandler(CarStatus.ACTIVE, car?._id);
+								}}
+							>
+								Active
+							</MenuItem>
+						)}
+						<MenuItem
+							disableRipple
+							onClick={() => {
+								handleClose();
+								updateCarHandler(CarStatus.SOLD, car?._id);
+							}}
+						>
+							Sold
+						</MenuItem>
 					</Menu>
 				)}
 

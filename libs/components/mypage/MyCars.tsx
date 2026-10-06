@@ -34,7 +34,7 @@ const MyCars: NextPage = ({ initialInput, ...props }: any) => {
 		refetch: getDealerCarsRefetch, // shu so'rovni qo'lda qayta yuborish (masalan status o'zgargandan keyin)
 	} = useQuery(GET_DEALER_CARS, {
 		fetchPolicy: 'network-only', // cache'ni emas, har doim backend'ning yangi javobini oladi
-		variables: { input: searchFilter }, // sahifalash + tanlangan tab (ACTIVE/SOLD) filtri shu orqali yuboriladi
+		variables: { input: searchFilter }, // sahifalash + tanlangan tab (ACTIVE/RESERVED/SOLD) filtri shu orqali yuboriladi
 		notifyOnNetworkStatusChange: true, // refetch paytida ham loading holatini kuzatish imkonini beradi
 		onCompleted: (data: T) => {
 			// so'rov muvaffaqiyatli tugagach avtomatik ishga tushadi
@@ -49,7 +49,7 @@ const MyCars: NextPage = ({ initialInput, ...props }: any) => {
 		setSearchFilter({ ...searchFilter, page: value });
 	};
 
-	// "On Sale"/"On Sold" tab'lari bosilganda chaqiriladi: filtrni tanlangan statusga o'zgartiradi
+	// "On Sale"/"Reserved"/"On Sold" tab'lari bosilganda chaqiriladi: filtrni tanlangan statusga o'zgartiradi
 	const changeStatusHandler = (value: CarStatus) => {
 		setSearchFilter({ ...searchFilter, search: { carStatus: value } });
 	};
@@ -116,6 +116,12 @@ const MyCars: NextPage = ({ initialInput, ...props }: any) => {
 							className={searchFilter.search.carStatus === 'ACTIVE' ? 'active-tab-name' : 'tab-name'}
 						>
 							On Sale
+						</Typography>
+						<Typography
+							onClick={() => changeStatusHandler(CarStatus.RESERVED)}
+							className={searchFilter.search.carStatus === 'RESERVED' ? 'active-tab-name' : 'tab-name'}
+						>
+							Reserved
 						</Typography>
 						<Typography
 							onClick={() => changeStatusHandler(CarStatus.SOLD)}

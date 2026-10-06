@@ -155,7 +155,7 @@ export const CarPanelList = (props: CarPanelListType) => {
 									<TableRow hover key={car?._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
 										<TableCell align="left">{car._id}</TableCell>
 										<TableCell align="left" className={'name'}>
-											{car.carStatus === CarStatus.ACTIVE ? (
+											{car.carStatus === CarStatus.ACTIVE || car.carStatus === CarStatus.RESERVED ? (
 												<Stack direction={'row'}>
 													<Link href={`/car/detail?id=${car?._id}`}>
 														<div>
@@ -194,9 +194,12 @@ export const CarPanelList = (props: CarPanelListType) => {
 												<Button className={'badge warning'}>{car.carStatus}</Button>
 											)}
 
-											{car.carStatus === CarStatus.ACTIVE && (
+											{(car.carStatus === CarStatus.ACTIVE || car.carStatus === CarStatus.RESERVED) && (
 												<>
-													<Button onClick={(e: any) => menuIconClickHandler(e, index)} className={'badge success'}>
+													<Button
+														onClick={(e: any) => menuIconClickHandler(e, index)}
+														className={car.carStatus === CarStatus.RESERVED ? 'badge block' : 'badge success'}
+													>
 														{car.carStatus}
 													</Button>
 

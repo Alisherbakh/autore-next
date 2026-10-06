@@ -31,12 +31,12 @@ const withLayoutBasic = (Component: any) => {
 				case '/car':
 					title = 'Car Search';
 					desc = 'We are glad to see you again!';
-					bgImage = '/img/banner/cars.png';
+					bgImage = '/video/hero-poster.jpg';
 					break;
 				case '/dealer':
 					title = 'Dealers';
 					desc = 'Home / For Sale';
-					bgImage = '/img/banner/dealers.webp';
+					bgImage = '/video/hero-poster.jpg';
 					break;
 				case '/dealer/detail':
 					title = 'Dealer Page';

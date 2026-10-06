@@ -6,7 +6,7 @@ This client project is being migrated from nestar-next to autore-next
 
 ## Rules
 
-- Preserve current project architecture
+- Preserve current project architecture.
 - Keep GraphQL/Apollo integration
 - Do not rewrite the whole app
 - Improve UI incrementally

@@ -20,7 +20,7 @@ import { userVar } from '../../../apollo/store';
 import { CREATE_CAR, UPDATE_CAR } from '../../../apollo/user/mutation';
 import { GET_CAR } from '../../../apollo/user/query';
 
-// formadagi select uchun umumiy komponent (nestar'dagi select dizayni bilan bir xil)
+// formadagi select uchun umumiy komponent (asl select dizayni bilan bir xil)
 const SelectBox = ({ title, value, options, onChange, format }: any) => (
 	<Stack className="price-year-after-price">
 		<Typography className="title">{title}</Typography>

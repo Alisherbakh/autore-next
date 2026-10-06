@@ -248,7 +248,7 @@ body {
 				}
 				.filter-location,
 				.filter-type,
-				.filter-rooms {
+				.filter-brands {
 					top: 88px;
 					width: 100%;
 					border: 1px solid $c-line;
@@ -267,7 +267,7 @@ body {
 						text-transform: uppercase;
 					}
 				}
-				.filter-rooms span {
+				.filter-brands span {
 					color: $c-text;
 					font-size: 16px;
 					font-weight: 600;

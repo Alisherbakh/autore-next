@@ -246,7 +246,7 @@ const Filter = (props: FilterType) => {
 				</Stack>
 				<Stack className={'find-your-home'} mb={'30px'}>
 					<Typography className={'title'}>Year</Typography>
-					<Stack className="square-year-input">
+					<Stack className="range-input">
 						<FormControl>
 							<InputLabel id="year-start-label">Min</InputLabel>
 							<Select
@@ -292,7 +292,7 @@ const Filter = (props: FilterType) => {
 				</Stack>
 				<Stack className={'find-your-home'} mb={'30px'}>
 					<Typography className={'title'}>Mileage (km)</Typography>
-					<Stack className="square-year-input">
+					<Stack className="range-input">
 						<FormControl>
 							<InputLabel id="mileage-start-label">Min</InputLabel>
 							<Select
@@ -338,7 +338,7 @@ const Filter = (props: FilterType) => {
 				</Stack>
 				<Stack className={'find-your-home'}>
 					<Typography className={'title'}>Price Range (₩)</Typography>
-					<Stack className="square-year-input">
+					<Stack className="range-input">
 						<input
 							type="number"
 							placeholder="₩ min"

@@ -387,7 +387,7 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 						})}
 					</div>
 
-					<div className={`filter-rooms ${openBrand ? 'on' : ''}`} ref={brandRef}>
+					<div className={`filter-brands ${openBrand ? 'on' : ''}`} ref={brandRef}>
 						{carBrand.map((brand: string) => {
 							return (
 								<span onClick={() => carBrandSelectHandler(brand)} key={brand}>
@@ -435,14 +435,14 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 										<span>fuel type</span>
 										<div className={'inside'}>
 											<div
-												className={`room ${!searchFilter?.search?.fuelTypeList ? 'active' : ''}`}
+												className={`fuel-chip ${!searchFilter?.search?.fuelTypeList ? 'active' : ''}`}
 												onClick={() => carFuelSelectHandler('ANY')}
 											>
 												Any
 											</div>
 											{carFuelType.map((fuel: CarFuelType) => (
 												<div
-													className={`room ${searchFilter?.search?.fuelTypeList?.includes(fuel) ? 'active' : ''}`}
+													className={`fuel-chip ${searchFilter?.search?.fuelTypeList?.includes(fuel) ? 'active' : ''}`}
 													onClick={() => carFuelSelectHandler(fuel)}
 													key={fuel}
 												>

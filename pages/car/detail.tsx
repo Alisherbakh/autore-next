@@ -21,6 +21,7 @@ import { userVar } from '../../apollo/store';
 import { CommentInput, CommentsInquiry } from '../../libs/types/comment/comment.input';
 import { Comment } from '../../libs/types/comment/comment';
 import { CommentGroup } from '../../libs/enums/comment.enum';
+import { CarStatus } from '../../libs/enums/car.enum';
 import { Pagination as MuiPagination } from '@mui/material';
 import Link from 'next/link';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
@@ -302,13 +303,28 @@ const CarDetail: NextPage = ({ initialComment, ...props }: any) => {
 											<Typography>{car?.carLikes}</Typography>
 										</Stack>
 									</Stack>
+									{car?.carStatus === CarStatus.RESERVED && (
+										<Box
+											component={'div'}
+											sx={{
+												padding: '4px 12px',
+												borderRadius: '6px',
+												background: '#f57c00',
+												color: '#fff',
+												fontSize: '12px',
+												fontWeight: 600,
+											}}
+										>
+											RESERVED
+										</Box>
+									)}
 									<Typography>₩{formatterStr(car?.carPrice)}</Typography>
 								</Stack>
 							</Stack>
 							<Stack className={'images'}>
 								<Stack className={'main-image'}>
 									<img
-										src={slideImage ? `${REACT_APP_API_URL}/${slideImage}` : '/img/car/bigImage.png'}
+										src={slideImage ? `${REACT_APP_API_URL}/${slideImage}` : '/video/hero-poster.jpg'}
 										alt={'main-image'}
 									/>
 								</Stack>

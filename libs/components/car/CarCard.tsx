@@ -9,6 +9,7 @@ import { formatterStr } from '../../utils';
 import { REACT_APP_API_URL, topCarRank } from '../../config';
 import { useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
+import { CarStatus } from '../../enums/car.enum';
 import IconButton from '@mui/material/IconButton';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 
@@ -25,7 +26,7 @@ const CarCard = (props: CarCardType) => {
 	const user = useReactiveVar(userVar);
 	const imagePath: string = car?.carImages[0]
 		? `${REACT_APP_API_URL}/${car?.carImages[0]}`
-		: '/img/banner/header1.svg';
+		: '/video/hero-poster.jpg';
 
 	if (device === 'mobile') {
 		return <div>CAR CARD</div>;
@@ -45,6 +46,24 @@ const CarCard = (props: CarCardType) => {
 						<Box component={'div'} className={'top-badge'}>
 							<img src="/img/icons/electricity.svg" alt="" />
 							<Typography>TOP</Typography>
+						</Box>
+					)}
+					{car?.carStatus === CarStatus.RESERVED && (
+						<Box
+							component={'div'}
+							sx={{
+								position: 'absolute',
+								top: '20px',
+								right: '16px',
+								padding: '6px 12px',
+								borderRadius: '6px',
+								background: '#f57c00',
+								color: '#fff',
+								fontSize: '12px',
+								fontWeight: 600,
+							}}
+						>
+							RESERVED
 						</Box>
 					)}
 					<Box component={'div'} className={'price-box'}>
