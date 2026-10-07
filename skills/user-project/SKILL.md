@@ -1,6 +1,6 @@
 ---
 name: user-project
-description: Improve Autore Ecommerce frontend UI/UX and responsive design.
+description: Improve Autore Ecommerce frontend UI/UX and responsive design for PC and MOBILE PHONE.
 ---
 
 Focus on:

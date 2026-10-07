@@ -13,19 +13,103 @@ body {
 
 /* ---------- LOGO ---------- */
 .autore-logo {
+	// premium hover: faqat harakat — fon, soya yoki rang effekti yo'q
+	$ease-out: cubic-bezier(0.22, 1, 0.36, 1); // easeOutQuint — yumshoq to'xtash
+	$ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
 	display: inline-flex;
 	align-items: center;
 	gap: 10px;
 	cursor: pointer;
+	.autore-logo-mark {
+		overflow: visible;
+		transition: transform 600ms $ease-out;
+	}
+	.autore-logo-chevron {
+		stroke-dasharray: 28;
+		stroke-dashoffset: 0;
+	}
+	.autore-logo-dot {
+		transform-box: fill-box;
+		transform-origin: center;
+	}
 	.autore-logo-text {
 		font-family: $font;
 		font-size: 20px;
 		font-weight: 800;
 		letter-spacing: 0.14em;
 		color: $c-text;
+		span {
+			display: inline-block;
+		}
 	}
 	&.dark .autore-logo-text {
 		color: #ffffff;
+	}
+
+	/* ---------- HOVER ---------- */
+	&:hover {
+		.autore-logo-mark {
+			transform: translateY(-1px);
+		}
+		.autore-logo-chevron {
+			animation: autore-chevron-draw 700ms $ease-in-out;
+		}
+		.autore-logo-dot {
+			animation: autore-dot-settle 500ms $ease-out 450ms backwards;
+		}
+		.autore-logo-text span {
+			// harflar chapdan o'ngga navbat bilan ko'tarilib tushadi
+			animation: autore-letter-rise 700ms $ease-out calc(var(--i) * 45ms);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.autore-logo-mark {
+			transition: none;
+		}
+		&:hover {
+			.autore-logo-mark {
+				transform: none;
+			}
+			.autore-logo-chevron,
+			.autore-logo-dot,
+			.autore-logo-text span {
+				animation: none;
+			}
+		}
+	}
+}
+
+@keyframes autore-chevron-draw {
+	from {
+		stroke-dashoffset: 28;
+	}
+	to {
+		stroke-dashoffset: 0;
+	}
+}
+
+@keyframes autore-dot-settle {
+	from {
+		opacity: 0;
+		transform: scale(0.3);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes autore-letter-rise {
+	0% {
+		transform: translateY(0);
+	}
+	40% {
+		transform: translateY(-2px);
+	}
+	100% {
+		transform: translateY(0);
 	}
 }
 
