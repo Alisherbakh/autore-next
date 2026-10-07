@@ -27,52 +27,58 @@ const withLayoutBasic = (Component: any) => {
 				desc = '',
 				bgImage = '';
 
+			// sarlavha fon rasmlari: public/img/banner/page-*.jpg (Wikimedia Commons, mualliflar — public/img/fiber/CREDITS.md)
 			switch (router.pathname) {
 				case '/car':
 					title = 'Car Search';
 					desc = 'We are glad to see you again!';
-					bgImage = '/video/hero-poster.jpg';
+					bgImage = '/img/banner/page-car.jpg';
 					break;
 				case '/dealer':
 					title = 'Dealers';
 					desc = 'Home / For Sale';
-					bgImage = '/video/hero-poster.jpg';
+					bgImage = '/img/banner/page-dealer.jpg';
 					break;
 				case '/dealer/detail':
 					title = 'Dealer Page';
 					desc = 'Home / For Sale';
-					bgImage = '/img/banner/header2.svg';
+					bgImage = '/img/banner/page-dealer.jpg';
 					break;
 				case '/mypage':
 					title = 'my page';
 					desc = 'Home / For Sale';
-					bgImage = '/img/banner/header1.svg';
+					bgImage = '/img/banner/page-mypage.jpg';
 					break;
 				case '/community':
 					title = 'Community';
 					desc = 'Home / For Sale';
-					bgImage = '/img/banner/header2.svg';
+					bgImage = '/img/banner/page-community.jpg';
 					break;
 				case '/community/detail':
 					title = 'Community Detail';
 					desc = 'Home / For Sale';
-					bgImage = '/img/banner/header2.svg';
+					bgImage = '/img/banner/page-community.jpg';
 					break;
 				case '/cs':
 					title = 'CS';
 					desc = 'We are glad to see you again!';
-					bgImage = '/img/banner/header2.svg';
+					bgImage = '/img/banner/page-cs.jpg';
 					break;
 				case '/account/join':
 					title = 'Login/Signup';
 					desc = 'Authentication Process';
-					bgImage = '/img/banner/header2.svg';
+					bgImage = '/img/banner/page-join.jpg';
 					setAuthHeader(true);
 					break;
 				case '/member':
 					title = 'Member Page';
 					desc = 'Home / For Sale';
-					bgImage = '/img/banner/header1.svg';
+					bgImage = '/img/banner/page-mypage.jpg';
+					break;
+				case '/about':
+					title = 'About Autore';
+					desc = 'Korea’s marketplace for new and used cars';
+					bgImage = '/img/banner/home-seoul-night.jpg';
 					break;
 				default:
 					break;

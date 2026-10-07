@@ -134,6 +134,10 @@ const Footer = () => {
 				</Stack>
 				<Stack className={'second'}>
 					<span>© Autore - All rights reserved. Autore {moment().year()}</span>
+					{/* bosh sahifa galereyasi rasmlari CC BY-SA — mualliflarni ko'rsatish talab qilinadi */}
+					<a href={'/img/fiber/CREDITS.md'} target={'_blank'} rel={'noreferrer'} style={{ color: 'inherit' }}>
+						<span>Site photos: Wikimedia Commons (CC BY / BY-SA)</span>
+					</a>
 					<span>Privacy · Terms · Sitemap</span>
 				</Stack>
 			</Stack>
