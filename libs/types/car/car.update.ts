@@ -31,6 +31,4 @@ export interface CarUpdate {
 	carDesc?: string;
 	carBarter?: boolean;
 	carCredit?: boolean;
-	soldAt?: Date;
-	deletedAt?: Date;
 }

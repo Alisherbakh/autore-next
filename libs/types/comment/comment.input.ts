@@ -5,7 +5,6 @@ export interface CommentInput {
 	commentGroup: CommentGroup;
 	commentContent: string;
 	commentRefId: string;
-	memberId?: string;
 }
 
 interface CISearch {

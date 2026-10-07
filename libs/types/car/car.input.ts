@@ -30,10 +30,9 @@ export interface CarInput {
 	carDesc?: string;
 	carBarter?: boolean;
 	carCredit?: boolean;
-	memberId?: string;
 }
 
-interface CISearch {
+interface CarISearch {
 	memberId?: string;
 	locationList?: CarLocation[];
 	typeList?: CarType[];
@@ -54,7 +53,7 @@ export interface CarsInquiry {
 	limit: number;
 	sort?: string;
 	direction?: Direction;
-	search: CISearch;
+	search: CarISearch;
 }
 
 interface DCISearch {
