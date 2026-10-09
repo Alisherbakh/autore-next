@@ -22,3 +22,6 @@ export const Messages = {
 };
 
 export const topCarRank = 2;
+
+// like bosilgan yurak rangi — barcha sahifalarda bir xil
+export const LIKED_COLOR = 'red';

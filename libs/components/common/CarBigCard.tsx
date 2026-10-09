@@ -4,7 +4,7 @@ import IconButton from '@mui/material/IconButton';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { Car } from '../../types/car/car';
-import { REACT_APP_API_URL, topCarRank } from '../../config';
+import { REACT_APP_API_URL, topCarRank, LIKED_COLOR } from '../../config';
 import { formatterStr } from '../../utils';
 import { useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
@@ -83,7 +83,7 @@ const CarBigCard = (props: CarBigCardProps) => {
 								}}
 							>
 								{car?.meLiked && car?.meLiked[0]?.myFavorite ? (
-									<FavoriteIcon style={{ color: 'red' }} />
+									<FavoriteIcon style={{ color: LIKED_COLOR }} />
 								) : (
 									<FavoriteIcon />
 								)}

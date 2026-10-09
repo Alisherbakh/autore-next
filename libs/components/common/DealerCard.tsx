@@ -2,7 +2,7 @@ import React from 'react';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { Stack, Box, Typography } from '@mui/material';
 import Link from 'next/link';
-import { REACT_APP_API_URL } from '../../config';
+import { REACT_APP_API_URL, LIKED_COLOR } from '../../config';
 import IconButton from '@mui/material/IconButton';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -67,7 +67,7 @@ const DealerCard = (props: DealerCardProps) => {
 						<Typography className="view-cnt">{dealer?.memberViews}</Typography>
 						<IconButton color={'default'} onClick={() => likeMemberHandler(user, dealer?._id)}>
 							{dealer?.meLiked && dealer?.meLiked[0]?.myFavorite ? (
-								<FavoriteIcon color={'primary'} />
+								<FavoriteIcon style={{ color: LIKED_COLOR }} />
 							) : (
 								<FavoriteBorderIcon />
 							)}

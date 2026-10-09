@@ -6,7 +6,7 @@ import useDeviceDetect from '../../hooks/useDeviceDetect';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { Car } from '../../types/car/car';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
-import { REACT_APP_API_URL } from '../../config';
+import { REACT_APP_API_URL, LIKED_COLOR } from '../../config';
 import { useRouter } from 'next/router';
 import { useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
@@ -71,7 +71,7 @@ const TopCarCard = (props: TopCarCardProps) => {
 							<Typography className="view-cnt">{car?.carViews}</Typography>
 							<IconButton color={'default'} onClick={() => likeCarHandler(user, car?._id)}>
 								{car?.meLiked && car?.meLiked[0]?.myFavorite ? (
-									<FavoriteIcon style={{ color: 'red' }} />
+									<FavoriteIcon style={{ color: LIKED_COLOR }} />
 								) : (
 									<FavoriteIcon />
 								)}
@@ -124,7 +124,7 @@ const TopCarCard = (props: TopCarCardProps) => {
 							<Typography className="view-cnt">{car?.carViews}</Typography>
 							<IconButton color={'default'} onClick={() => likeCarHandler(user, car?._id)}>
 								{car?.meLiked && car?.meLiked[0]?.myFavorite ? (
-									<FavoriteIcon style={{ color: 'red' }} />
+									<FavoriteIcon style={{ color: LIKED_COLOR }} />
 								) : (
 									<FavoriteIcon />
 								)}

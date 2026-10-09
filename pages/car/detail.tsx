@@ -16,7 +16,7 @@ import { useRouter } from 'next/router';
 import { Car } from '../../libs/types/car/car';
 import moment from 'moment';
 import { formatterStr } from '../../libs/utils';
-import { REACT_APP_API_URL } from '../../libs/config';
+import { REACT_APP_API_URL, LIKED_COLOR } from '../../libs/config';
 import { userVar } from '../../apollo/store';
 import { CommentInput, CommentsInquiry } from '../../libs/types/comment/comment.input';
 import { Comment } from '../../libs/types/comment/comment';
@@ -292,7 +292,7 @@ const CarDetail: NextPage = ({ initialComment, ...props }: any) => {
 										</Stack>
 										<Stack className="button-box">
 											{car?.meLiked && car?.meLiked[0]?.myFavorite ? (
-												<FavoriteIcon color="primary" fontSize={'medium'} />
+												<FavoriteIcon style={{ color: LIKED_COLOR }} fontSize={'medium'} />
 											) : (
 												<FavoriteBorderIcon
 													fontSize={'medium'}

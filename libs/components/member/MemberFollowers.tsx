@@ -6,7 +6,7 @@ import { FollowInquiry } from '../../types/follow/follow.input';
 import { useQuery, useReactiveVar } from '@apollo/client';
 import { GET_MEMBER_FOLLOWERS } from '../../../apollo/user/query';
 import { Follower } from '../../types/follow/follow';
-import { REACT_APP_API_URL } from '../../config';
+import { REACT_APP_API_URL, LIKED_COLOR } from '../../config';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import { userVar } from '../../../apollo/store';
@@ -118,7 +118,7 @@ const MemberFollowers = (props: MemberFollowsProps) => {
 									<Box className={'info-box'} component={'div'}>
 										{follower?.meLiked && follower?.meLiked[0]?.myFavorite ? (
 											<FavoriteIcon
-												color="primary"
+												style={{ color: LIKED_COLOR }}
 												onClick={() =>
 													likeMemberHandler(follower?.followerData?._id, getMemberFollowersRefetch, followInquiry)
 												}

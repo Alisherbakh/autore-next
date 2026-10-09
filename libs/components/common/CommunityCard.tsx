@@ -4,7 +4,7 @@ import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { Stack, Typography } from '@mui/material';
 import { BoardArticle } from '../../types/board-article/board-article';
 import Moment from 'react-moment';
-import { REACT_APP_API_URL } from '../../config';
+import { REACT_APP_API_URL, LIKED_COLOR } from '../../config';
 import { useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
 import IconButton from '@mui/material/IconButton';
@@ -80,7 +80,7 @@ const CommunityCard = (props: CommunityCardProps) => {
 						onClick={(e:any) => likeArticleHandler(e, user, boardArticle?._id)}
 						>
 							{boardArticle?.meLiked && boardArticle?.meLiked[0]?.myFavorite ? (
-								<FavoriteIcon color={'primary'} />
+								<FavoriteIcon style={{ color: LIKED_COLOR }} />
 							) : (
 								<FavoriteBorderIcon />
 							)}

@@ -6,7 +6,7 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import { Car } from '../../types/car/car';
 import Link from 'next/link';
 import { formatterStr } from '../../utils';
-import { REACT_APP_API_URL, topCarRank } from '../../config';
+import { REACT_APP_API_URL, topCarRank, LIKED_COLOR } from '../../config';
 import { useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
 import { CarStatus } from '../../enums/car.enum';
@@ -123,9 +123,9 @@ const CarCard = (props: CarCardType) => {
 								<Typography className="view-cnt">{car?.carViews}</Typography>
 								<IconButton color={'default'} onClick={() => likeCarHandler(user, car?._id)}>
 									{myFavorites ? (
-										<FavoriteIcon color="primary" />
+										<FavoriteIcon style={{ color: LIKED_COLOR }} />
 									) : car?.meLiked && car?.meLiked[0]?.myFavorite ? (
-										<FavoriteIcon color="primary" />
+										<FavoriteIcon style={{ color: LIKED_COLOR }} />
 									) : (
 										<FavoriteBorderIcon />
 									)}
