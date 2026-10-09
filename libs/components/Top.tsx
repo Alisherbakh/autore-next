@@ -13,7 +13,6 @@ import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined
 import { CaretDown } from 'phosphor-react';
 import useDeviceDetect from '../hooks/useDeviceDetect';
 import Link from 'next/link';
-import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
 import { useReactiveVar } from '@apollo/client';
 import { userVar } from '../../apollo/store';
 import { Logout } from '@mui/icons-material';
@@ -76,12 +75,13 @@ const Top = () => {
 	};
 
 	// menyudan til (en/kr/ru) tanlanganda: state va localStorage'ga yozadi, so'ng shu til bilan joriy sahifani qayta yuklaydi
+	// (til kodi to'g'ridan-to'g'ri beriladi — avval bayroq rasmining id'si o'qilardi va koreys bayrog'i "uz" yuborardi)
 	const langChoice = useCallback(
-		async (e: any) => {
-			setLang(e.target.id);
-			localStorage.setItem('locale', e.target.id);
+		async (locale: string) => {
+			setLang(locale);
+			localStorage.setItem('locale', locale);
 			setAnchorEl2(null);
-			await router.push(router.asPath, router.asPath, { locale: e.target.id });
+			await router.push(router.asPath, router.asPath, { locale });
 		},
 		[router],
 	);
@@ -147,9 +147,18 @@ const Top = () => {
 		},
 	}));
 
-	if (typeof window !== 'undefined') {
-		window.addEventListener('scroll', changeNavbarColor);
-	}
+	// skroll listener'i bir marta qo'shiladi va komponent yo'qolganda olib tashlanadi
+	useEffect(() => {
+		changeNavbarColor();
+		window.addEventListener('scroll', changeNavbarColor, { passive: true });
+		return () => window.removeEventListener('scroll', changeNavbarColor);
+	}, []);
+
+	// bosh sahifada, skroll qilinmaguncha navbar hero rasmi ustida shaffof bo'ladi
+	const onHero = router.pathname === '/' && !colorChange;
+	// joriy sahifa havolasini belgilash (aria-current + chiziq)
+	const isActive = (path: string) => (path === '/' ? router.pathname === '/' : router.pathname.startsWith(path));
+	const langName = lang === 'kr' ? t('Korean') : lang === 'ru' ? t('Russian') : t('English');
 
 	if (device == 'mobile') {
 		return (
@@ -174,46 +183,54 @@ const Top = () => {
 	} else {
 		return (
 			<Stack className={'navbar'}>
-				<Stack className={`navbar-main ${colorChange ? 'transparent' : ''} ${bgColor ? 'transparent' : ''}`}>
+				<Stack
+					className={`navbar-main ${colorChange ? 'transparent' : ''} ${bgColor ? 'transparent' : ''} ${onHero ? 'on-hero' : ''}`}
+				>
 					<Stack className={'container'}>
 						<Box component={'div'} className={'logo-box'}>
-							<Link href={'/'}>
-								<Logo />
+							<Link href={'/'} aria-label={'Autore home'}>
+								<Logo dark={onHero} />
 							</Link>
 						</Box>
-						<Box component={'div'} className={'router-box'}>
-							<Link href={'/'}>
-								<div>{t('Home')}</div>
-							</Link>
-							<Link href={'/car'}>
-								<div>{t('Cars')}</div>
-							</Link>
-							<Link href={'/dealer'}>
-								<div> {t('Dealers')} </div>
-							</Link>
-							<Link href={'/community?articleCategory=FREE'}>
-								<div> {t('Community')} </div>
-							</Link>
-							{user?._id && (
-								<Link href={'/mypage'}>
-									<div> {t('My Page')} </div>
+						<nav className={'router-box'} aria-label={t('Main')}>
+							{[
+								{ href: '/', path: '/', label: t('Home') },
+								{ href: '/car', path: '/car', label: t('Cars') },
+								{ href: '/dealer', path: '/dealer', label: t('Dealers') },
+								{ href: '/community?articleCategory=FREE', path: '/community', label: t('Community') },
+								...(user?._id ? [{ href: '/mypage', path: '/mypage', label: t('My Page') }] : []),
+								{ href: '/cs', path: '/cs', label: t('CS') },
+							].map((item) => (
+								<Link
+									href={item.href}
+									key={item.path}
+									className={`nav-link ${isActive(item.path) ? 'active' : ''}`}
+									aria-current={isActive(item.path) ? 'page' : undefined}
+								>
+									{item.label}
 								</Link>
-							)}
-							<Link href={'/cs'}>
-								<div> {t('CS')} </div>
-							</Link>
-						</Box>
+							))}
+						</nav>
 						<Box component={'div'} className={'user-box'}>
 							{user?._id ? (
 								<>
-									<div className={'login-user'} onClick={(event: any) => setLogoutAnchor(event.currentTarget)}>
+									<button
+										type={'button'}
+										className={'login-user'}
+										aria-label={t('Account menu')}
+										aria-haspopup={'menu'}
+										aria-expanded={logoutOpen}
+										onClick={(event: any) => setLogoutAnchor(event.currentTarget)}
+									>
 										<img
 											src={
 												user?.memberImage ? `${REACT_APP_API_URL}/${user?.memberImage}` : '/img/profile/defaultUser.svg'
 											}
 											alt=""
+											width={40}
+											height={40}
 										/>
-									</div>
+									</button>
 
 									<Menu
 										id="basic-menu"
@@ -224,70 +241,48 @@ const Top = () => {
 										}}
 										sx={{ mt: '5px' }}
 									>
+										<MenuItem onClick={() => router.push('/mypage')}>{t('My Page')}</MenuItem>
 										<MenuItem onClick={() => logOut()}>
-											<Logout fontSize="small" style={{ color: 'blue', marginRight: '10px' }} />
-											Logout
+											<Logout fontSize="small" className={'logout-icon'} aria-hidden="true" />
+											{t('Logout')}
 										</MenuItem>
 									</Menu>
 								</>
 							) : (
-								<Link href={'/account/join'}>
-									<div className={'join-box'}>
-										<AccountCircleOutlinedIcon />
-										<span>
-											{t('Login')} / {t('Register')}
-										</span>
-									</div>
+								<Link href={'/account/join'} className={'join-box'}>
+									<AccountCircleOutlinedIcon aria-hidden="true" />
+									<span>
+										{t('Login')} / {t('Register')}
+									</span>
 								</Link>
 							)}
 
 							<div className={'lan-box'}>
-								{user?._id && <NotificationsOutlinedIcon className={'notification-icon'} />}
-								<Button
+<Button
 									disableRipple
 									className="btn-lang"
 									onClick={langClick}
-									endIcon={<CaretDown size={14} color="#616161" weight="fill" />}
+									aria-label={`${t('Language')}: ${langName}`}
+									aria-haspopup={'menu'}
+									endIcon={<CaretDown size={14} weight="fill" className={'lang-caret'} aria-hidden="true" />}
 								>
 									<Box component={'div'} className={'flag'}>
-										{lang !== null ? (
-											<img src={`/img/flag/lang${lang}.png`} alt={'usaFlag'} />
-										) : (
-											<img src={`/img/flag/langen.png`} alt={'usaFlag'} />
-										)}
+										<img src={`/img/flag/lang${lang ?? 'en'}.png`} alt="" width={24} height={24} />
 									</Box>
 								</Button>
 
 								<StyledMenu anchorEl={anchorEl2} open={drop} onClose={langClose} sx={{ position: 'absolute' }}>
-									<MenuItem disableRipple onClick={langChoice} id="en">
-										<img
-											className="img-flag"
-											src={'/img/flag/langen.png'}
-											onClick={langChoice}
-											id="en"
-											alt={'usaFlag'}
-										/>
-										{t('English')}
+									<MenuItem disableRipple onClick={() => langChoice('en')} lang={'en'}>
+										<img className="img-flag" src={'/img/flag/langen.png'} alt="" width={24} height={24} />
+										{'English'}
 									</MenuItem>
-									<MenuItem disableRipple onClick={langChoice} id="kr">
-										<img
-											className="img-flag"
-											src={'/img/flag/langkr.png'}
-											onClick={langChoice}
-											id="uz"
-											alt={'koreanFlag'}
-										/>
-										{t('Korean')}
+									<MenuItem disableRipple onClick={() => langChoice('kr')} lang={'ko'}>
+										<img className="img-flag" src={'/img/flag/langkr.png'} alt="" width={24} height={24} />
+										{'한국어'}
 									</MenuItem>
-									<MenuItem disableRipple onClick={langChoice} id="ru">
-										<img
-											className="img-flag"
-											src={'/img/flag/langru.png'}
-											onClick={langChoice}
-											id="ru"
-											alt={'russiaFlag'}
-										/>
-										{t('Russian')}
+									<MenuItem disableRipple onClick={() => langChoice('ru')} lang={'ru'}>
+										<img className="img-flag" src={'/img/flag/langru.png'} alt="" width={24} height={24} />
+										{'Русский'}
 									</MenuItem>
 								</StyledMenu>
 							</div>

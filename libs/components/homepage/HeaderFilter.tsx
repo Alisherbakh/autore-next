@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useLazyQuery } from '@apollo/client';
 import { Stack, Box, Modal, Divider, Button } from '@mui/material';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -6,7 +7,9 @@ import CloseIcon from '@mui/icons-material/Close';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import { carMileages, carYears } from '../../config';
+import { carMileages, carYears, REACT_APP_API_URL } from '../../config';
+import { GET_CARS } from '../../../apollo/user/query';
+import { formatEnum, formatterStr } from '../../utils';
 import { CarBrand, CarFuelType, CarLocation, CarType } from '../../enums/car.enum';
 import { CarsInquiry } from '../../types/car/car.input';
 import { useRouter } from 'next/router';
@@ -34,6 +37,10 @@ const MenuProps = {
 
 const thisYear = new Date().getFullYear();
 
+
+// "natija yo'q" holatida taklif qilinadigan brendlar
+const SUGGESTED_BRANDS = ['HYUNDAI', 'KIA', 'GENESIS', 'KGM'];
+
 interface HeaderFilterProps {
 	initialInput: CarsInquiry;
 }
@@ -41,7 +48,7 @@ interface HeaderFilterProps {
 const HeaderFilter = (props: HeaderFilterProps) => {
 	const { initialInput } = props;
 	const device = useDeviceDetect();
-	const { t, i18n } = useTranslation('common');
+	const { t } = useTranslation('common');
 	const [searchFilter, setSearchFilter] = useState<CarsInquiry>(initialInput);
 	const locationRef: any = useRef();
 	const typeRef: any = useRef();
@@ -57,21 +64,95 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 	const [carFuelType, setCarFuelType] = useState<CarFuelType[]>(Object.values(CarFuelType));
 	const [yearCheck, setYearCheck] = useState({ start: 1990, end: thisYear + 1 });
 	const [optionCheck, setOptionCheck] = useState('all');
+	// matnli qidiruv (model nomi): fokusda kengayadi, yozilganda jonli natijalar ochiladi
+	const [searchFocused, setSearchFocused] = useState(false);
+	const [resultsOpen, setResultsOpen] = useState(false);
+	const [activeIndex, setActiveIndex] = useState(-1);
+	const [debouncedText, setDebouncedText] = useState('');
+	// oxirgi harakat klaviaturadanmi yoki sichqonchadanmi — klaviatura harakatlari animatsiyasiz bo'ladi
+	const [inputKind, setInputKind] = useState<'pointer' | 'keyboard'>('pointer');
+	const queryWrapRef = useRef<HTMLDivElement>(null);
+	const queryInputRef = useRef<HTMLInputElement>(null);
+	const locationTriggerRef = useRef<HTMLButtonElement>(null);
+	const typeTriggerRef = useRef<HTMLButtonElement>(null);
+	const brandTriggerRef = useRef<HTMLButtonElement>(null);
+	const searchText = searchFilter?.search?.text ?? '';
+
+	/** APOLLO REQUESTS **/
+	// GET_CARS — apollo/user/query.ts dan; yozilgan model nomi bo'yicha 5 ta e'lonni oldindan ko'rsatadi
+	const [getPreviewCars, { data: previewData, loading: previewLoading }] = useLazyQuery(GET_CARS, {
+		fetchPolicy: 'cache-first',
+	});
+	const previewCars: any[] = debouncedText ? previewData?.getCars?.list ?? [] : [];
+	const previewTotal: number = previewData?.getCars?.metaCounter?.[0]?.total ?? 0;
 
 	/** LIFECYCLES **/
+	// yozish to'xtagach (250ms) qidiradi — har bir harfda so'rov yubormaslik uchun
+	useEffect(() => {
+		const text = searchText.trim();
+		if (text.length < 2) {
+			setDebouncedText('');
+			return;
+		}
+		const timer = setTimeout(() => {
+			setDebouncedText(text);
+			getPreviewCars({
+				variables: { input: { page: 1, limit: 5, sort: 'carViews', direction: 'DESC', search: { text } } },
+			});
+		}, 250);
+		return () => clearTimeout(timer);
+	}, [searchText]);
+
+	// natijalar o'zgarganda tanlangan qator boshiga qaytadi
+	useEffect(() => {
+		setActiveIndex(-1);
+	}, [debouncedText]);
+
+	// Esc: ochiq panel yoki natijalarni yopadi va fokusni o'z tugmasiga qaytaradi (animatsiyasiz)
+	useEffect(() => {
+		const keyHandler = (event: KeyboardEvent) => {
+			if (event.key !== 'Escape') return;
+			setInputKind('keyboard');
+			if (openLocation) {
+				setOpenLocation(false);
+				locationTriggerRef.current?.focus();
+			} else if (openType) {
+				setOpenType(false);
+				typeTriggerRef.current?.focus();
+			} else if (openBrand) {
+				setOpenBrand(false);
+				brandTriggerRef.current?.focus();
+			} else if (resultsOpen) {
+				setResultsOpen(false);
+			}
+		};
+		document.addEventListener('keydown', keyHandler);
+		return () => document.removeEventListener('keydown', keyHandler);
+	}, [openLocation, openType, openBrand, resultsOpen]);
+
+	// natijalar paneli tashqarisiga bosilsa yopiladi
+	useEffect(() => {
+		const outsideHandler = (event: MouseEvent) => {
+			if (!queryWrapRef.current?.contains(event.target as Node)) setResultsOpen(false);
+		};
+		document.addEventListener('mousedown', outsideHandler);
+		return () => document.removeEventListener('mousedown', outsideHandler);
+	}, []);
 	// sahifaning istalgan joyiga bosilganda ishga tushadi: agar bosilgan joy location/type/brand
 	// dropdown'larining ichida bo'lmasa, o'sha dropdown'ni yopadi (tashqariga bosilsa menyu yopilishi uchun)
 	useEffect(() => {
 		const clickHandler = (event: MouseEvent) => {
-			if (!locationRef?.current?.contains(event.target)) {
+			const target = event.target as Node;
+			// tugmaning o'zi bosilganda yopmaymiz — aks holda u darhol qayta ochilib qoladi
+			if (!locationRef?.current?.contains(target) && !locationTriggerRef.current?.contains(target)) {
 				setOpenLocation(false);
 			}
 
-			if (!typeRef?.current?.contains(event.target)) {
+			if (!typeRef?.current?.contains(target) && !typeTriggerRef.current?.contains(target)) {
 				setOpenType(false);
 			}
 
-			if (!brandRef?.current?.contains(event.target)) {
+			if (!brandRef?.current?.contains(target) && !brandTriggerRef.current?.contains(target)) {
 				setOpenBrand(false);
 			}
 		};
@@ -202,7 +283,6 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 					setSearchFilter({ ...searchFilter });
 				}
 
-				console.log('carFuelSelectHandler:', fuel);
 			} catch (err: any) {
 				console.log('ERROR, carFuelSelectHandler:', err);
 			}
@@ -323,102 +403,318 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 		}
 	};
 
+	// matnli qidiruv maydoni o'zgarganda: searchFilter.search.text'ga yozadi (Advanced oynasidagi maydon bilan bir xil holat)
+	const searchTextChangeHandler = (value: string) => {
+		setSearchFilter({ ...searchFilter, search: { ...searchFilter.search, text: value } });
+		setResultsOpen(value.trim().length >= 2);
+	};
+
+	// natijalar ichida ↑/↓ bilan yurish, Enter — tanlangan e'lonni yoki umumiy qidiruvni ochadi
+	const searchKeyDownHandler = async (event: React.KeyboardEvent<HTMLInputElement>) => {
+		setInputKind('keyboard');
+		const count = previewCars.length;
+		if (event.key === 'ArrowDown' && count) {
+			event.preventDefault();
+			setResultsOpen(true);
+			setActiveIndex((prev) => (prev + 1) % count);
+		} else if (event.key === 'ArrowUp' && count) {
+			event.preventDefault();
+			setActiveIndex((prev) => (prev <= 0 ? count - 1 : prev - 1));
+		} else if (event.key === 'Enter') {
+			event.preventDefault();
+			if (resultsOpen && activeIndex >= 0 && previewCars[activeIndex]) {
+				await router.push({ pathname: '/car/detail', query: { id: previewCars[activeIndex]._id } });
+			} else {
+				await pushSearchHandler();
+			}
+		}
+	};
+
+	// "natija yo'q" holatidagi brend tugmasi: matnni tozalab, brend filtrini qo'yadi
+	const suggestedBrandHandler = (brand: string) => {
+		setSearchFilter({
+			...searchFilter,
+			search: { ...searchFilter.search, text: '', brandList: [brand as CarBrand] },
+		});
+		setResultsOpen(false);
+	};
+
+	// panelni klaviatura bilan ochganda fokus birinchi variantga o'tadi
+	const focusFirstOption = (panel: any) => {
+		requestAnimationFrame(() => panel?.current?.querySelector('button')?.focus());
+	};
+
+	const triggerKeyDown = (event: React.KeyboardEvent, panel: any) => {
+		if (event.key === 'Enter' || event.key === ' ') {
+			setInputKind('keyboard');
+			focusFirstOption(panel);
+		}
+	};
+
 	if (device === 'mobile') {
 		return <div>HEADER FILTER MOBILE</div>;
 	} else {
+		const selectedLocation = searchFilter?.search?.locationList?.[0];
+		const selectedType = searchFilter?.search?.typeList?.[0];
+		const selectedBrand = searchFilter?.search?.brandList?.[0];
+		const showResults = resultsOpen && searchText.trim().length >= 2;
+
 		return (
 			<>
-				<Stack className={'search-box'}>
-					<Stack className={'select-box'}>
-						<Box component={'div'} className={`box ${openLocation ? 'on' : ''}`} onClick={locationStateChangeHandler}>
-							<span>{searchFilter?.search?.locationList ? searchFilter?.search?.locationList[0] : t('Location')} </span>
-							<ExpandMoreIcon />
-						</Box>
-						<Box className={`box ${openType ? 'on' : ''}`} onClick={typeStateChangeHandler}>
-							<span> {searchFilter?.search?.typeList ? searchFilter?.search?.typeList[0] : t('Car type')} </span>
-							<ExpandMoreIcon />
-						</Box>
-						<Box className={`box ${openBrand ? 'on' : ''}`} onClick={brandStateChangeHandler}>
-							<span>
-								{searchFilter?.search?.brandList ? searchFilter?.search?.brandList[0] : t('Brand')}
-							</span>
-							<ExpandMoreIcon />
-						</Box>
-					</Stack>
-					<Stack className={'search-box-other'}>
-						<Box className={'advanced-filter'} onClick={() => advancedFilterHandler(true)}>
-							<img src="/img/icons/tune.svg" alt="" />
-							<span>{t('Advanced')}</span>
-						</Box>
-						<Box className={'search-btn'} onClick={pushSearchHandler}>
-							<img src="/img/icons/search_white.svg" alt="" />
-							<span>{t('Search cars')}</span>
-						</Box>
-					</Stack>
+				<div
+					className={`sf-bar ${searchFocused ? 'is-searching' : ''}`}
+					data-input={inputKind}
+					onPointerDown={() => setInputKind('pointer')}
+				>
+					{/* model nomi bo'yicha matnli qidiruv: fokusda butun maydonlar ustiga kengayadi */}
+					<div className={'sf-query'} ref={queryWrapRef}>
+						<label className={'sf-query-field'}>
+							<img src="/img/icons/search.svg" alt="" width={18} height={18} />
+							<input
+								ref={queryInputRef}
+								name={'text'}
+								type={'search'}
+								autoComplete={'off'}
+								spellCheck={false}
+								role={'combobox'}
+								aria-label={t('Search a model')}
+								aria-expanded={showResults}
+								aria-controls={'sf-results'}
+								aria-autocomplete={'list'}
+								aria-activedescendant={activeIndex >= 0 ? `sf-result-${activeIndex}` : undefined}
+								placeholder={t('Search a model, e.g. Sonata…')}
+								value={searchText}
+								onFocus={() => {
+									setSearchFocused(true);
+									disableAllStateHandler();
+									if (searchText.trim().length >= 2) setResultsOpen(true);
+								}}
+								onBlur={(e) => {
+									setSearchFocused(false);
+									// fokus natijalar paneli tashqarisiga chiqsa (masalan Tab bilan) natijalar yopiladi
+									if (!queryWrapRef.current?.contains(e.relatedTarget as Node)) setResultsOpen(false);
+								}}
+								onChange={(e) => searchTextChangeHandler(e.target.value)}
+								onKeyDown={searchKeyDownHandler}
+							/>
+						</label>
 
-					{/*MENU */}
-					<div className={`filter-location ${openLocation ? 'on' : ''}`} ref={locationRef}>
-						{carLocation.map((location: string) => {
-							return (
-								<div onClick={() => carLocationSelectHandler(location)} key={location}>
-									<img src={`img/banner/cities/${location}.webp`} alt="" />
-									<span>{location}</span>
+						{/* jonli natijalar */}
+						<div id={'sf-results'} className={`sf-results ${showResults ? 'on' : ''}`} role={'listbox'}>
+							{previewLoading && !previewCars.length ? (
+								<div className={'sf-results-skeleton'} aria-hidden="true">
+									<span />
+									<span />
+									<span />
 								</div>
-							);
-						})}
-					</div>
-
-					<div className={`filter-type ${openType ? 'on' : ''}`} ref={typeRef}>
-						{carType.map((type: string) => {
-							return (
-								<div
-									style={{
-										// rasm bo'lsa ko'rsatadi (public/img/banner/types/sedan.webp ...), bo'lmasa gradient fon qoladi
-										backgroundImage: `url(/img/banner/types/${type.toLowerCase()}.webp), linear-gradient(135deg, #EEF1F7 0%, #DCE3F0 100%)`,
-										backgroundSize: 'cover',
-										backgroundPosition: 'center',
-									}}
-									onClick={() => carTypeSelectHandler(type)}
-									key={type}
-								>
-									<span>{type}</span>
+							) : previewCars.length ? (
+								<>
+									{previewCars.map((car: any, index: number) => (
+										<button
+											type={'button'}
+											role={'option'}
+											id={`sf-result-${index}`}
+											aria-selected={activeIndex === index}
+											className={`sf-result ${activeIndex === index ? 'active' : ''}`}
+											style={{ '--i': index } as React.CSSProperties}
+											key={car._id}
+											onMouseDown={(e) => e.preventDefault()}
+											onMouseEnter={() => setActiveIndex(index)}
+											onClick={() => router.push({ pathname: '/car/detail', query: { id: car._id } })}
+										>
+											<img
+												src={car.carImages?.[0] ? `${REACT_APP_API_URL}/${car.carImages[0]}` : '/img/types/sedan.jpg'}
+												alt=""
+												width={64}
+												height={44}
+												loading={'lazy'}
+											/>
+											<span className={'sf-result-text'}>
+												<strong>{car.carTitle}</strong>
+												<small>
+													{car.carYear}, {car.carMileage?.toLocaleString()} km
+												</small>
+											</span>
+											<span className={'sf-result-price'}>₩{formatterStr(car.carPrice)}</span>
+										</button>
+									))}
+									<button
+										type={'button'}
+										className={'sf-results-all'}
+										onMouseDown={(e) => e.preventDefault()}
+										onClick={pushSearchHandler}
+									>
+										{t('See all {{count}} cars', { count: previewTotal })}
+									</button>
+								</>
+							) : debouncedText ? (
+								<div className={'sf-results-empty'}>
+									<p>{t('No cars match “{{query}}”. Try a brand instead:', { query: debouncedText })}</p>
+									<div>
+										{SUGGESTED_BRANDS.map((brand) => (
+											<button
+												type={'button'}
+												key={brand}
+												onMouseDown={(e) => e.preventDefault()}
+												onClick={() => suggestedBrandHandler(brand)}
+											>
+												{formatEnum(brand)}
+											</button>
+										))}
+									</div>
 								</div>
-							);
-						})}
+							) : null}
+						</div>
+						<span className={'sf-sr-only'} aria-live={'polite'}>
+							{showResults && debouncedText && !previewLoading
+								? t('{{count}} cars found', { count: previewTotal })
+								: ''}
+						</span>
 					</div>
 
-					<div className={`filter-brands ${openBrand ? 'on' : ''}`} ref={brandRef}>
-						{carBrand.map((brand: string) => {
-							return (
-								<span onClick={() => carBrandSelectHandler(brand)} key={brand}>
-									{brand}
-								</span>
-							);
-						})}
+					<button
+						type={'button'}
+						ref={locationTriggerRef}
+						className={`sf-field sf-field-1 ${openLocation ? 'on' : ''}`}
+						aria-haspopup={'listbox'}
+						aria-expanded={openLocation}
+						aria-controls={'sf-location'}
+						onClick={locationStateChangeHandler}
+						onKeyDown={(e) => triggerKeyDown(e, locationRef)}
+					>
+						<small>{t('Location')}</small>
+						<span>{selectedLocation ? formatEnum(selectedLocation) : t('Any city')}</span>
+						<ExpandMoreIcon aria-hidden="true" />
+					</button>
+					<button
+						type={'button'}
+						ref={typeTriggerRef}
+						className={`sf-field sf-field-2 ${openType ? 'on' : ''}`}
+						aria-haspopup={'listbox'}
+						aria-expanded={openType}
+						aria-controls={'sf-type'}
+						onClick={typeStateChangeHandler}
+						onKeyDown={(e) => triggerKeyDown(e, typeRef)}
+					>
+						<small>{t('Car type')}</small>
+						<span>{selectedType ? formatEnum(selectedType) : t('Any type')}</span>
+						<ExpandMoreIcon aria-hidden="true" />
+					</button>
+					<button
+						type={'button'}
+						ref={brandTriggerRef}
+						className={`sf-field sf-field-3 ${openBrand ? 'on' : ''}`}
+						aria-haspopup={'listbox'}
+						aria-expanded={openBrand}
+						aria-controls={'sf-brand'}
+						onClick={brandStateChangeHandler}
+						onKeyDown={(e) => triggerKeyDown(e, brandRef)}
+					>
+						<small>{t('Brand')}</small>
+						<span>{selectedBrand ? formatEnum(selectedBrand) : t('Any brand')}</span>
+						<ExpandMoreIcon aria-hidden="true" />
+					</button>
+
+					<button type={'button'} className={'sf-advanced'} onClick={() => advancedFilterHandler(true)}>
+						<img src="/img/icons/tune.svg" alt="" width={20} height={20} />
+						<span>{t('Advanced')}</span>
+					</button>
+					<button type={'button'} className={'sf-search'} onClick={pushSearchHandler}>
+						<img src="/img/icons/search_white.svg" alt="" width={20} height={20} />
+						<span>{t('Search cars')}</span>
+					</button>
+
+					{/* PANELLAR */}
+					<div
+						id={'sf-location'}
+						className={`sf-panel sf-panel-location ${openLocation ? 'on' : ''}`}
+						ref={locationRef}
+						role={'listbox'}
+						aria-label={t('Location')}
+					>
+						{carLocation.map((location: string) => (
+							<button
+								type={'button'}
+								role={'option'}
+								aria-selected={selectedLocation === location}
+								className={`sf-city ${selectedLocation === location ? 'active' : ''}`}
+								onClick={() => carLocationSelectHandler(location)}
+								key={location}
+							>
+								<img src={`/img/banner/cities/${location}.webp`} alt="" width={96} height={64} loading={'lazy'} />
+								<span>{formatEnum(location)}</span>
+							</button>
+						))}
 					</div>
-				</Stack>
+
+					<div
+						id={'sf-type'}
+						className={`sf-panel sf-panel-type ${openType ? 'on' : ''}`}
+						ref={typeRef}
+						role={'listbox'}
+						aria-label={t('Car type')}
+					>
+						{carType.map((type: string) => (
+							<button
+								type={'button'}
+								role={'option'}
+								aria-selected={selectedType === type}
+								className={`sf-type ${selectedType === type ? 'active' : ''}`}
+								onClick={() => carTypeSelectHandler(type)}
+								key={type}
+							>
+								<img src={`/img/types/${type.toLowerCase()}.jpg`} alt="" width={200} height={125} loading={'lazy'} />
+								<span>{formatEnum(type)}</span>
+							</button>
+						))}
+					</div>
+
+					<div
+						id={'sf-brand'}
+						className={`sf-panel sf-panel-brand ${openBrand ? 'on' : ''}`}
+						ref={brandRef}
+						role={'listbox'}
+						aria-label={t('Brand')}
+					>
+						{carBrand.map((brand: string) => (
+							<button
+								type={'button'}
+								role={'option'}
+								aria-selected={selectedBrand === brand}
+								className={`sf-brand ${selectedBrand === brand ? 'active' : ''}`}
+								onClick={() => carBrandSelectHandler(brand)}
+								key={brand}
+							>
+								{formatEnum(brand)}
+							</button>
+						))}
+					</div>
+				</div>
 
 				{/* ADVANCED FILTER MODAL */}
-				<Modal
-					open={openAdvancedFilter}
-					onClose={() => advancedFilterHandler(false)}
-					aria-labelledby="modal-modal-title"
-					aria-describedby="modal-modal-description"
-				>
+				<Modal open={openAdvancedFilter} onClose={() => advancedFilterHandler(false)} aria-labelledby="sf-advanced-title">
 					{/* @ts-ignore */}
 					<Box sx={style}>
 						<Box className={'advanced-filter-modal'}>
-							<div className={'close'} onClick={() => advancedFilterHandler(false)}>
-								<CloseIcon />
-							</div>
+							<button
+								type={'button'}
+								className={'close'}
+								aria-label={t('Close')}
+								onClick={() => advancedFilterHandler(false)}
+							>
+								<CloseIcon aria-hidden="true" />
+							</button>
 							<div className={'top'}>
-								<span>Find your car</span>
+								<span id={'sf-advanced-title'}>{t('Find your car')}</span>
 								<div className={'search-input-box'}>
-									<img src="/img/icons/search.svg" alt="" />
+									<img src="/img/icons/search.svg" alt="" width={17} height={17} />
 									<input
-										value={searchFilter?.search?.text ?? ''}
-										type="text"
-										placeholder={'What are you looking for?'}
+										name={'text'}
+										value={searchText}
+										type="search"
+										autoComplete={'off'}
+										aria-label={t('Search a model')}
+										placeholder={t('What are you looking for…')}
 										onChange={(e: any) => {
 											setSearchFilter({
 												...searchFilter,
@@ -431,54 +727,60 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 							<Divider sx={{ mt: '30px', mb: '35px' }} />
 							<div className={'middle'}>
 								<div className={'row-box'}>
-									<div className={'box'}>
-										<span>fuel type</span>
-										<div className={'inside'}>
-											<div
+									<div className={'box box-wide'}>
+										<span>{t('Fuel type')}</span>
+										<div className={'inside fuel-chips'} role={'group'} aria-label={t('Fuel type')}>
+											<button
+												type={'button'}
+												aria-pressed={!searchFilter?.search?.fuelTypeList}
 												className={`fuel-chip ${!searchFilter?.search?.fuelTypeList ? 'active' : ''}`}
 												onClick={() => carFuelSelectHandler('ANY')}
 											>
-												Any
-											</div>
+												{t('Any')}
+											</button>
 											{carFuelType.map((fuel: CarFuelType) => (
-												<div
+												<button
+													type={'button'}
+													aria-pressed={!!searchFilter?.search?.fuelTypeList?.includes(fuel)}
 													className={`fuel-chip ${searchFilter?.search?.fuelTypeList?.includes(fuel) ? 'active' : ''}`}
 													onClick={() => carFuelSelectHandler(fuel)}
 													key={fuel}
 												>
-													{fuel}
-												</div>
+													{formatEnum(fuel)}
+												</button>
 											))}
 										</div>
 									</div>
+								</div>
+								<div className={'row-box'} style={{ marginTop: '32px' }}>
 									<div className={'box'}>
-										<span>options</span>
+										<span>{t('Options')}</span>
 										<div className={'inside'}>
-											<FormControl>
+											<FormControl fullWidth>
 												<Select
 													value={optionCheck}
 													onChange={carOptionSelectHandler}
 													displayEmpty
-													inputProps={{ 'aria-label': 'Without label' }}
+													inputProps={{ 'aria-label': t('Options') }}
 												>
-													<MenuItem value={'all'}>All Options</MenuItem>
-													<MenuItem value={'carBarter'}>Barter</MenuItem>
-													<MenuItem value={'carCredit'}>Credit</MenuItem>
+													<MenuItem value={'all'}>{t('All options')}</MenuItem>
+													<MenuItem value={'carBarter'}>{t('Barter')}</MenuItem>
+													<MenuItem value={'carCredit'}>{t('Credit')}</MenuItem>
 												</Select>
 											</FormControl>
 										</div>
 									</div>
 								</div>
-								<div className={'row-box'} style={{ marginTop: '44px' }}>
+								<div className={'row-box'} style={{ marginTop: '32px' }}>
 									<div className={'box'}>
-										<span>Year</span>
+										<span>{t('Year')}</span>
 										<div className={'inside space-between align-center'}>
 											<FormControl sx={{ width: '122px' }}>
 												<Select
 													value={yearCheck.start.toString()}
 													onChange={yearStartChangeHandler}
 													displayEmpty
-													inputProps={{ 'aria-label': 'Without label' }}
+													inputProps={{ 'aria-label': t('Year from') }}
 													MenuProps={MenuProps}
 												>
 													{carYears?.slice(0)?.map((year: number) => (
@@ -494,7 +796,7 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 													value={yearCheck.end.toString()}
 													onChange={yearEndChangeHandler}
 													displayEmpty
-													inputProps={{ 'aria-label': 'Without label' }}
+													inputProps={{ 'aria-label': t('Year to') }}
 													MenuProps={MenuProps}
 												>
 													{carYears
@@ -510,14 +812,14 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 										</div>
 									</div>
 									<div className={'box'}>
-										<span>mileage (km)</span>
+										<span>{t('Mileage (km)')}</span>
 										<div className={'inside space-between align-center'}>
 											<FormControl sx={{ width: '122px' }}>
 												<Select
 													value={searchFilter?.search?.mileageRange?.start ?? 0}
 													onChange={(e: any) => carMileageHandler(e, 'start')}
 													displayEmpty
-													inputProps={{ 'aria-label': 'Without label' }}
+													inputProps={{ 'aria-label': t('Mileage from') }}
 													MenuProps={MenuProps}
 												>
 													{carMileages.map((mileage: number) => (
@@ -537,7 +839,7 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 													value={searchFilter?.search?.mileageRange?.end ?? carMileages[carMileages.length - 1]}
 													onChange={(e: any) => carMileageHandler(e, 'end')}
 													displayEmpty
-													inputProps={{ 'aria-label': 'Without label' }}
+													inputProps={{ 'aria-label': t('Mileage to') }}
 													MenuProps={MenuProps}
 												>
 													{carMileages.map((mileage: number) => (
@@ -555,18 +857,18 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 									</div>
 								</div>
 							</div>
-							<Divider sx={{ mt: '60px', mb: '18px' }} />
+							<Divider sx={{ mt: '40px', mb: '18px' }} />
 							<div className={'bottom'}>
-								<div onClick={resetFilterHandler}>
-									<img src="/img/icons/reset.svg" alt="" />
-									<span>Reset all filters</span>
-								</div>
+								<button type={'button'} className={'reset'} onClick={resetFilterHandler}>
+									<img src="/img/icons/reset.svg" alt="" width={15} height={15} />
+									<span>{t('Reset all filters')}</span>
+								</button>
 								<Button
-									startIcon={<img src={'/img/icons/search.svg'} />}
+									startIcon={<img src={'/img/icons/search_white.svg'} alt="" width={18} height={18} />}
 									className={'search-btn'}
 									onClick={pushSearchHandler}
 								>
-									Search
+									{t('Search cars')}
 								</Button>
 							</div>
 						</Box>

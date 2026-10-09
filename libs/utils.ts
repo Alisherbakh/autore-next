@@ -43,3 +43,12 @@ export const likeTargetMemberHandler = async (likeTargetMember: any, id: string)
 		sweetMixinErrorAlert(err.message).then();
 	}
 };
+
+// enum qiymatini o'qiladigan ko'rinishga keltiradi: SEOUL → Seoul, KIA → Kia, GASOLINE → Gasoline
+// (qisqartmalar — SUV, KGM, BMW, LPG — o'zgarmaydi)
+const ENUM_ACRONYMS = ['SUV', 'KGM', 'BMW', 'LPG'];
+export const formatEnum = (value?: string): string => {
+	if (!value) return '';
+	if (ENUM_ACRONYMS.includes(value)) return value;
+	return value.charAt(0) + value.slice(1).toLowerCase();
+};

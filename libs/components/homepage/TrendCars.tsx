@@ -7,7 +7,8 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Pagination } from 'swiper';
 import { Car } from '../../types/car/car';
 import { CarsInquiry } from '../../types/car/car.input';
-import TrendCarCard from './TrendCarCard';
+import TrendCarCard, { TrendCarSkeleton } from './TrendCarCard';
+import { useTranslation } from 'next-i18next';
 import { useMutation, useQuery } from '@apollo/client';
 import { GET_CARS } from '../../../apollo/user/query';
 import { T } from '../../types/common';
@@ -22,6 +23,7 @@ interface TrendCarsProps {
 const TrendCars = (props: TrendCarsProps) => {
 	const { initialInput } = props;
 	const device = useDeviceDetect();
+	const { t } = useTranslation('common');
 	const [trendCars, setTrendCars] = useState<Car[]>([]);
 
 	/** APOLLO REQUESTS **/
@@ -38,7 +40,7 @@ const TrendCars = (props: TrendCarsProps) => {
 		variables: { input: initialInput }, // sort: carLikes DESC — "eng ko'p like olgan" e'lonlar (defaultProps'da belgilangan)
 		notifyOnNetworkStatusChange: true, // refetch paytida ham loading holatini kuzatish imkonini beradi
 		onCompleted: (data: T) => {
-			setTrendCars(data?.getCars?.list); // kelgan e'lonlar ro'yxatini state'ga yozadi
+			setTrendCars(data?.getCars?.list ?? []); // kelgan e'lonlar ro'yxatini state'ga yozadi
 		},
 	});
 	/** HANDLERS **/
@@ -60,8 +62,14 @@ const TrendCars = (props: TrendCarsProps) => {
 		}
 	};
 
-	if (trendCars) console.log('trendCars:', trendCars);
-	if (!trendCars) return null;
+	// birinchi yuklanishda (hali e'lon yo'q) skelet kartalar ko'rsatiladi
+	const showSkeleton = getCarsLoading && !trendCars?.length;
+	const skeletonSlides = [0, 1, 2, 3].map((i) => (
+		<SwiperSlide key={`sk-${i}`} className={'trend-car-slide'}>
+			<TrendCarSkeleton />
+		</SwiperSlide>
+	));
+	const emptyText = t('No trending cars yet. Like a car to see it here.');
 
 	if (device === 'mobile') {
 		return (
@@ -70,10 +78,10 @@ const TrendCars = (props: TrendCarsProps) => {
 					<Stack className={'info-box'}>
 						<span>Trend Cars</span>
 					</Stack>
-					<Stack className={'card-box'}>
-						{trendCars.length === 0 ? (
+					<Stack className={'card-box'} aria-busy={showSkeleton}>
+						{!showSkeleton && trendCars.length === 0 ? (
 							<Box component={'div'} className={'empty-list'}>
-								Trends Empty
+								{emptyText}
 							</Box>
 						) : (
 							<Swiper
@@ -83,6 +91,7 @@ const TrendCars = (props: TrendCarsProps) => {
 								spaceBetween={15}
 								modules={[Autoplay]}
 							>
+								{showSkeleton && skeletonSlides}
 								{trendCars.map((car: Car) => {
 									return (
 										<SwiperSlide key={car._id} className={'trend-car-slide'}>
@@ -113,10 +122,10 @@ const TrendCars = (props: TrendCarsProps) => {
 							</div>
 						</Box>
 					</Stack>
-					<Stack className={'card-box'}>
-						{trendCars.length === 0 ? (
+					<Stack className={'card-box'} aria-busy={showSkeleton}>
+						{!showSkeleton && trendCars.length === 0 ? (
 							<Box component={'div'} className={'empty-list'}>
-								Trends Empty
+								{emptyText}
 							</Box>
 						) : (
 							<Swiper
@@ -132,6 +141,7 @@ const TrendCars = (props: TrendCarsProps) => {
 									el: '.swiper-trend-pagination',
 								}}
 							>
+								{showSkeleton && skeletonSlides}
 								{trendCars.map((car: Car) => {
 									return (
 										<SwiperSlide key={car._id} className={'trend-car-slide'}>

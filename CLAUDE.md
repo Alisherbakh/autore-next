@@ -10,6 +10,7 @@ This client project is being migrated from nestar-next to autore-next
 - Keep GraphQL/Apollo integration
 - Do not rewrite the whole app
 - Improve UI incrementally
+- Use MUI + SCSS only, no Tailwind, don’t change app logic.
 
 ## Backend Context
 

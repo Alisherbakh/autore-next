@@ -90,27 +90,6 @@ body::-webkit-scrollbar {
 							font-weight: 600;
 							line-height: normal;
 							cursor: pointer;
-							.community_menu {
-								position: absolute;
-								left: -177%;
-								top: 30px;
-								width: 434px;
-								height: 33px;
-								background: white;
-								transition: all ease 2s;
-								&:before {
-									content: '';
-									display: block;
-									position: absolute;
-									top: 0;
-									right: 50%;
-									width: 10px;
-									height: 10px;
-									background: white;
-									transform: translateY(-50%) rotate(45deg);
-									z-index: 0;
-								}
-							}
 						}
 					}
 					.user-box {
@@ -843,6 +822,8 @@ body::-webkit-scrollbar {
 		position: absolute;
 		top: 20px;
 		right: 10px;
+		border: 0;
+		color: $c-text;
 		width: 40px;
 		height: 40px;
 		border-radius: 50%;
@@ -912,6 +893,9 @@ body::-webkit-scrollbar {
 			.box {
 				position: relative;
 				width: 285px;
+				&.box-wide {
+					width: 100%;
+				}
 				height: auto;
 				display: flex;
 				flex-direction: column;
@@ -923,7 +907,6 @@ body::-webkit-scrollbar {
 					font-style: normal;
 					font-weight: 600;
 					line-height: normal;
-					text-transform: capitalize;
 				}
 				.inside {
 					position: relative;
@@ -937,28 +920,47 @@ body::-webkit-scrollbar {
 					&.align-center {
 						align-items: center;
 					}
-					div.fuel-chip {
-						width: 46px;
-						height: 46px;
+					&.fuel-chips {
+						flex-wrap: wrap;
+						gap: 8px;
+					}
+					.fuel-chip {
+						min-height: 40px;
+						padding: 0 14px;
 						display: flex;
 						align-items: center;
 						justify-content: center;
 						border: 1px solid $c-line;
+						border-radius: 999px;
+						background: $c-surface;
 						color: $c-text;
 						font-family: $font;
-						font-size: 13px;
-						font-style: normal;
+						font-size: 14px;
 						font-weight: 600;
-						line-height: normal;
 						cursor: pointer;
-						&:first-child {
-							border-radius: $r-md 0px 0px $r-md;
-						}
-						&:last-child {
-							border-radius: 0px $r-md $r-md 0px;
+						transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease,
+							transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+						&:active {
+							transform: scale(0.97);
 						}
 						&.active {
-							border: 2px solid $c-text;
+							border-color: $c-primary;
+							background: rgba(0, 87, 255, 0.06);
+							color: $c-primary-dark;
+						}
+						&:focus-visible {
+							outline: 2px solid $c-primary;
+							outline-offset: 2px;
+						}
+						@media (hover: hover) and (pointer: fine) {
+							&:hover {
+								border-color: $c-text;
+							}
+						}
+						@media (prefers-reduced-motion: reduce) {
+							&:active {
+								transform: none;
+							}
 						}
 					}
 					select {
@@ -1007,15 +1009,22 @@ body::-webkit-scrollbar {
 		display: flex;
 		flex-direction: row;
 		justify-content: space-between;
-		div {
+		.reset {
+			padding: 0;
+			border: 0;
+			background: none;
 			display: flex;
 			flex-direction: row;
 			align-items: center;
+			cursor: pointer;
+			&:focus-visible {
+				outline: 2px solid $c-primary;
+				outline-offset: 2px;
+			}
 			img {
 				margin-right: 10px;
 				width: 15px;
 				height: 15px;
-				cursor: pointer;
 			}
 			span {
 				color: $c-text;
@@ -1028,12 +1037,24 @@ body::-webkit-scrollbar {
 				cursor: pointer;
 			}
 		}
-		button {
+		.search-btn {
 			width: 185px;
 			height: 54px;
 			border-radius: $r-md;
-			background: linear-gradient(90deg, #e8543e 0%, #ec6b57 100%);
+			background: $c-primary;
 			color: #fff;
+			transition: background-color 150ms ease, transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+			&:hover {
+				background: $c-primary-dark;
+			}
+			&:active {
+				transform: scale(0.97);
+			}
+			@media (prefers-reduced-motion: reduce) {
+				&:active {
+					transform: none;
+				}
+			}
 			font-family: $font;
 			font-size: 14px;
 			font-style: normal;

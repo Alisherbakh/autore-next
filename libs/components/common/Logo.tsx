@@ -8,7 +8,7 @@ interface LogoProps {
 // hover animatsiyasi v01.scss'dagi .autore-logo blokida (fon/soya effektisiz)
 const Logo = ({ dark = false }: LogoProps) => {
 	return (
-		<span className={`autore-logo ${dark ? 'dark' : ''}`}>
+		<span className={`autore-logo ${dark ? 'dark' : ''}`} role={'img'} aria-label={'Autore'}>
 			<svg className={'autore-logo-mark'} width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
 				<rect className={'autore-logo-badge'} width="32" height="32" rx="9" fill="#0057FF" />
 				<path
@@ -23,7 +23,7 @@ const Logo = ({ dark = false }: LogoProps) => {
 				<circle className={'autore-logo-dot'} cx="16" cy="21" r="2" fill="#FFFFFF" />
 			</svg>
 			{/* har bir harf alohida span — hover'da navbat bilan ko'tariladi (--i: kechikish tartibi) */}
-			<span className={'autore-logo-text'} aria-label={'AUTORE'}>
+			<span className={'autore-logo-text'} aria-hidden="true">
 				{'AUTORE'.split('').map((letter, i) => (
 					<span key={i} aria-hidden="true" style={{ '--i': i } as React.CSSProperties}>
 						{letter}
