@@ -28,73 +28,70 @@ const CarBigCard = (props: CarBigCardProps) => {
 		router.push(`/car/detail?id=${carId}`);
 	};
 
-	if (device === 'mobile') {
-		return <div>APARTMEND BIG CARD</div>;
-	} else {
-		return (
-			<Stack className="car-big-card-box" onClick={() => goCarDetatilPage(car?._id)}>
-				<Box
-					component={'div'}
-					className={'card-img'}
-					style={{ backgroundImage: `url(${REACT_APP_API_URL}/${car?.carImages?.[0]})` }}
-				>
-					{car && car?.carRank >= topCarRank && (
-						<div className={'status'}>
-							<img src="/img/icons/electricity.svg" alt="" />
-							<span>top</span>
-						</div>
-					)}
+	// mobil va desktop'da bir xil karta — mobil ko'rinishi scss/mobile/dealer.scss'da
+	return (
+		<Stack className="car-big-card-box" onClick={() => goCarDetatilPage(car?._id)}>
+			<Box
+				component={'div'}
+				className={'card-img'}
+				style={{ backgroundImage: `url(${REACT_APP_API_URL}/${car?.carImages?.[0]})` }}
+			>
+				{car && car?.carRank >= topCarRank && (
+					<div className={'status'}>
+						<img src="/img/icons/electricity.svg" alt="" />
+						<span>top</span>
+					</div>
+				)}
 
-					<div className={'price'}>₩{formatterStr(car?.carPrice)}</div>
-				</Box>
-				<Box component={'div'} className={'info'}>
-					<strong className={'title'}>{car?.carTitle}</strong>
-					<p className={'desc'}>{car?.carAddress}</p>
-					<div className={'options'}>
-						<div>
-							<img src="/img/icons/calendar.svg" alt="" />
-							<span>{car?.carYear}</span>
-						</div>
-						<div>
-							<img src="/img/icons/speedometer.svg" alt="" />
-							<span>{car?.carMileage?.toLocaleString()} km</span>
-						</div>
-						<div>
-							<img src="/img/icons/fuel.svg" alt="" />
-							<span>{car?.carFuelType}</span>
-						</div>
+				<div className={'price'}>₩{formatterStr(car?.carPrice)}</div>
+			</Box>
+			<Box component={'div'} className={'info'}>
+				<strong className={'title'}>{car?.carTitle}</strong>
+				<p className={'desc'}>{car?.carAddress}</p>
+				<div className={'options'}>
+					<div>
+						<img src="/img/icons/calendar.svg" alt="" />
+						<span>{car?.carYear}</span>
 					</div>
-					<Divider sx={{ mt: '15px', mb: '17px' }} />
-					<div className={'bott'}>
-						<div>
-							{car?.carCredit ? <p>Credit</p> : <span>Credit</span>}
-							{car?.carBarter ? <p>Barter</p> : <span>Barter</span>}
-						</div>
-						<div className="buttons-box">
-							<IconButton color={'default'}>
-								<RemoveRedEyeIcon />
-							</IconButton>
-							<Typography className="view-cnt">{car?.carViews}</Typography>
-							<IconButton
-								color={'default'}
-								onClick={(e) => {
-									e.stopPropagation();
-									likeCarHandler(user, car?._id);
-								}}
-							>
-								{car?.meLiked && car?.meLiked[0]?.myFavorite ? (
-									<FavoriteIcon style={{ color: LIKED_COLOR }} />
-								) : (
-									<FavoriteIcon />
-								)}
-							</IconButton>
-							<Typography className="view-cnt">{car?.carLikes}</Typography>
-						</div>
+					<div>
+						<img src="/img/icons/speedometer.svg" alt="" />
+						<span>{car?.carMileage?.toLocaleString()} km</span>
 					</div>
-				</Box>
-			</Stack>
-		);
-	}
+					<div>
+						<img src="/img/icons/fuel.svg" alt="" />
+						<span>{car?.carFuelType}</span>
+					</div>
+				</div>
+				<Divider sx={{ mt: '15px', mb: '17px' }} />
+				<div className={'bott'}>
+					<div>
+						{car?.carCredit ? <p>Credit</p> : <span>Credit</span>}
+						{car?.carBarter ? <p>Barter</p> : <span>Barter</span>}
+					</div>
+					<div className="buttons-box">
+						<IconButton color={'default'}>
+							<RemoveRedEyeIcon />
+						</IconButton>
+						<Typography className="view-cnt">{car?.carViews}</Typography>
+						<IconButton
+							color={'default'}
+							onClick={(e) => {
+								e.stopPropagation();
+								likeCarHandler(user, car?._id);
+							}}
+						>
+							{car?.meLiked && car?.meLiked[0]?.myFavorite ? (
+								<FavoriteIcon style={{ color: LIKED_COLOR }} />
+							) : (
+								<FavoriteIcon />
+							)}
+						</IconButton>
+						<Typography className="view-cnt">{car?.carLikes}</Typography>
+					</div>
+				</div>
+			</Box>
+		</Stack>
+	);
 };
 
 export default CarBigCard;

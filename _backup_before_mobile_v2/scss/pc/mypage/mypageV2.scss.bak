@@ -1,0 +1,1103 @@
+/**
+ * MY PAGE (pages/mypage/index.tsx + libs/components/mypage/*) — V01 "Signal" yangilangan ko'rinish.
+ * main.scss oxirida import qilinadi. Bo'limlar (.mp-section), menyu (.mp-menu), My Cars qatori (.mp-row) va
+ * Followers/Followings ro'yxati (.mp-people) stillari #pc-wrap va #mobile-wrap ikkalasida ishlaydi —
+ * member sahifasi (/member) ham shulardan foydalanadi. Mobil farqlar: scss/mobile/mypage.scss
+ */
+$mp-ease: cubic-bezier(0.23, 1, 0.32, 1);
+$mp-graphite: #14171c;
+$mp-body: #3b414a;
+$mp-faint: #9aa0a8;
+$mp-green: #1e7e46;
+$mp-green-bg: #e9f7ef;
+
+@mixin mp-input {
+	width: 100%;
+	height: 46px;
+	padding: 0 14px;
+	box-sizing: border-box;
+	border: 1px solid $c-line;
+	border-radius: 12px;
+	outline: none;
+	background: $c-bg;
+	color: $c-text;
+	font-family: $font;
+	font-size: 15px;
+	transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+	&::placeholder {
+		color: $mp-faint;
+	}
+	&:hover {
+		border-color: #cfd2d9;
+	}
+	&:focus {
+		border-color: $c-primary;
+		background: $c-surface;
+		box-shadow: 0 0 0 4px rgba(0, 87, 255, 0.12);
+	}
+}
+
+/* =====================================================================
+   SAHIFA KARKASI — desktop
+   ===================================================================== */
+#pc-wrap #my-page.mp-v2 {
+	padding: 40px 0 96px;
+	background: $c-bg;
+	font-family: $font;
+	.mp-wrap {
+		width: min(1300px, calc(100% - 48px));
+		margin: 0 auto;
+		display: grid;
+		grid-template-columns: 280px minmax(0, 1fr);
+		gap: 32px;
+		align-items: start;
+	}
+	.mp-side {
+		position: sticky;
+		top: 108px; // fixed navbar ostida
+	}
+	.mp-content {
+		min-width: 0;
+	}
+}
+
+#pc-wrap,
+#mobile-wrap {
+	/* =====================================================================
+	   MENYU — libs/components/mypage/MyMenu.tsx
+	   ===================================================================== */
+	.mp-menu {
+		padding: 18px 14px 14px;
+		box-sizing: border-box;
+		border: 1px solid $c-line;
+		border-radius: $r-lg;
+		background: $c-surface;
+		font-family: $font;
+	}
+	.mp-profile {
+		padding: 4px 6px 16px;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		border-bottom: 1px solid $c-line;
+	}
+	.mp-avatar {
+		position: relative;
+		flex-shrink: 0;
+		width: 56px;
+		height: 56px;
+		overflow: hidden;
+		border-radius: 50%;
+		background: linear-gradient(160deg, #e8eeff, #c9d6ff);
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+		span {
+			position: absolute;
+			inset: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			color: $c-primary;
+			font-size: 22px;
+			font-weight: 800;
+		}
+	}
+	.mp-profile-info {
+		min-width: 0;
+	}
+	.mp-name {
+		overflow: hidden;
+		color: $c-text;
+		font-family: $font;
+		font-size: 17px;
+		font-weight: 800;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+	.mp-profile-meta {
+		margin-top: 4px;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 8px;
+	}
+	.mp-role {
+		height: 20px;
+		padding: 0 8px;
+		display: inline-flex;
+		align-items: center;
+		border-radius: 10px;
+		background: $c-surface-2;
+		color: $c-text;
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.08em;
+		&.is-dealer {
+			background: $mp-graphite;
+			color: #ffffff;
+		}
+		&.is-admin {
+			background: $c-accent;
+			color: #ffffff;
+		}
+	}
+	.mp-phone {
+		color: $c-muted;
+		font-size: 12px;
+	}
+	.mp-admin-link {
+		margin-top: 12px;
+		padding: 10px 12px;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		border-radius: 12px;
+		background: rgba(252, 108, 38, 0.1);
+		color: #b4470f;
+		font-size: 14px;
+		font-weight: 700;
+		svg {
+			font-size: 19px;
+		}
+		.mp-ext {
+			margin-left: auto;
+			font-size: 16px;
+		}
+	}
+	.mp-nav {
+		margin-top: 8px;
+	}
+	.mp-group {
+		padding-top: 12px;
+	}
+	.mp-group-title {
+		padding: 0 10px 6px;
+		color: $mp-faint;
+		font-family: $font;
+		font-size: 11px;
+		font-weight: 800;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+	}
+	.mp-list {
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+	.mp-item {
+		padding: 0;
+		a {
+			width: 100%;
+			height: 42px;
+			padding: 0 10px;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			box-sizing: border-box;
+			border-radius: 10px;
+			color: $mp-body;
+			font-size: 14px;
+			font-weight: 600;
+			transition: background-color 160ms ease, color 160ms ease;
+			&:hover {
+				background: $c-bg;
+				color: $c-text;
+			}
+			&:focus-visible {
+				outline: 2px solid $c-primary;
+				outline-offset: 1px;
+			}
+		}
+		.mp-icon {
+			font-size: 20px;
+			color: #8a9099;
+		}
+		&.focus a {
+			background: rgba(0, 87, 255, 0.08);
+			color: $c-primary;
+			font-weight: 700;
+			.mp-icon {
+				color: $c-primary;
+			}
+		}
+	}
+	.mp-logout {
+		width: 100%;
+		margin-top: 12px;
+		padding: 0 10px;
+		height: 42px;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		border: none;
+		border-top: 1px solid $c-line;
+		border-radius: 0;
+		background: transparent;
+		color: $c-muted;
+		font-family: $font;
+		font-size: 14px;
+		font-weight: 600;
+		cursor: pointer;
+		svg {
+			font-size: 20px;
+		}
+		&:hover {
+			color: #c62828;
+		}
+	}
+
+	/* =====================================================================
+	   BO'LIMLAR — umumiy (sarlavha, karta, bo'sh holat, sahifalash, tugmalar)
+	   ===================================================================== */
+	.mp-section {
+		min-width: 0;
+		font-family: $font;
+		color: $c-text;
+
+		.main-title-box {
+			margin-bottom: 20px;
+			display: flex;
+			flex-direction: row;
+			align-items: flex-end;
+			justify-content: space-between;
+			gap: 16px;
+			.right-box {
+				min-width: 0;
+				gap: 6px;
+			}
+			.main-title {
+				color: $c-text;
+				font-family: $font;
+				font-size: 28px;
+				font-weight: 800;
+				letter-spacing: -0.02em;
+				line-height: 1.15;
+			}
+			.sub-title {
+				color: $c-muted;
+				font-family: $font;
+				font-size: 15px;
+				line-height: 1.45;
+			}
+		}
+		.mp-card {
+			padding: 24px;
+			box-sizing: border-box;
+			border: 1px solid $c-line;
+			border-radius: $r-lg;
+			background: $c-surface;
+		}
+		.mp-grid {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 24px;
+			.card-config.cl-card,
+			.cm-card {
+				width: auto !important;
+				margin: 0;
+			}
+		}
+		.mp-empty {
+			grid-column: 1 / -1;
+			padding: 56px 24px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 8px;
+			border: 1px dashed $c-line;
+			border-radius: $r-lg;
+			background: $c-surface;
+			text-align: center;
+			strong {
+				color: $c-text;
+				font-size: 18px;
+				font-weight: 800;
+			}
+			p {
+				max-width: 360px;
+				color: $c-muted;
+				font-size: 14px;
+				line-height: 1.5;
+			}
+		}
+		.mp-empty-icon {
+			width: 56px;
+			height: 56px;
+			margin-bottom: 6px;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 16px;
+			background: rgba(0, 87, 255, 0.08);
+			color: $c-primary;
+			svg {
+				font-size: 28px;
+			}
+		}
+		.mp-pagination {
+			margin-top: 32px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 12px;
+		}
+		.mp-total {
+			color: $c-muted;
+			font-family: $font;
+			font-size: 14px;
+		}
+		.mp-btn-primary {
+			height: 46px;
+			padding: 0 20px;
+			gap: 6px;
+			border-radius: 12px;
+			background: $c-primary;
+			color: #ffffff;
+			font-family: $font;
+			font-size: 14px;
+			font-weight: 700;
+			text-transform: none;
+			white-space: nowrap;
+			.MuiButton-startIcon {
+				margin: 0;
+			}
+			&:hover {
+				background: $c-primary-dark;
+			}
+			&.Mui-disabled {
+				background: $c-primary;
+				color: #ffffff;
+				opacity: 0.4;
+			}
+		}
+		.mp-btn-outline {
+			height: 44px;
+			padding: 0 18px;
+			border: 1px solid $c-line;
+			border-radius: 12px;
+			background: $c-surface;
+			color: $c-text;
+			font-family: $font;
+			font-size: 14px;
+			font-weight: 700;
+			text-transform: none;
+			&:hover {
+				border-color: $c-text;
+				background: $c-surface;
+			}
+		}
+		.mp-btn-link {
+			margin-top: 10px;
+			height: 44px;
+			padding: 0 18px;
+			display: inline-flex;
+			align-items: center;
+			border-radius: 12px;
+			background: $c-primary;
+			color: #ffffff;
+			font-size: 14px;
+			font-weight: 700;
+			&:hover {
+				background: $c-primary-dark;
+			}
+		}
+
+		/* formadagi umumiy maydonlar (My Profile, Add Car, Write Article) */
+		.mp-form-grid {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 16px 18px;
+			&.is-3 {
+				grid-template-columns: repeat(3, minmax(0, 1fr));
+			}
+			.is-wide {
+				grid-column: 1 / -1;
+			}
+		}
+		.mp-field,
+		.mp-form-grid .input-box {
+			min-width: 0;
+			display: flex;
+			flex-direction: column;
+			gap: 6px;
+			.title {
+				color: $c-text;
+				font-family: $font;
+				font-size: 13px;
+				font-weight: 700;
+			}
+			input {
+				@include mp-input;
+				-moz-appearance: textfield;
+				&::-webkit-outer-spin-button,
+				&::-webkit-inner-spin-button {
+					-webkit-appearance: none;
+					margin: 0;
+				}
+			}
+			textarea {
+				@include mp-input;
+				height: auto;
+				min-height: 140px;
+				padding: 12px 14px;
+				resize: vertical;
+				line-height: 1.55;
+			}
+		}
+		.mp-select {
+			position: relative;
+			display: block;
+			select {
+				@include mp-input;
+				padding-right: 38px;
+				appearance: none;
+				-webkit-appearance: none;
+				cursor: pointer;
+			}
+			.arrow-down {
+				position: absolute;
+				right: 10px;
+				top: 50%;
+				transform: translateY(-50%);
+				font-size: 20px;
+				color: $c-muted;
+				pointer-events: none;
+			}
+		}
+	}
+
+	/* =====================================================================
+	   MY CARS — status tablari + jadval (libs/components/mypage/MyCars.tsx, CarCard.tsx)
+	   ===================================================================== */
+	.mp-segment {
+		padding: 4px;
+		display: inline-flex;
+		flex-direction: row;
+		gap: 4px;
+		border: 1px solid $c-line;
+		border-radius: 14px;
+		background: $c-surface;
+		button {
+			height: 38px;
+			padding: 0 16px;
+			border: none;
+			border-radius: 10px;
+			background: transparent;
+			color: $c-muted;
+			font-family: $font;
+			font-size: 14px;
+			font-weight: 700;
+			cursor: pointer;
+			transition: background-color 160ms ease, color 160ms ease;
+			&:hover {
+				color: $c-text;
+			}
+			&.active-tab-name {
+				background: $mp-graphite;
+				color: #ffffff;
+			}
+		}
+	}
+	.mp-table {
+		--mp-cols: minmax(0, 2.6fr) minmax(110px, 1fr) minmax(120px, 1fr) 80px;
+		margin-top: 16px;
+		overflow: hidden;
+		border: 1px solid $c-line;
+		border-radius: $r-lg;
+		background: $c-surface;
+		&:has(.has-actions) {
+			--mp-cols: minmax(0, 2.6fr) minmax(110px, 1fr) minmax(120px, 1fr) 80px 96px;
+		}
+		.mp-empty {
+			margin: 16px;
+			border: none;
+		}
+	}
+	.mp-table-head {
+		padding: 12px 20px;
+		display: grid;
+		grid-template-columns: var(--mp-cols);
+		gap: 16px;
+		border-bottom: 1px solid $c-line;
+		background: $c-bg;
+		.title-text {
+			color: $c-muted;
+			font-size: 12px;
+			font-weight: 800;
+			letter-spacing: 0.06em;
+			text-transform: uppercase;
+		}
+	}
+	.mp-row {
+		padding: 14px 20px;
+		display: grid;
+		grid-template-columns: var(--mp-cols, minmax(0, 2.6fr) minmax(110px, 1fr) minmax(120px, 1fr) 80px);
+		gap: 16px;
+		align-items: center;
+		border-bottom: 1px solid $c-line;
+		font-family: $font;
+		transition: background-color 160ms ease;
+		&:last-child {
+			border-bottom: none;
+		}
+		&:hover {
+			background: #fbfbfa;
+		}
+		&.is-link .mp-row-main {
+			cursor: pointer;
+		}
+		.mp-row-main {
+			min-width: 0;
+			display: flex;
+			align-items: center;
+			gap: 14px;
+		}
+		.image-box {
+			flex-shrink: 0;
+			width: 96px;
+			height: 68px;
+			overflow: hidden;
+			border-radius: 10px;
+			background: $c-surface-2;
+			img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+			}
+		}
+		.information-box {
+			min-width: 0;
+			display: flex;
+			flex-direction: column;
+			gap: 2px;
+			.name {
+				overflow: hidden;
+				color: $c-text;
+				font-family: $font;
+				font-size: 15px;
+				font-weight: 700;
+				white-space: nowrap;
+				text-overflow: ellipsis;
+			}
+			.address {
+				overflow: hidden;
+				color: $c-muted;
+				font-family: $font;
+				font-size: 13px;
+				white-space: nowrap;
+				text-overflow: ellipsis;
+			}
+			.price {
+				margin-top: 2px;
+				color: $c-text;
+				font-family: $font;
+				font-size: 15px;
+				font-weight: 800;
+				font-variant-numeric: tabular-nums;
+			}
+		}
+		.mp-cell-label {
+			display: none;
+		}
+		.date {
+			color: $mp-body;
+			font-size: 14px;
+		}
+		.views {
+			display: inline-flex;
+			align-items: center;
+			gap: 5px;
+			color: $mp-body;
+			font-size: 14px;
+			font-weight: 600;
+			font-variant-numeric: tabular-nums;
+			svg {
+				font-size: 17px;
+				color: #8a9099;
+			}
+		}
+		.action-box {
+			display: flex;
+			gap: 2px;
+			.icon-button {
+				padding: 7px;
+				color: #8a9099;
+				.buttons {
+					font-size: 19px;
+				}
+				&:hover {
+					background: $c-surface-2;
+					color: $c-text;
+				}
+				&.is-danger:hover {
+					background: #fdf1f1;
+					color: #c62828;
+				}
+			}
+		}
+	}
+	.mp-status {
+		height: 28px;
+		padding: 0 10px;
+		display: inline-flex;
+		align-items: center;
+		gap: 2px;
+		border: none;
+		border-radius: 14px;
+		font-family: $font;
+		font-size: 12px;
+		font-weight: 800;
+		cursor: default;
+		svg {
+			font-size: 17px;
+		}
+		&.is-editable {
+			cursor: pointer;
+		}
+		&.is-active {
+			background: rgba(0, 87, 255, 0.1);
+			color: $c-primary-dark;
+		}
+		&.is-reserved {
+			background: rgba(252, 108, 38, 0.12);
+			color: #b4470f;
+		}
+		&.is-sold {
+			background: $mp-green-bg;
+			color: $mp-green;
+		}
+	}
+
+	/* =====================================================================
+	   MY PROFILE
+	   ===================================================================== */
+	#mp-profile {
+		.photo-box {
+			padding-bottom: 22px;
+			margin-bottom: 22px;
+			display: flex;
+			align-items: center;
+			gap: 20px;
+			border-bottom: 1px solid $c-line;
+		}
+		.image-box {
+			flex-shrink: 0;
+			width: 96px;
+			height: 96px;
+			overflow: hidden;
+			border-radius: 50%;
+			background: $c-surface-2;
+			img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+			}
+		}
+		.upload-big-box {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 4px;
+		}
+		.mp-photo-title {
+			color: $c-text;
+			font-family: $font;
+			font-size: 16px;
+			font-weight: 800;
+		}
+		.upload-text {
+			color: $c-muted;
+			font-family: $font;
+			font-size: 13px;
+		}
+		.labeler {
+			margin-top: 8px;
+			height: 38px;
+			padding: 0 14px;
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			border: 1px solid $c-line;
+			border-radius: 10px;
+			background: $c-surface;
+			color: $c-text;
+			font-size: 14px;
+			font-weight: 700;
+			cursor: pointer;
+			svg {
+				font-size: 18px;
+				color: $c-primary;
+			}
+			&:hover {
+				border-color: $c-text;
+			}
+		}
+		.mp-form-foot {
+			margin-top: 22px;
+			display: flex;
+			justify-content: flex-end;
+		}
+	}
+
+	/* =====================================================================
+	   ADD / EDIT CAR
+	   ===================================================================== */
+	#mp-add-car {
+		.mp-form {
+			display: flex;
+			flex-direction: column;
+			gap: 20px;
+		}
+		.mp-form-section-head {
+			margin-bottom: 18px;
+			display: flex;
+			align-items: flex-start;
+			gap: 14px;
+			h3 {
+				color: $c-text;
+				font-size: 18px;
+				font-weight: 800;
+			}
+			p {
+				margin-top: 2px;
+				color: $c-muted;
+				font-size: 14px;
+			}
+		}
+		.mp-step {
+			flex-shrink: 0;
+			width: 32px;
+			height: 32px;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 50%;
+			background: rgba(0, 87, 255, 0.1);
+			color: $c-primary;
+			font-size: 14px;
+			font-weight: 800;
+		}
+		.upload-box {
+			padding: 32px 20px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 6px;
+			border: 2px dashed $c-line;
+			border-radius: $r-md;
+			background: $c-bg;
+			text-align: center;
+			.drag-title {
+				color: $c-text;
+				font-family: $font;
+				font-size: 16px;
+				font-weight: 800;
+			}
+			.format-title {
+				color: $c-muted;
+				font-family: $font;
+				font-size: 13px;
+			}
+			.mp-btn-outline {
+				margin-top: 10px;
+			}
+		}
+		.mp-upload-icon {
+			width: 56px;
+			height: 56px;
+			margin-bottom: 6px;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 16px;
+			background: rgba(0, 87, 255, 0.08);
+			color: $c-primary;
+			svg {
+				font-size: 28px;
+			}
+		}
+		.gallery-box {
+			margin-top: 16px;
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+			gap: 12px;
+			.image-box {
+				position: relative;
+				aspect-ratio: 4 / 3;
+				overflow: hidden;
+				border: 1px solid $c-line;
+				border-radius: 12px;
+				background: $c-surface-2;
+				img {
+					width: 100%;
+					height: 100%;
+					object-fit: cover;
+				}
+			}
+		}
+		.mp-cover {
+			position: absolute;
+			left: 8px;
+			top: 8px;
+			height: 22px;
+			padding: 0 8px;
+			display: inline-flex;
+			align-items: center;
+			border-radius: 11px;
+			background: rgba(20, 23, 28, 0.78);
+			color: #ffffff;
+			font-size: 11px;
+			font-weight: 800;
+		}
+		.mp-savebar {
+			position: sticky;
+			bottom: 16px;
+			z-index: 5;
+			padding: 12px 12px 12px 20px;
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
+			gap: 16px;
+			border: 1px solid $c-line;
+			border-radius: $r-md;
+			background: rgba(255, 255, 255, 0.96);
+			box-shadow: 0 18px 40px -20px rgba(20, 23, 28, 0.35);
+			backdrop-filter: blur(6px);
+		}
+		.mp-savebar-hint {
+			color: $c-muted;
+			font-size: 14px;
+		}
+	}
+
+	/* =====================================================================
+	   WRITE ARTICLE (libs/components/community/Teditor.tsx)
+	   ===================================================================== */
+	#mp-write-article {
+		.mp-editor {
+			padding: 0;
+			overflow: hidden;
+		}
+		.mp-write-meta {
+			padding: 22px 24px;
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+			gap: 18px;
+		}
+		.mp-cat-chips {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+		}
+		.mp-cat-chip {
+			height: 46px;
+			padding: 0 14px;
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			border: 1px solid $c-line;
+			border-radius: 12px;
+			background: $c-surface;
+			color: $mp-body;
+			font-family: $font;
+			font-size: 14px;
+			font-weight: 700;
+			cursor: pointer;
+			svg {
+				font-size: 18px;
+				color: #8a9099;
+			}
+			&:hover {
+				border-color: $c-muted;
+			}
+			&.is-active {
+				border-color: $c-primary;
+				background: rgba(0, 87, 255, 0.08);
+				color: $c-primary;
+				svg {
+					color: $c-primary;
+				}
+			}
+		}
+		.toastui-editor-defaultUI {
+			border: none;
+			border-top: 1px solid $c-line;
+			border-radius: 0;
+			font-family: $font;
+		}
+		.toastui-editor-defaultUI-toolbar {
+			border-bottom-color: $c-line;
+			background: $c-bg;
+		}
+		.mp-write-foot {
+			padding: 14px 24px;
+			display: flex;
+			justify-content: flex-end;
+			border-top: 1px solid $c-line;
+		}
+	}
+
+	/* =====================================================================
+	   FOLLOWERS / FOLLOWINGS (libs/components/member/*) — mypage va member sahifasi
+	   ===================================================================== */
+	.mp-people {
+		padding: 4px 20px;
+		border: 1px solid $c-line;
+		border-radius: $r-lg;
+		background: $c-surface;
+		font-family: $font;
+		.mp-empty {
+			margin: 16px 0;
+			border: none;
+		}
+	}
+	.mp-person {
+		padding: 14px 0;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto auto;
+		align-items: center;
+		gap: 16px;
+		border-bottom: 1px solid $c-line;
+		&:last-child {
+			border-bottom: none;
+		}
+		.info {
+			min-width: 0;
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			cursor: pointer;
+			&:hover .name {
+				color: $c-primary-dark;
+			}
+		}
+		.image-box {
+			flex-shrink: 0;
+			width: 48px;
+			height: 48px;
+			overflow: hidden;
+			border-radius: 50%;
+			background: $c-surface-2;
+			img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+			}
+		}
+		.information-box {
+			min-width: 0;
+			display: flex;
+			flex-direction: column;
+			gap: 2px;
+		}
+		.name {
+			overflow: hidden;
+			color: $c-text;
+			font-family: $font;
+			font-size: 15px;
+			font-weight: 700;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+		.mp-person-meta {
+			color: $c-muted;
+			font-size: 13px;
+		}
+	}
+	.mp-like {
+		height: 36px;
+		padding: 0 12px 0 8px;
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		border: 1px solid $c-line;
+		border-radius: 18px;
+		background: $c-surface;
+		color: $c-text;
+		font-family: $font;
+		font-size: 13px;
+		font-weight: 700;
+		font-variant-numeric: tabular-nums;
+		cursor: pointer;
+		svg {
+			font-size: 20px;
+			color: #8a9099;
+		}
+		&:hover {
+			border-color: rgba(229, 57, 53, 0.45);
+		}
+		&.is-liked {
+			border-color: rgba(229, 57, 53, 0.35);
+			background: #fdf1f1;
+		}
+	}
+	.mp-follow {
+		min-width: 104px;
+		height: 38px;
+		padding: 0 16px;
+		border-radius: 10px;
+		background: $c-primary;
+		color: #ffffff;
+		font-family: $font;
+		font-size: 14px;
+		font-weight: 700;
+		text-transform: none;
+		&:hover {
+			background: $c-primary-dark;
+		}
+		&.is-following {
+			border: 1px solid $c-line;
+			background: $c-surface-2;
+			color: $c-text;
+			.label-off {
+				display: none;
+			}
+			&:hover {
+				border-color: rgba(211, 47, 47, 0.35);
+				background: #fdf1f1;
+				color: #c62828;
+				.label-on {
+					display: none;
+				}
+				.label-off {
+					display: inline;
+				}
+			}
+		}
+	}
+}
+
+/* My Cars status menyusi (MUI portal) */
+.mp-status-menu .MuiPaper-root {
+	margin-top: 6px;
+	min-width: 150px;
+	border: 1px solid $c-line;
+	border-radius: 12px;
+	box-shadow: $shadow !important;
+	.MuiMenuItem-root {
+		gap: 10px;
+		font-family: $font;
+		font-size: 14px;
+		font-weight: 600;
+		color: $c-text;
+	}
+	.mp-dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		&.is-active {
+			background: $c-primary;
+		}
+		&.is-reserved {
+			background: $c-accent;
+		}
+		&.is-sold {
+			background: #2e9e5b;
+		}
+	}
+}

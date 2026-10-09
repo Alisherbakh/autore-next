@@ -8,10 +8,12 @@ import { CarsInquiry } from '../../types/car/car.input';
 import { T } from '../../types/common';
 import { useRouter } from 'next/router';
 import { useQuery } from '@apollo/client';
+import { useTranslation } from 'next-i18next';
 import { GET_CARS } from '../../../apollo/user/query';
 
 const MyCars: NextPage = ({ initialInput, ...props }: any) => {
 	const device = useDeviceDetect();
+	const { t } = useTranslation('common');
 	const router = useRouter();
 	const { memberId } = router.query;
 	const [searchFilter, setSearchFilter] = useState<CarsInquiry>({ ...initialInput });
@@ -55,7 +57,34 @@ const MyCars: NextPage = ({ initialInput, ...props }: any) => {
 	};
 
 	if (device === 'mobile') {
-		return <div>AUTORE CARS MOBILE</div>;
+		// mobil: My Cars'dagi bilan bir xil kartalar (status o'zgartirib bo'lmaydi — memberPage)
+		return (
+			<div id="mp-member-cars" className={'mp-section'}>
+				{dealerCars?.length === 0 ? (
+					<div className={'mp-empty'}>
+						<strong>{t('No cars here yet')}</strong>
+					</div>
+				) : (
+					<div className={'mp-rows'}>
+						{dealerCars?.map((car: Car) => {
+							return <CarCard car={car} memberPage={true} key={car?._id} />;
+						})}
+					</div>
+				)}
+				{dealerCars.length !== 0 && (
+					<Stack className="mp-pagination">
+						<Pagination
+							count={Math.ceil(total / searchFilter.limit)}
+							page={searchFilter.page}
+							shape="circular"
+							color="primary"
+							onChange={paginationHandler}
+						/>
+						<Typography className="mp-total">{t('Total {{count}} cars available', { count: total })}</Typography>
+					</Stack>
+				)}
+			</div>
+		);
 	} else {
 		return (
 			<div id="member-cars-page">

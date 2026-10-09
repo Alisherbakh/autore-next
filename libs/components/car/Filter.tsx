@@ -8,8 +8,6 @@ import {
 	InputLabel,
 	Select,
 	MenuItem,
-	Tooltip,
-	IconButton,
 } from '@mui/material';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { CarBrand, CarFuelType, CarLocation, CarTransmission, CarType } from '../../enums/car.enum';
@@ -18,6 +16,11 @@ import { useRouter } from 'next/router';
 import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
 import { carMileages, carYears } from '../../config';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
+import { useTranslation } from 'next-i18next';
+import { formatEnum } from '../../utils';
+
 
 const MenuProps = {
 	PaperProps: {
@@ -42,6 +45,7 @@ const Filter = (props: FilterType) => {
 	const { searchFilter, setSearchFilter, initialInput } = props;
 	const device = useDeviceDetect();
 	const router = useRouter();
+	const { t } = useTranslation('common');
 	const [carLocation, setCarLocation] = useState<CarLocation[]>(Object.values(CarLocation));
 	const [carType, setCarType] = useState<CarType[]>(Object.values(CarType));
 	const [carBrand, setCarBrand] = useState<CarBrand[]>(Object.values(CarBrand));
@@ -107,11 +111,17 @@ const Filter = (props: FilterType) => {
 	const rangeHandler = useCallback(
 		async (value: number, key: RangeKey, type: 'start' | 'end') => {
 			try {
+				// backend start va end ikkalasini ham talab qiladi: faqat bittasi tanlansa, ikkinchisi default chegara bilan to'ldiriladi
+				const defaults: Record<RangeKey, { start: number; end: number }> = {
+					pricesRange: initialInput.search.pricesRange ?? { start: 0, end: 1000000000 },
+					yearsRange: { start: Number(carYears[0]), end: Number(carYears[carYears.length - 1]) },
+					mileageRange: { start: carMileages[0], end: carMileages[carMileages.length - 1] },
+				};
 				await pushFilter({
 					...searchFilter,
 					search: {
 						...searchFilter.search,
-						[key]: { ...searchFilter.search[key], [type]: Number(value) },
+						[key]: { ...defaults[key], ...searchFilter.search[key], [type]: Number(value) },
 					},
 				});
 			} catch (err: any) {
@@ -132,216 +142,219 @@ const Filter = (props: FilterType) => {
 	};
 
 	// bitta checkbox qatori (Location, Type, Brand, Fuel, Transmission uchun umumiy)
-	const renderCheckbox = (value: string, key: ListKey, label?: string) => (
-		<Stack className={'input-box'} key={value}>
-			<Checkbox
-				id={`${key}-${value}`}
-				className="car-checkbox"
-				color="default"
-				size="small"
-				value={value}
-				checked={((searchFilter?.search?.[key] as string[]) || []).includes(value)}
-				onChange={(e: any) => listSelectHandler(e, key)}
-			/>
-			<label htmlFor={`${key}-${value}`} style={{ cursor: 'pointer' }}>
-				<Typography className="car-type">{label ?? value}</Typography>
-			</label>
-		</Stack>
-	);
-
-	if (device === 'mobile') {
-		return <div>CARS FILTER</div>;
-	} else {
+	const renderCheckbox = (value: string, key: ListKey, label?: string) => {
+		const checked = ((searchFilter?.search?.[key] as string[]) || []).includes(value);
 		return (
-			<Stack className={'filter-main'}>
-				<Stack className={'find-your-home'} mb={'40px'}>
-					<Typography className={'title-main'}>Find Your Car</Typography>
-					<Stack className={'input-box'}>
-						<OutlinedInput
-							value={searchText}
-							type={'text'}
-							className={'search-input'}
-							placeholder={'What are you looking for?'}
-							onChange={(e: any) => setSearchText(e.target.value)}
-							onKeyDown={(event: any) => {
-								if (event.key == 'Enter') {
+			<Stack className={`input-box ${checked ? 'is-checked' : ''}`} key={value}>
+				<Checkbox
+					id={`${key}-${value}`}
+					className="car-checkbox"
+					color="default"
+					size="small"
+					value={value}
+					checked={checked}
+					onChange={(e: any) => listSelectHandler(e, key)}
+				/>
+				<label htmlFor={`${key}-${value}`} style={{ cursor: 'pointer' }}>
+					<Typography className="car-type">{label ? t(label) : formatEnum(value)}</Typography>
+				</label>
+			</Stack>
+		);
+	};
+
+	// mobil va desktop'da bir xil filtr (mobilda sahifa uni pastdan ochiladigan oynada ko'rsatadi)
+	return (
+		<Stack className={'filter-main cl-filter'}>
+			<div className={'cl-filter-head'}>
+				<Typography className={'title-main'}>{t('Find your car')}</Typography>
+				<button type="button" className={'cl-reset'} onClick={refreshHandler}>
+					<RefreshIcon />
+					{t('Reset all')}
+				</button>
+			</div>
+
+			<div className={'cl-search'}>
+				<SearchRoundedIcon className={'cl-search-icon'} />
+				<OutlinedInput
+					value={searchText}
+					type={'text'}
+					className={'search-input'}
+					placeholder={t('Model, brand or keyword')}
+					onChange={(e: any) => setSearchText(e.target.value)}
+					onKeyDown={(event: any) => {
+						if (event.key == 'Enter') {
+							setSearchFilter({
+								...searchFilter,
+								search: { ...searchFilter.search, text: searchText },
+							});
+						}
+					}}
+					endAdornment={
+						searchText ? (
+							<CancelRoundedIcon
+								className={'cl-clear'}
+								onClick={() => {
+									setSearchText('');
 									setSearchFilter({
 										...searchFilter,
-										search: { ...searchFilter.search, text: searchText },
+										search: { ...searchFilter.search, text: '' },
 									});
-								}
-							}}
-							endAdornment={
-								<>
-									<CancelRoundedIcon
-										onClick={() => {
-											setSearchText('');
-											setSearchFilter({
-												...searchFilter,
-												search: { ...searchFilter.search, text: '' },
-											});
-										}}
-									/>
-								</>
-							}
-						/>
-						<img src={'/img/icons/search_icon.png'} alt={''} />
-						<Tooltip title="Reset">
-							<IconButton onClick={refreshHandler}>
-								<RefreshIcon />
-							</IconButton>
-						</Tooltip>
-					</Stack>
+								}}
+							/>
+						) : null
+					}
+				/>
+			</div>
+
+			<div className={'cl-section'}>
+				<Typography className={'title'}>{t('Location')}</Typography>
+				<Stack className={`car-location ${showMore ? 'is-open' : ''}`}>
+					{carLocation.map((location: string) => renderCheckbox(location, 'locationList'))}
 				</Stack>
-				<Stack className={'find-your-home'} mb={'30px'}>
-					<p className={'title'} style={{ textShadow: '0px 3px 4px #b9b9b9' }}>
-						Location
-					</p>
-					<Stack
-						className={`car-location`}
-						style={{ height: showMore ? '253px' : '115px' }}
-						onMouseEnter={() => setShowMore(true)}
-						onMouseLeave={() => {
-							if (!searchFilter?.search?.locationList) {
-								setShowMore(false);
-							}
-						}}
-					>
-						{carLocation.map((location: string) => renderCheckbox(location, 'locationList'))}
-					</Stack>
+				<button type="button" className={'cl-more'} onClick={() => setShowMore(!showMore)}>
+					{showMore ? t('Show less') : t('Show all')}
+					<KeyboardArrowDownRoundedIcon className={showMore ? 'is-up' : ''} />
+				</button>
+			</div>
+
+			<div className={'cl-section'}>
+				<Typography className={'title'}>{t('Brand')}</Typography>
+				<Stack className={`car-location ${showMoreBrand ? 'is-open' : ''}`}>
+					{carBrand.map((brand: string) => renderCheckbox(brand, 'brandList'))}
 				</Stack>
-				<Stack className={'find-your-home'} mb={'30px'}>
-					<p className={'title'} style={{ textShadow: '0px 3px 4px #b9b9b9' }}>
-						Brand
-					</p>
-					<Stack
-						className={`car-location`}
-						style={{ height: showMoreBrand ? '360px' : '115px' }}
-						onMouseEnter={() => setShowMoreBrand(true)}
-						onMouseLeave={() => {
-							if (!searchFilter?.search?.brandList) {
-								setShowMoreBrand(false);
-							}
-						}}
-					>
-						{carBrand.map((brand: string) => renderCheckbox(brand, 'brandList'))}
-					</Stack>
-				</Stack>
-				<Stack className={'find-your-home'} mb={'30px'}>
-					<Typography className={'title'}>Car Type</Typography>
-					{carType.map((type: string) => renderCheckbox(type, 'typeList'))}
-				</Stack>
-				<Stack className={'find-your-home'} mb={'30px'}>
-					<Typography className={'title'}>Fuel Type</Typography>
-					{carFuelType.map((fuel: string) => renderCheckbox(fuel, 'fuelTypeList'))}
-				</Stack>
-				<Stack className={'find-your-home'} mb={'30px'}>
-					<Typography className={'title'}>Transmission</Typography>
+				<button type="button" className={'cl-more'} onClick={() => setShowMoreBrand(!showMoreBrand)}>
+					{showMoreBrand ? t('Show less') : t('Show all')}
+					<KeyboardArrowDownRoundedIcon className={showMoreBrand ? 'is-up' : ''} />
+				</button>
+			</div>
+
+			<div className={'cl-section'}>
+				<Typography className={'title'}>{t('Car Type')}</Typography>
+				<div className={'cl-pills'}>{carType.map((type: string) => renderCheckbox(type, 'typeList'))}</div>
+			</div>
+
+			<div className={'cl-section'}>
+				<Typography className={'title'}>{t('Fuel Type')}</Typography>
+				<div className={'cl-pills'}>{carFuelType.map((fuel: string) => renderCheckbox(fuel, 'fuelTypeList'))}</div>
+			</div>
+
+			<div className={'cl-section'}>
+				<Typography className={'title'}>{t('Transmission')}</Typography>
+				<div className={'cl-pills'}>
 					{carTransmission.map((item: string) => renderCheckbox(item, 'transmissionList'))}
-				</Stack>
-				<Stack className={'find-your-home'} mb={'30px'}>
-					<Typography className={'title'}>Options</Typography>
+				</div>
+			</div>
+
+			<div className={'cl-section'}>
+				<Typography className={'title'}>{t('Options')}</Typography>
+				<div className={'cl-pills'}>
 					{renderCheckbox('carBarter', 'options', 'Barter')}
 					{renderCheckbox('carCredit', 'options', 'Credit')}
+				</div>
+			</div>
+
+			<div className={'cl-section'}>
+				<Typography className={'title'}>{t('Year')}</Typography>
+				<Stack className="range-input">
+					<FormControl size="small">
+						<InputLabel id="year-start-label">{t('Min')}</InputLabel>
+						<Select
+							labelId="year-start-label"
+							value={searchFilter?.search?.yearsRange?.start ?? ''}
+							label={t('Min')}
+							onChange={(e: any) => rangeHandler(e.target.value, 'yearsRange', 'start')}
+							MenuProps={MenuProps}
+						>
+							{carYears.map((year: string) => (
+								<MenuItem
+									value={Number(year)}
+									disabled={Number(year) > (searchFilter?.search?.yearsRange?.end ?? Infinity)}
+									key={year}
+								>
+									{year}
+								</MenuItem>
+							))}
+						</Select>
+					</FormControl>
+					<div className="central-divider"></div>
+					<FormControl size="small">
+						<InputLabel id="year-end-label">{t('Max')}</InputLabel>
+						<Select
+							labelId="year-end-label"
+							value={searchFilter?.search?.yearsRange?.end ?? ''}
+							label={t('Max')}
+							onChange={(e: any) => rangeHandler(e.target.value, 'yearsRange', 'end')}
+							MenuProps={MenuProps}
+						>
+							{carYears.map((year: string) => (
+								<MenuItem
+									value={Number(year)}
+									disabled={Number(year) < (searchFilter?.search?.yearsRange?.start ?? 0)}
+									key={year}
+								>
+									{year}
+								</MenuItem>
+							))}
+						</Select>
+					</FormControl>
 				</Stack>
-				<Stack className={'find-your-home'} mb={'30px'}>
-					<Typography className={'title'}>Year</Typography>
-					<Stack className="range-input">
-						<FormControl>
-							<InputLabel id="year-start-label">Min</InputLabel>
-							<Select
-								labelId="year-start-label"
-								value={searchFilter?.search?.yearsRange?.start ?? ''}
-								label="Min"
-								onChange={(e: any) => rangeHandler(e.target.value, 'yearsRange', 'start')}
-								MenuProps={MenuProps}
-							>
-								{carYears.map((year: string) => (
-									<MenuItem
-										value={Number(year)}
-										disabled={Number(year) > (searchFilter?.search?.yearsRange?.end ?? Infinity)}
-										key={year}
-									>
-										{year}
-									</MenuItem>
-								))}
-							</Select>
-						</FormControl>
-						<div className="central-divider"></div>
-						<FormControl>
-							<InputLabel id="year-end-label">Max</InputLabel>
-							<Select
-								labelId="year-end-label"
-								value={searchFilter?.search?.yearsRange?.end ?? ''}
-								label="Max"
-								onChange={(e: any) => rangeHandler(e.target.value, 'yearsRange', 'end')}
-								MenuProps={MenuProps}
-							>
-								{carYears.map((year: string) => (
-									<MenuItem
-										value={Number(year)}
-										disabled={Number(year) < (searchFilter?.search?.yearsRange?.start ?? 0)}
-										key={year}
-									>
-										{year}
-									</MenuItem>
-								))}
-							</Select>
-						</FormControl>
-					</Stack>
+			</div>
+
+			<div className={'cl-section'}>
+				<Typography className={'title'}>{t('Mileage (km)')}</Typography>
+				<Stack className="range-input">
+					<FormControl size="small">
+						<InputLabel id="mileage-start-label">{t('Min')}</InputLabel>
+						<Select
+							labelId="mileage-start-label"
+							value={searchFilter?.search?.mileageRange?.start ?? 0}
+							label={t('Min')}
+							onChange={(e: any) => rangeHandler(e.target.value, 'mileageRange', 'start')}
+							MenuProps={MenuProps}
+						>
+							{carMileages.map((mileage: number) => (
+								<MenuItem
+									value={mileage}
+									disabled={mileage > (searchFilter?.search?.mileageRange?.end ?? Infinity)}
+									key={mileage}
+								>
+									{mileage.toLocaleString()}
+								</MenuItem>
+							))}
+						</Select>
+					</FormControl>
+					<div className="central-divider"></div>
+					<FormControl size="small">
+						<InputLabel id="mileage-end-label">{t('Max')}</InputLabel>
+						<Select
+							labelId="mileage-end-label"
+							value={searchFilter?.search?.mileageRange?.end ?? carMileages[carMileages.length - 1]}
+							label={t('Max')}
+							onChange={(e: any) => rangeHandler(e.target.value, 'mileageRange', 'end')}
+							MenuProps={MenuProps}
+						>
+							{carMileages.map((mileage: number) => (
+								<MenuItem
+									value={mileage}
+									disabled={mileage < (searchFilter?.search?.mileageRange?.start ?? 0)}
+									key={mileage}
+								>
+									{mileage.toLocaleString()}
+								</MenuItem>
+							))}
+						</Select>
+					</FormControl>
 				</Stack>
-				<Stack className={'find-your-home'} mb={'30px'}>
-					<Typography className={'title'}>Mileage (km)</Typography>
-					<Stack className="range-input">
-						<FormControl>
-							<InputLabel id="mileage-start-label">Min</InputLabel>
-							<Select
-								labelId="mileage-start-label"
-								value={searchFilter?.search?.mileageRange?.start ?? 0}
-								label="Min"
-								onChange={(e: any) => rangeHandler(e.target.value, 'mileageRange', 'start')}
-								MenuProps={MenuProps}
-							>
-								{carMileages.map((mileage: number) => (
-									<MenuItem
-										value={mileage}
-										disabled={mileage > (searchFilter?.search?.mileageRange?.end ?? Infinity)}
-										key={mileage}
-									>
-										{mileage.toLocaleString()}
-									</MenuItem>
-								))}
-							</Select>
-						</FormControl>
-						<div className="central-divider"></div>
-						<FormControl>
-							<InputLabel id="mileage-end-label">Max</InputLabel>
-							<Select
-								labelId="mileage-end-label"
-								value={searchFilter?.search?.mileageRange?.end ?? carMileages[carMileages.length - 1]}
-								label="Max"
-								onChange={(e: any) => rangeHandler(e.target.value, 'mileageRange', 'end')}
-								MenuProps={MenuProps}
-							>
-								{carMileages.map((mileage: number) => (
-									<MenuItem
-										value={mileage}
-										disabled={mileage < (searchFilter?.search?.mileageRange?.start ?? 0)}
-										key={mileage}
-									>
-										{mileage.toLocaleString()}
-									</MenuItem>
-								))}
-							</Select>
-						</FormControl>
-					</Stack>
-				</Stack>
-				<Stack className={'find-your-home'}>
-					<Typography className={'title'}>Price Range (₩)</Typography>
-					<Stack className="range-input">
+			</div>
+
+			<div className={'cl-section'}>
+				<Typography className={'title'}>{t('Price Range (₩)')}</Typography>
+				<Stack className="range-input">
+					<label className={'cl-price'}>
+						<span>₩</span>
 						<input
 							type="number"
-							placeholder="₩ min"
+							placeholder={t('Min')}
 							min={0}
 							value={searchFilter?.search?.pricesRange?.start ?? 0}
 							onChange={(e: any) => {
@@ -350,10 +363,13 @@ const Filter = (props: FilterType) => {
 								}
 							}}
 						/>
-						<div className="central-divider"></div>
+					</label>
+					<div className="central-divider"></div>
+					<label className={'cl-price'}>
+						<span>₩</span>
 						<input
 							type="number"
-							placeholder="₩ max"
+							placeholder={t('Max')}
 							value={searchFilter?.search?.pricesRange?.end ?? 0}
 							onChange={(e: any) => {
 								if (e.target.value >= 0) {
@@ -361,11 +377,11 @@ const Filter = (props: FilterType) => {
 								}
 							}}
 						/>
-					</Stack>
+					</label>
 				</Stack>
-			</Stack>
-		);
-	}
+			</div>
+		</Stack>
+	);
 };
 
 export default Filter;

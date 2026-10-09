@@ -1,0 +1,802 @@
+/**
+ * COMMUNITY (pages/community/index.tsx + detail.tsx) — V01 "Signal" yangilangan ko'rinish.
+ * main.scss oxirida import qilinadi. Faqat .cm-v2 ichida ishlaydi, eski community.scss / detail.scss stillariga tegmaydi.
+ * CommunityCard (.cm-card) va izohni tahrirlash oynasi (.cm-modal) stillari global — mypage/member sahifalarida ham ishlaydi.
+ * Mobil versiya: scss/mobile/community.scss
+ */
+$cm-ease: cubic-bezier(0.23, 1, 0.32, 1);
+$cm-graphite: #14171c;
+$cm-body: #3b414a;
+$cm-faint: #9aa0a8;
+
+/* =====================================================================
+   COMMUNITY KARTASI — libs/components/common/CommunityCard.tsx (desktop + mobil)
+   ===================================================================== */
+.community-general-card-config.cm-card {
+	position: relative;
+	height: 100%;
+	min-width: 0;
+	gap: 0;
+	overflow: hidden;
+	box-sizing: border-box;
+	border: 1px solid $c-line;
+	border-radius: $r-md;
+	background: $c-surface;
+	cursor: pointer;
+	font-family: $font;
+	transition: transform 240ms $cm-ease, box-shadow 240ms $cm-ease;
+
+	.cm-card-img {
+		position: relative;
+		aspect-ratio: 16 / 10;
+		overflow: hidden;
+		background: $c-surface-2;
+		img {
+			width: 100%;
+			height: 100%;
+			display: block;
+			object-fit: cover;
+			transition: transform 500ms $cm-ease;
+		}
+	}
+	.cm-card-cat {
+		position: absolute;
+		left: 12px;
+		top: 12px;
+		height: 26px;
+		padding: 0 10px;
+		display: inline-flex;
+		align-items: center;
+		border-radius: 13px;
+		background: rgba(20, 23, 28, 0.78);
+		color: #ffffff;
+		font-size: 12px;
+		font-weight: 700;
+		backdrop-filter: blur(4px);
+	}
+
+	.cm-card-body {
+		flex: 1;
+		padding: 16px 18px 14px;
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+	.cm-card-title {
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		min-height: calc(2 * 1.35em);
+		color: $c-text;
+		font-family: $font;
+		font-size: 17px;
+		font-weight: 700;
+		line-height: 1.35;
+		word-break: break-word;
+	}
+	.cm-card-author {
+		min-width: 0;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		color: $c-muted;
+		font-size: 13px;
+		.cm-avatar {
+			flex-shrink: 0;
+			width: 26px;
+			height: 26px;
+			overflow: hidden;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 50%;
+			background: #e8eeff;
+			color: $c-primary;
+			font-size: 12px;
+			font-weight: 800;
+			img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+			}
+		}
+		.cm-author-name {
+			min-width: 0;
+			overflow: hidden;
+			color: $c-text;
+			font-weight: 700;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+			&:hover {
+				color: $c-primary-dark;
+			}
+		}
+		.cm-dot {
+			color: $cm-faint;
+		}
+		.cm-date {
+			flex-shrink: 0;
+			white-space: nowrap;
+		}
+	}
+	.cm-card-stats {
+		margin-top: auto;
+		padding-top: 12px;
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		border-top: 1px solid $c-line;
+		color: #3b414a;
+		font-size: 14px;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		> span {
+			display: inline-flex;
+			align-items: center;
+			gap: 5px;
+		}
+		svg {
+			font-size: 18px;
+			color: #8a9099;
+		}
+		.cm-like {
+			margin-left: auto;
+			gap: 2px;
+			.MuiIconButton-root {
+				margin: -8px 0;
+				padding: 6px;
+			}
+			svg {
+				font-size: 22px;
+			}
+		}
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		&:hover {
+			transform: translateY(-4px);
+			box-shadow: 0 18px 40px -18px rgba(20, 23, 28, 0.35);
+			.cm-card-img img {
+				transform: scale(1.04);
+			}
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		&,
+		.cm-card-img img {
+			transition: none;
+		}
+	}
+}
+
+/* izohni tahrirlash oynasi (MUI Backdrop — sahifa tashqarisida ham ishlaydi) */
+.cm-modal-backdrop {
+	padding: 16px;
+	background-color: rgba(20, 23, 28, 0.45) !important;
+	.cm-modal {
+		width: min(560px, 100%);
+		padding: 22px;
+		gap: 14px;
+		box-sizing: border-box;
+		border-radius: $r-md;
+		background: $c-surface;
+		box-shadow: $shadow;
+		font-family: $font;
+		.cm-modal-title {
+			color: $c-text;
+			font-family: $font;
+			font-size: 18px;
+			font-weight: 800;
+		}
+		input {
+			height: 48px;
+			padding: 0 14px;
+			box-sizing: border-box;
+			border: 1px solid $c-line;
+			border-radius: 12px;
+			outline: none;
+			background: $c-bg;
+			color: $c-text;
+			font-family: $font;
+			font-size: 15px;
+			&:focus {
+				border-color: $c-primary;
+				box-shadow: 0 0 0 4px rgba(0, 87, 255, 0.12);
+			}
+		}
+		.cm-modal-actions {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			> div {
+				display: flex;
+				gap: 8px;
+			}
+		}
+		.cm-counter {
+			color: $c-muted;
+			font-family: $font;
+			font-size: 13px;
+		}
+		.cm-btn-primary,
+		.cm-btn-ghost {
+			height: 40px;
+			padding: 0 16px;
+			border-radius: 10px;
+			font-family: $font;
+			font-size: 14px;
+			font-weight: 700;
+		}
+		.cm-btn-primary {
+			background: $c-primary;
+			color: #ffffff;
+			&:hover {
+				background: $c-primary-dark;
+			}
+		}
+		.cm-btn-ghost {
+			color: $c-text;
+			&:hover {
+				background: $c-surface-2;
+			}
+		}
+	}
+}
+
+/* =====================================================================
+   COMMUNITY RO'YXATI + MAQOLA SAHIFASI — umumiy tuzilma (desktop)
+   ===================================================================== */
+#pc-wrap #community-list-page.cm-v2,
+#pc-wrap #community-detail-page.cm-v2 {
+	display: block;
+	width: 100%;
+	padding: 48px 0 96px;
+	background: $c-bg;
+	font-family: $font;
+	color: $c-text;
+
+	.cm-wrap {
+		width: min(1300px, calc(100% - 48px));
+		margin: 0 auto;
+	}
+	.cm-layout {
+		display: grid;
+		grid-template-columns: 272px minmax(0, 1fr);
+		gap: 32px;
+		align-items: start;
+	}
+
+	/* ---------- chap panel: kategoriyalar ---------- */
+	.cm-side {
+		position: sticky;
+		top: 108px; // fixed navbar ostida
+		padding: 22px 16px 16px;
+		display: flex;
+		flex-direction: column;
+		gap: 18px;
+		border: 1px solid $c-line;
+		border-radius: $r-lg;
+		background: $c-surface;
+	}
+	.cm-side-head {
+		padding: 0 6px;
+		.cm-eyebrow {
+			color: $c-primary;
+			font-size: 12px;
+			font-weight: 800;
+			letter-spacing: 0.12em;
+			text-transform: uppercase;
+		}
+		h2 {
+			margin-top: 4px;
+			color: $c-text;
+			font-size: 24px;
+			font-weight: 800;
+			letter-spacing: -0.02em;
+		}
+		p {
+			margin-top: 6px;
+			color: $c-muted;
+			font-size: 13px;
+			line-height: 1.5;
+		}
+	}
+	.cm-tabs {
+		min-height: 0;
+		.MuiTabs-flexContainer {
+			gap: 4px;
+		}
+		.tab-button {
+			min-height: 46px;
+			max-width: none;
+			padding: 0 12px;
+			justify-content: flex-start;
+			gap: 10px;
+			border-radius: 12px;
+			color: $c-muted;
+			font-family: $font;
+			font-size: 15px;
+			font-weight: 700;
+			text-transform: none;
+			opacity: 1;
+			transition: background-color 160ms ease, color 160ms ease;
+			.MuiTab-iconWrapper {
+				margin: 0;
+				font-size: 20px;
+			}
+			&:hover {
+				background: $c-bg;
+				color: $c-text;
+			}
+			&.active,
+			&.Mui-selected {
+				background: rgba(0, 87, 255, 0.08);
+				color: $c-primary;
+			}
+		}
+	}
+	.cm-btn-primary {
+		height: 46px;
+		padding: 0 18px;
+		gap: 8px;
+		border-radius: 12px;
+		background: $c-primary;
+		color: #ffffff;
+		font-family: $font;
+		font-size: 14px;
+		font-weight: 700;
+		.MuiButton-startIcon {
+			margin: 0;
+		}
+		&:hover {
+			background: $c-primary-dark;
+		}
+		&.Mui-disabled {
+			background: $c-primary;
+			color: #ffffff;
+			opacity: 0.4;
+		}
+	}
+	.cm-write {
+		width: 100%;
+	}
+
+	/* ---------- o'ng tomon: sarlavha + kartalar ---------- */
+	.cm-head {
+		margin-bottom: 22px;
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: 16px;
+		.cm-title {
+			color: $c-text;
+			font-size: 32px;
+			font-weight: 800;
+			letter-spacing: -0.03em;
+		}
+		.cm-sub {
+			margin-top: 6px;
+			color: $c-muted;
+			font-size: 15px;
+		}
+	}
+	.cm-count {
+		flex-shrink: 0;
+		height: 30px;
+		padding: 0 12px;
+		display: inline-flex;
+		align-items: center;
+		border-radius: 15px;
+		background: $c-surface-2;
+		color: $c-text;
+		font-size: 13px;
+		font-weight: 800;
+	}
+	.cm-panel {
+		padding: 0;
+	}
+	.cm-grid {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 24px;
+	}
+	.cm-empty {
+		grid-column: 1 / -1;
+		padding: 64px 24px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+		border: 1px dashed $c-line;
+		border-radius: $r-lg;
+		background: $c-surface;
+		text-align: center;
+		.cm-empty-icon {
+			width: 56px;
+			height: 56px;
+			margin-bottom: 6px;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 16px;
+			background: rgba(0, 87, 255, 0.08);
+			color: $c-primary;
+			svg {
+				font-size: 28px;
+			}
+		}
+		strong {
+			color: $c-text;
+			font-size: 18px;
+			font-weight: 800;
+		}
+		p {
+			color: $c-muted;
+			font-size: 14px;
+		}
+		.cm-btn-primary {
+			margin-top: 10px;
+		}
+	}
+	.cm-pagination {
+		margin-top: 36px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 12px;
+		.cm-total {
+			color: $c-muted;
+			font-family: $font;
+			font-size: 14px;
+		}
+	}
+}
+
+/* =====================================================================
+   MAQOLA SAHIFASI — /community/detail (desktop)
+   ===================================================================== */
+#pc-wrap #community-detail-page.cm-v2 {
+	.cm-article {
+		overflow: hidden;
+		border: 1px solid $c-line;
+		border-radius: $r-lg;
+		background: $c-surface;
+	}
+	.cm-article-cover {
+		max-height: 420px;
+		overflow: hidden;
+		background: $c-surface-2;
+		img {
+			width: 100%;
+			height: 100%;
+			max-height: 420px;
+			display: block;
+			object-fit: cover;
+		}
+	}
+	.cm-article-head {
+		padding: 32px 40px 0;
+	}
+	.cm-chip {
+		height: 30px;
+		padding: 0 12px;
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		border-radius: 15px;
+		background: rgba(0, 87, 255, 0.08);
+		color: $c-primary;
+		font-size: 13px;
+		font-weight: 800;
+		svg {
+			font-size: 17px;
+		}
+	}
+	.cm-article-title {
+		margin-top: 14px;
+		color: $c-text;
+		font-family: $font;
+		font-size: 36px;
+		font-weight: 800;
+		line-height: 1.2;
+		letter-spacing: -0.03em;
+		word-break: break-word;
+	}
+	.cm-article-meta {
+		margin-top: 20px;
+		padding-bottom: 22px;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		border-bottom: 1px solid $c-line;
+	}
+	.cm-author {
+		min-width: 0;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		cursor: pointer;
+		img {
+			flex-shrink: 0;
+			width: 44px;
+			height: 44px;
+			border-radius: 50%;
+			object-fit: cover;
+			background: $c-surface-2;
+		}
+		> div {
+			min-width: 0;
+			display: flex;
+			flex-direction: column;
+			gap: 2px;
+		}
+		strong {
+			color: $c-text;
+			font-size: 15px;
+			font-weight: 700;
+		}
+		.cm-time {
+			color: $c-muted;
+			font-size: 13px;
+		}
+		&:hover strong {
+			color: $c-primary-dark;
+		}
+	}
+	.cm-article-stats {
+		display: flex;
+		align-items: center;
+		gap: 18px;
+		color: $c-muted;
+		font-size: 14px;
+		font-weight: 700;
+		font-variant-numeric: tabular-nums;
+		span {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+		}
+		svg {
+			font-size: 19px;
+			color: #8a9099;
+		}
+	}
+
+	// maqola matni (Toast UI Viewer) — o'zining ichki oq fon va 40px chetlarini bekor qilamiz
+	.cm-article-body {
+		padding: 28px 40px 8px;
+		> .MuiStack-root {
+			margin: 0 !important;
+			border-radius: 0 !important;
+			background: transparent !important;
+		}
+		.MuiBox-root {
+			margin: 0 !important;
+		}
+		.toastui-editor-contents {
+			color: $cm-body;
+			font-family: $font;
+			font-size: 16px;
+			line-height: 1.75;
+			p,
+			li {
+				font-size: 16px;
+				line-height: 1.75;
+			}
+			h1,
+			h2,
+			h3 {
+				border: none;
+				color: $c-text;
+				font-family: $font;
+				letter-spacing: -0.02em;
+			}
+			img,
+			iframe {
+				max-width: 100%;
+				border-radius: 12px;
+			}
+		}
+	}
+
+	.cm-article-foot {
+		margin: 16px 40px 0;
+		padding: 22px 0 28px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		border-top: 1px solid $c-line;
+		p {
+			color: $c-muted;
+			font-size: 14px;
+			font-weight: 600;
+		}
+	}
+	.cm-like-btn {
+		height: 46px;
+		padding: 0 18px;
+		gap: 8px;
+		border: 1px solid $c-line;
+		border-radius: 12px;
+		background: $c-surface;
+		color: $c-text;
+		font-family: $font;
+		font-size: 14px;
+		font-weight: 700;
+		transition: background-color 160ms ease, border-color 160ms ease, transform 120ms $cm-ease;
+		.MuiButton-startIcon {
+			margin: 0;
+			svg {
+				font-size: 21px;
+			}
+		}
+		.cm-like-count {
+			min-width: 22px;
+			height: 22px;
+			padding: 0 7px;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			box-sizing: border-box;
+			border-radius: 11px;
+			background: $c-surface-2;
+			font-size: 12px;
+			font-variant-numeric: tabular-nums;
+		}
+		&:hover {
+			border-color: $c-primary;
+			background: $c-surface;
+		}
+		&:active {
+			transform: scale(0.97);
+		}
+		&.is-liked {
+			border-color: $c-primary;
+			background: rgba(0, 87, 255, 0.08);
+			color: $c-primary;
+			.cm-like-count {
+				background: $c-primary;
+				color: #ffffff;
+			}
+		}
+	}
+	.cm-article.is-loading .cm-article-title {
+		width: 60%;
+		border-radius: 10px;
+		background: $c-surface-2;
+	}
+
+	/* ---------- izohlar ---------- */
+	.cm-comments {
+		margin-top: 28px;
+		padding: 28px 32px 24px;
+		border: 1px solid $c-line;
+		border-radius: $r-lg;
+		background: $c-surface;
+	}
+	.cm-comments-head {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		h2 {
+			color: $c-text;
+			font-size: 22px;
+			font-weight: 800;
+			letter-spacing: -0.02em;
+		}
+		.cm-count {
+			height: 26px;
+		}
+	}
+	.cm-comment-form {
+		margin-top: 18px;
+		padding: 6px 6px 6px 16px;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		border: 1px solid $c-line;
+		border-radius: 14px;
+		background: $c-bg;
+		transition: border-color 160ms ease, box-shadow 160ms ease;
+		input {
+			flex: 1;
+			min-width: 0;
+			height: 46px;
+			border: none;
+			outline: none;
+			background: transparent;
+			color: $c-text;
+			font-family: $font;
+			font-size: 15px;
+			&::placeholder {
+				color: $cm-faint;
+			}
+		}
+		&:focus-within {
+			border-color: $c-primary;
+			box-shadow: 0 0 0 4px rgba(0, 87, 255, 0.12);
+		}
+	}
+	.cm-comment-actions {
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		.cm-btn-primary {
+			height: 42px;
+		}
+	}
+	.cm-counter {
+		color: $cm-faint;
+		font-family: $font;
+		font-size: 13px;
+		font-variant-numeric: tabular-nums;
+		&.is-near {
+			color: $c-accent;
+		}
+	}
+	.cm-empty-sm {
+		margin-top: 18px;
+		padding: 32px 20px;
+		border-radius: $r-md;
+		svg {
+			font-size: 30px;
+			color: $cm-faint;
+		}
+	}
+	.cm-comment-list {
+		margin-top: 8px;
+	}
+	.cm-comment {
+		padding: 18px 0;
+		border-bottom: 1px solid $c-line;
+		&:last-child {
+			border-bottom: none;
+		}
+	}
+	.cm-comment-top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		.cm-author img {
+			width: 38px;
+			height: 38px;
+		}
+	}
+	.cm-comment-tools {
+		flex-shrink: 0;
+		display: flex;
+		gap: 2px;
+		.MuiIconButton-root {
+			padding: 7px;
+			color: #8a9099;
+			svg {
+				font-size: 20px;
+			}
+			&:hover {
+				background: $c-surface-2;
+				color: $c-text;
+			}
+			&.is-danger:hover {
+				background: #fdf1f1;
+				color: #c62828;
+			}
+		}
+	}
+	.cm-comment-text {
+		margin: 10px 0 0 50px;
+		color: $cm-body;
+		font-family: $font;
+		font-size: 15px;
+		line-height: 1.6;
+		word-break: break-word;
+	}
+	.cm-pagination {
+		margin-top: 18px;
+	}
+}

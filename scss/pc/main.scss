@@ -1090,3 +1090,30 @@ body::-webkit-scrollbar {
 // V01 "Signal" dizayn qatlami (oxirida bo'lishi kerak)
 @import '/scss/pc/theme/v01.scss';
 @import '/scss/pc/theme/v01-pages.scss';
+
+// Showcase dizayn qatlami: Hyundai hero + tezkor menyu + Sell promo + katta dealer kartalari (eng oxirida)
+@import '/scss/pc/homepage/showcase.scss';
+
+// Mashina sahifasi — premium dizayn (eng oxirida)
+@import '/scss/pc/car/carDetailV2.scss';
+
+// Dealers + Dealer sahifasi — yangilangan ko'rinish (eng oxirida)
+@import '/scss/pc/dealer/dealerV2.scss';
+
+// Community — yangilangan ko'rinish (eng oxirida)
+@import '/scss/pc/community/communityV2.scss';
+
+// Mashinalar ro'yxati — yangilangan ko'rinish (eng oxirida)
+@import '/scss/pc/car/carListV2.scss';
+
+// My Page — yangilangan ko'rinish (eng oxirida)
+@import '/scss/pc/mypage/mypageV2.scss';
+
+// Bosh sahifa: Events / Community / Find a dealer hover effektlari (eng oxirida)
+@import '/scss/pc/homepage/homeHover.scss';
+
+// Login / Sign up — yangilangan ko'rinish (eng oxirida)
+@import '/scss/pc/account/joinV2.scss';
+
+// Navbar: foydalanuvchi va til tugmalari (eng oxirida)
+@import '/scss/pc/theme/navUser.scss';

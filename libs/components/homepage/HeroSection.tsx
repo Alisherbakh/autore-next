@@ -1,20 +1,17 @@
 import React from 'react';
 import { Stack } from '@mui/material';
 import HeaderFilter from './HeaderFilter';
-import { useTranslation } from 'next-i18next';
-import FiberContainer from '../common/FiberContainer';
+import HeroShowcase from './HeroShowcase';
 
-// Bosh sahifaning yuqori qismi (nestar-next'dagi kabi): 3D galereya (hashamatli va mashhur mashinalar)
-// va uning ostida mashina qidiruvi (HeaderFilter — mantiq o'zgarmagan)
+// Bosh sahifaning yuqori qismi: Hyundai uslubidagi mashina slayderi (HeroShowcase),
+// uning ostida mashina qidiruvi (HeaderFilter — mantiq o'zgarmagan).
+// Oldingi 3D galereya (FiberContainer) fayli o'chirilmagan, faqat bu yerda ishlatilmayapti.
 const HeroSection = () => {
-	const { t } = useTranslation('common');
-
 	return (
 		// 'header-main' klassi HeaderFilter'ning mavjud dropdown stillarini ishlatish uchun qoldirildi
-		<Stack className={'header-main hero-search hero-gallery'}>
-			<FiberContainer />
-			<span className={'gallery-hint'}>{t('Scroll to explore the gallery')}</span>
-			<Stack className={'container'}>
+		<Stack component={'section'} className={'header-main hero-search hero-showcase-wrap'} aria-labelledby={'hero-title'}>
+			<HeroShowcase />
+			<Stack className={'container hs-search'}>
 				<HeaderFilter />
 			</Stack>
 		</Stack>

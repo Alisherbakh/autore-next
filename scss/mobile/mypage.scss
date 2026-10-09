@@ -1,0 +1,232 @@
+/**
+ * MOBIL: My Page — faqat mobilga xos farqlar. Umumiy stillar: scss/pc/mypage/mypageV2.scss
+ */
+#mobile-wrap #my-page.mp-v2,
+#mobile-wrap #member-page.mb-v2 {
+	width: 100%;
+	padding: 16px 16px 48px;
+	box-sizing: border-box;
+	background: $c-bg;
+	font-family: $font;
+	.mp-wrap {
+		display: flex;
+		flex-direction: column;
+		gap: 18px;
+	}
+
+	// menyu: profil + gorizontal aylantiriladigan chip'lar
+	.mp-menu {
+		padding: 14px 0 12px;
+	}
+	.mp-profile {
+		padding: 0 14px 12px;
+	}
+	.mp-admin-link {
+		margin: 12px 14px 0;
+	}
+	.mp-nav {
+		margin-top: 12px;
+		padding: 0 14px;
+		display: flex;
+		gap: 8px;
+		overflow-x: auto;
+		scrollbar-width: none;
+		&::-webkit-scrollbar {
+			display: none;
+		}
+	}
+	.mp-group {
+		padding: 0;
+		display: contents;
+	}
+	.mp-group-title {
+		display: none;
+	}
+	.mp-list {
+		flex-direction: row;
+		gap: 8px;
+	}
+	.mp-item {
+		width: auto;
+		flex-shrink: 0;
+		a {
+			height: 38px;
+			padding: 0 12px;
+			gap: 6px;
+			border: 1px solid $c-line;
+			border-radius: 19px;
+			white-space: nowrap;
+			font-size: 13px;
+		}
+		.mp-icon {
+			font-size: 18px;
+		}
+		&.focus a {
+			border-color: $c-primary;
+			background: $c-primary;
+			color: #ffffff;
+			.mp-icon {
+				color: #ffffff;
+			}
+		}
+	}
+	.mp-logout {
+		width: auto;
+		margin: 10px 14px 0;
+		padding: 0;
+		height: 32px;
+		border-top: none;
+		font-size: 13px;
+	}
+
+	// bo'limlar
+	.mp-section {
+		.main-title-box {
+			flex-direction: column;
+			align-items: stretch;
+			.main-title {
+				font-size: 23px;
+			}
+			.sub-title {
+				font-size: 14px;
+			}
+			.mp-btn-primary {
+				width: 100%;
+			}
+		}
+		.mp-card {
+			padding: 18px 16px;
+		}
+		.mp-grid {
+			grid-template-columns: minmax(0, 1fr);
+			gap: 16px;
+			@media (min-width: 560px) {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+		}
+		.mp-form-grid,
+		.mp-form-grid.is-3 {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.mp-field input,
+		.mp-field textarea,
+		.mp-select select,
+		.mp-form-grid .input-box input {
+			font-size: 16px; // iOS'da avtomatik zoom bo'lmasligi uchun
+		}
+	}
+
+	// My Cars: jadval o'rniga kartalar
+	.mp-segment {
+		display: flex;
+		button {
+			flex: 1;
+			padding: 0 8px;
+		}
+	}
+	.mp-table {
+		border: none;
+		background: transparent;
+		overflow: visible;
+	}
+	.mp-table-head {
+		display: none;
+	}
+	.mp-rows {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+	.mp-row {
+		padding: 14px;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 12px 10px;
+		border: 1px solid $c-line;
+		border-radius: $r-md;
+		background: $c-surface;
+		&:last-child {
+			border-bottom: 1px solid $c-line;
+		}
+		.mp-row-main {
+			grid-column: 1 / -1;
+		}
+		.image-box {
+			width: 88px;
+			height: 66px;
+		}
+		.date-box,
+		.status-box,
+		.views-box {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 4px;
+		}
+		.mp-cell-label {
+			display: block;
+			color: $c-muted;
+			font-size: 11px;
+			font-weight: 800;
+			letter-spacing: 0.06em;
+			text-transform: uppercase;
+		}
+		.date {
+			font-size: 13px;
+		}
+		.action-box {
+			grid-column: 1 / -1;
+			padding-top: 10px;
+			justify-content: flex-end;
+			border-top: 1px solid $c-line;
+		}
+	}
+
+	// profil
+	#mp-profile .photo-box {
+		flex-direction: column;
+		text-align: center;
+		.upload-big-box {
+			align-items: center;
+		}
+	}
+	#mp-profile .mp-form-foot .mp-btn-primary {
+		width: 100%;
+	}
+
+	// add car
+	#mp-add-car .mp-savebar {
+		bottom: 8px;
+		padding: 10px;
+		flex-direction: column;
+		align-items: stretch;
+		gap: 8px;
+		.mp-savebar-hint {
+			text-align: center;
+			font-size: 13px;
+		}
+	}
+
+	// write article
+	#mp-write-article .mp-write-meta {
+		padding: 16px;
+		grid-template-columns: minmax(0, 1fr);
+	}
+	#mp-write-article .mp-write-foot .mp-btn-primary {
+		width: 100%;
+	}
+
+	// followers
+	.mp-people {
+		padding: 2px 14px;
+	}
+	.mp-person {
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: 10px 12px;
+		.action-box {
+			grid-column: 1 / -1;
+			.mp-follow {
+				width: 100%;
+			}
+		}
+	}
+}

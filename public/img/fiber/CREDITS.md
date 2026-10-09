@@ -46,6 +46,29 @@ Homepage "Pick a body style" (`libs/components/homepage/CarTypes.tsx`). Resized 
 | `/img/types/van.jpg` | Kia Carnival | Dinkun Chen | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | [File:KIA CARNIVAL (KA4) China (8).jpg](https://commons.wikimedia.org/wiki/File:KIA_CARNIVAL_(KA4)_China_(8).jpg) |
 | `/img/types/pickup.jpg` | Hyundai Santa Cruz | Zeometric | [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/) | [File:2022 Hyundai Santa Cruz 2.5T Limited (United States) front view (cropped).jpg](https://commons.wikimedia.org/wiki/File:2022_Hyundai_Santa_Cruz_2.5T_Limited_(United_States)_front_view_(cropped).jpg) |
 
+## Homepage event photos
+
+`public/img/events/` (`libs/components/homepage/Events.tsx`), resized to 1600px wide.
+
+| File | Subject | Author | License | Source |
+|---|---|---|---|---|
+| `seoul-mobility-show.jpg` | Hyundai RN24 Concept, Seoul Mobility Show 2025 | Treeinkr | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | [File:Hyundai RN24 Concept – Seoul Mobility Show 2025 (01).jpg](https://commons.wikimedia.org/wiki/File:Hyundai_RN24_Concept_%E2%80%93_Seoul_Mobility_Show_2025_(01).jpg) |
+| `busan-mobility-show.jpg` | Exhibition hall, Busan Motor Show 2018 (now Busan International Mobility Show) | Trainholic | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | [File:2018 Busan Motor Show.jpg](https://commons.wikimedia.org/wiki/File:2018_Busan_Motor_Show.jpg) |
+| `superrace.jpg` | Superrace Super 6000 class start | Superrace0 | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | [File:슈퍼6000 클래스 스타트.jpg](https://commons.wikimedia.org/wiki/File:%EC%8A%88%ED%8D%BC6000_%ED%81%B4%EB%9E%98%EC%8A%A4_%EC%8A%A4%ED%83%80%ED%8A%B8.jpg) |
+
+## Community board photos
+
+Backend `uploads/article/community-*.jpg` (seeded by `autore/scripts/seed-community.js`), resized to 1600px wide. The FREE, REVIEW and TIPS posts reuse the demo listing photos credited below (`demo-<model>-2.jpg`).
+
+| File | Subject | Author | License | Source |
+|---|---|---|---|---|
+| `community-sms-2025.jpg` | Hyundai RN24 Concept, Seoul Mobility Show 2025 | Treeinkr | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | [File:Hyundai RN24 Concept – Seoul Mobility Show 2025 (01).jpg](https://commons.wikimedia.org/wiki/File:Hyundai_RN24_Concept_%E2%80%93_Seoul_Mobility_Show_2025_(01).jpg) |
+| `community-ioniq9.jpg` | Hyundai Ioniq 9 Calligraphy | Ethan Llamas | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | [File:Hyundai Ioniq 9 ME1 Calligraphy Long Range HTRAC AWD Celadon Gray Matte 03.jpg](https://commons.wikimedia.org/wiki/File:Hyundai_Ioniq_9_ME1_Calligraphy_Long_Range_HTRAC_AWD_Celadon_Gray_Matte_03.jpg) |
+| `community-tasman.jpg` | Kia Tasman, Seoul Mobility Show 2025 | Treeinkr | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | [File:Kia Tasman TK1 – Seoul Mobility Show 2025.jpg](https://commons.wikimedia.org/wiki/File:Kia_Tasman_TK1_%E2%80%93_Seoul_Mobility_Show_2025.jpg) |
+| `community-bimos.jpg` | Exhibition hall, Busan Motor Show 2018 | Trainholic | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | [File:2018 Busan Motor Show.jpg](https://commons.wikimedia.org/wiki/File:2018_Busan_Motor_Show.jpg) |
+| `community-casper-electric.jpg` | Hyundai Casper Electric, BIMOS 2024 | Damian B Oh | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | [File:Hyundai Casper Electric BIMOS 2024 (1).jpg](https://commons.wikimedia.org/wiki/File:Hyundai_Casper_Electric_BIMOS_2024_(1).jpg) |
+| `community-inje-speedium.jpg` | Inje Speedium at night | Godrnehd | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | [File:인제스피디움 전경(야경).jpg](https://commons.wikimedia.org/wiki/File:%EC%9D%B8%EC%A0%9C%EC%8A%A4%ED%94%BC%EB%94%94%EC%9B%80_%EC%A0%84%EA%B2%BD(%EC%95%BC%EA%B2%BD).jpg) |
+
 ## Demo listing photos
 
 Served by the API from `autore/uploads/car/demo-*.jpg` (seeded by `autore/scripts/seed-demo-members.js`). All from Wikimedia Commons, resized to 1024px wide. Demo member avatars (`uploads/member/demo-member-*.jpg`) are AI-generated faces of people who do not exist.

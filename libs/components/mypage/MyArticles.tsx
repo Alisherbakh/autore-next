@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import ArticleRoundedIcon from '@mui/icons-material/ArticleRounded';
+import Link from 'next/link';
+import { useTranslation } from 'next-i18next';
 import { NextPage } from 'next';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { Pagination, Stack, Typography } from '@mui/material';
@@ -14,6 +17,7 @@ import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../sweetAler
 
 const MyArticles: NextPage = ({ initialInput, ...props }: T) => {
 	const device = useDeviceDetect();
+	const { t } = useTranslation('common');
 	const user = useReactiveVar(userVar);
 	const [searchCommunity, setSearchCommunity] = useState({
 		...initialInput,
@@ -72,53 +76,53 @@ const MyArticles: NextPage = ({ initialInput, ...props }: T) => {
 		}
 	};
 
-	if (device === 'mobile') {
-		return <>ARTICLE PAGE MOBILE</>;
-	} else
-		return (
-			<div id="my-articles-page">
-				<Stack className="main-title-box">
-					<Stack className="right-box">
-						<Typography className="main-title">Article</Typography>
-						<Typography className="sub-title">We are glad to see you again!</Typography>
-					</Stack>
+	// mobil va desktop'da bir xil — farqi stillarda (scss/pc/mypage/mypageV2.scss)
+	return (
+		<div id="mp-articles" className={'mp-section'}>
+			<Stack className="main-title-box">
+				<Stack className="right-box">
+					<Typography className="main-title">{t('Articles')}</Typography>
+					<Typography className="sub-title">{t('Posts you have shared with the community.')}</Typography>
 				</Stack>
-				<Stack className="article-list-box">
-					{boardArticles?.length > 0 ? (
-						boardArticles?.map((boardArticle: BoardArticle) => {
-							return <CommunityCard 
-							boardArticle={boardArticle} 
-							key={boardArticle?._id} 
-							size={'small'}
-							likeArticleHandler={likeBoArticleHandler}
-							/>;
-						})
-					) : (
-						<div className={'no-data'}>
-							<img src="/img/icons/icoAlert.svg" alt="" />
-							<p>No Articles found!</p>
-						</div>
-					)}
-				</Stack>
-
-				{boardArticles?.length > 0 && (
-					<Stack className="pagination-conf">
-						<Stack className="pagination-box">
-							<Pagination
-								count={Math.ceil(totalCount / searchCommunity.limit)}
-								page={searchCommunity.page}
-								shape="circular"
-								color="primary"
-								onChange={paginationHandler}
+			</Stack>
+			<div className="article-list-box mp-grid">
+				{boardArticles?.length > 0 ? (
+					boardArticles?.map((boardArticle: BoardArticle) => {
+						return (
+							<CommunityCard
+								boardArticle={boardArticle}
+								key={boardArticle?._id}
+								likeArticleHandler={likeBoArticleHandler}
 							/>
-						</Stack>
-						<Stack className="total">
-							<Typography>Total {totalCount ?? 0} article(s) available</Typography>
-						</Stack>
-					</Stack>
+						);
+					})
+				) : (
+						<div className={'mp-empty'}>
+							<span className={'mp-empty-icon'}>
+								<ArticleRoundedIcon />
+							</span>
+							<strong>{t('No posts yet')}</strong>
+							<p>{t('Share a story, a review or a tip with other drivers.')}</p>
+							<Link href={'/mypage?category=writeArticle'} className={'mp-btn-link'}>
+								{t('Write a post')}
+							</Link>
+						</div>
 				)}
 			</div>
-		);
+			{boardArticles?.length > 0 ? (
+				<Stack className="pagination-config mp-pagination">
+					<Pagination
+						count={Math.ceil(totalCount / searchCommunity.limit)}
+						page={searchCommunity.page}
+						shape="circular"
+						color="primary"
+						onChange={paginationHandler}
+					/>
+					<Typography className="mp-total">{t('Total {{count}} articles available', { count: totalCount ?? 0 })}</Typography>
+				</Stack>
+			) : null}
+		</div>
+	);
 };
 
 MyArticles.defaultProps = {

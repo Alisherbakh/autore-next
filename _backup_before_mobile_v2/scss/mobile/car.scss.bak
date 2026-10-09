@@ -1,0 +1,195 @@
+/**
+ * MOBIL: Mashinalar ro'yxati (/car) — V01 "Signal".
+ * scss/mobile/main.scss oxirida import qilinadi.
+ * Filtr, CarCard va filtr oynasi stillari global — scss/pc/car/carListV2.scss'da.
+ */
+@keyframes clm-shimmer {
+	0% {
+		background-position: -480px 0;
+	}
+	100% {
+		background-position: 480px 0;
+	}
+}
+
+#mobile-wrap #car-list-page.cl-mobile {
+	width: 100%;
+	padding: 20px 16px 48px;
+	box-sizing: border-box;
+	background: $c-bg;
+	font-family: $font;
+	color: $c-text;
+
+	.cl-title {
+		font-size: 28px;
+		font-weight: 800;
+		letter-spacing: -0.02em;
+	}
+	.cl-sub {
+		margin-top: 4px;
+		color: $c-muted;
+		font-size: 14px;
+	}
+	.cl-toolbar {
+		margin-top: 14px;
+		display: flex;
+		gap: 10px;
+		.MuiButton-root {
+			height: 44px;
+			border: 1px solid $c-line;
+			border-radius: 12px;
+			background: $c-surface;
+			color: $c-text;
+			font-family: $font;
+			font-size: 14px;
+			font-weight: 700;
+			text-transform: none;
+		}
+		.cl-filter-btn {
+			flex: 1;
+			gap: 6px;
+			.MuiButton-startIcon {
+				margin: 0;
+			}
+		}
+		.cl-sort-btn {
+			padding: 0 10px 0 14px;
+		}
+	}
+	.cl-filter-count {
+		min-width: 20px;
+		height: 20px;
+		padding: 0 6px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		box-sizing: border-box;
+		border-radius: 10px;
+		background: $c-primary;
+		color: #ffffff;
+		font-size: 12px;
+		font-weight: 800;
+	}
+
+	.cl-chips {
+		margin-top: 12px;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 8px;
+	}
+	.cl-chip {
+		height: 32px;
+		padding: 0 8px 0 12px;
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		border: none;
+		border-radius: 16px;
+		background: rgba(0, 87, 255, 0.08);
+		color: $c-primary;
+		font-family: $font;
+		font-size: 13px;
+		font-weight: 700;
+		svg {
+			font-size: 16px;
+		}
+	}
+	.cl-chip-clear {
+		padding: 6px 8px;
+		border: none;
+		background: transparent;
+		color: $c-muted;
+		font-family: $font;
+		font-size: 13px;
+		font-weight: 700;
+	}
+
+	.cl-grid {
+		margin-top: 16px;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: 16px;
+		@media (min-width: 560px) {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+	.cl-skeleton {
+		overflow: hidden;
+		border: 1px solid $c-line;
+		border-radius: $r-md;
+		background: $c-surface;
+		.sk-img,
+		.sk-line {
+			display: block;
+			background: linear-gradient(90deg, $c-surface-2 0%, #f6f8fc 50%, $c-surface-2 100%);
+			background-size: 960px 100%;
+			animation: clm-shimmer 1.3s linear infinite;
+		}
+		.sk-img {
+			aspect-ratio: 16 / 10;
+		}
+		.sk-line {
+			height: 12px;
+			margin: 14px 16px 0;
+			border-radius: 6px;
+			&.short {
+				width: 45%;
+				margin-bottom: 18px;
+			}
+		}
+	}
+	.cl-empty {
+		grid-column: 1 / -1;
+		padding: 44px 20px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+		border: 1px dashed $c-line;
+		border-radius: $r-md;
+		background: $c-surface;
+		text-align: center;
+		.cl-empty-icon {
+			width: 48px;
+			height: 48px;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 14px;
+			background: rgba(0, 87, 255, 0.08);
+			color: $c-primary;
+		}
+		strong {
+			font-size: 17px;
+			font-weight: 800;
+		}
+		p {
+			color: $c-muted;
+			font-size: 14px;
+		}
+	}
+	.cl-btn-primary {
+		margin-top: 8px;
+		height: 44px;
+		padding: 0 16px;
+		border-radius: 12px;
+		background: $c-primary;
+		color: #ffffff;
+		font-family: $font;
+		font-size: 14px;
+		font-weight: 700;
+	}
+	.cl-pagination {
+		margin-top: 24px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 10px;
+		.cl-total {
+			color: $c-muted;
+			font-family: $font;
+			font-size: 13px;
+		}
+	}
+}

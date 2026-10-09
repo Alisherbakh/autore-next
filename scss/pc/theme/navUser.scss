@@ -1,0 +1,62 @@
+/**
+ * NAVBAR: foydalanuvchi rasmi va til tugmasiga faqat hover effekti (dizayn o'zgarmagan).
+ * main.scss oxirida import qilinadi.
+ */
+$nu-ease: cubic-bezier(0.23, 1, 0.32, 1);
+
+#pc-wrap #top .navbar .navbar-main .container {
+	.user-box .login-user img {
+		transition: box-shadow 200ms $nu-ease, transform 200ms $nu-ease, filter 200ms ease;
+	}
+	.lan-box .btn-lang {
+		transition: background-color 160ms ease, transform 160ms $nu-ease;
+		.flag img {
+			transition: transform 200ms $nu-ease;
+		}
+		.lang-caret {
+			transition: transform 200ms $nu-ease, color 160ms ease;
+		}
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		// avatar: biroz kattalashadi va yumshoq soya (rangli halqasiz)
+		.user-box .login-user:hover img {
+			box-shadow: 0 6px 16px -6px rgba(20, 23, 28, 0.45);
+			transform: scale(1.05);
+		}
+		// til tugmasi: yengil fon, bayroq biroz kattalashadi, strelka pastga siljiydi
+		.lan-box .btn-lang:hover {
+			background: rgba(20, 23, 28, 0.06);
+			.flag img {
+				transform: scale(1.08);
+			}
+			.lang-caret {
+				color: $c-text;
+				transform: translateY(2px);
+			}
+		}
+	}
+}
+
+// bosh sahifa hero ustida (shaffof navbar)
+@media (hover: hover) and (pointer: fine) {
+	#pc-wrap #top .navbar .navbar-main.on-hero .container {
+		.lan-box .btn-lang:hover {
+			background: rgba(255, 255, 255, 0.14);
+			.lang-caret {
+				color: #ffffff;
+			}
+		}
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	#pc-wrap #top .navbar .navbar-main .container {
+		.user-box .login-user img,
+		.lan-box .btn-lang,
+		.lan-box .btn-lang .flag img,
+		.lan-box .btn-lang .lang-caret {
+			transition: none;
+		}
+	}
+}

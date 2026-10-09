@@ -8,6 +8,9 @@ import { Autoplay, Navigation, Pagination } from 'swiper';
 import { Car } from '../../types/car/car';
 import { CarsInquiry } from '../../types/car/car.input';
 import TrendCarCard, { TrendCarSkeleton } from './TrendCarCard';
+import SectionHead from './SectionHead';
+import Link from 'next/link';
+import CarCard from '../car/CarCard';
 import { useTranslation } from 'next-i18next';
 import { useMutation, useQuery } from '@apollo/client';
 import { GET_CARS } from '../../../apollo/user/query';
@@ -72,56 +75,46 @@ const TrendCars = (props: TrendCarsProps) => {
 	const emptyText = t('No trending cars yet. Like a car to see it here.');
 
 	if (device === 'mobile') {
+		// mobil: gorizontal aylantiriladigan qator (CarCard — /car sahifasidagi karta)
 		return (
-			<Stack className={'trend-cars'}>
-				<Stack className={'container'}>
-					<Stack className={'info-box'}>
-						<span>Trend Cars</span>
-					</Stack>
-					<Stack className={'card-box'} aria-busy={showSkeleton}>
-						{!showSkeleton && trendCars.length === 0 ? (
-							<Box component={'div'} className={'empty-list'}>
-								{emptyText}
-							</Box>
-						) : (
-							<Swiper
-								className={'trend-car-swiper'}
-								slidesPerView={'auto'}
-								centeredSlides={true}
-								spaceBetween={15}
-								modules={[Autoplay]}
-							>
-								{showSkeleton && skeletonSlides}
-								{trendCars.map((car: Car) => {
-									return (
-										<SwiperSlide key={car._id} className={'trend-car-slide'}>
-											<TrendCarCard car={car} likeCarHandler={likeCarHandler} />
-										</SwiperSlide>
-									);
-								})}
-							</Swiper>
-						)}
-					</Stack>
-				</Stack>
-			</Stack>
+			<section className={'m-sec'} aria-labelledby={'m-trend-title'}>
+				<div className={'m-sec-head'}>
+					<h2 id={'m-trend-title'}>{t('Trend Cars')}</h2>
+					<Link href={'/car'} className={'m-see'}>
+						{t('See all')}
+					</Link>
+				</div>
+				<div className={'m-scroll'} aria-busy={showSkeleton}>
+					{showSkeleton &&
+						[0, 1].map((i) => <div key={`sk-${i}`} className={'m-scroll-item m-skeleton'} aria-hidden="true" />)}
+					{!showSkeleton && trendCars.length === 0 && <p className={'m-empty'}>{emptyText}</p>}
+					{trendCars.map((car: Car) => (
+						<div className={'m-scroll-item'} key={car._id}>
+							<CarCard car={car} likeCarHandler={likeCarHandler} />
+						</div>
+					))}
+				</div>
+			</section>
 		);
 	} else {
 		return (
-			<Stack className={'trend-cars'}>
+			<Stack component={'section'} className={'trend-cars hp-section'}>
 				<Stack className={'container'}>
-					<Stack className={'info-box'}>
-						<Box component={'div'} className={'left'}>
-							<span>Trend Cars</span>
-							<p>Trend is based on likes</p>
-						</Box>
-						<Box component={'div'} className={'right'}>
-							<div className={'pagination-box'}>
-								<WestIcon className={'swiper-trend-prev'} />
+					<SectionHead
+						title={t('Trend Cars')}
+						sub={t('Trend is based on likes')}
+						actions={
+							<div className={'hp-nav'}>
+								<button type={'button'} className={'hp-nav-btn swiper-trend-prev'} aria-label={t('Previous')}>
+									<WestIcon />
+								</button>
 								<div className={'swiper-trend-pagination'}></div>
-								<EastIcon className={'swiper-trend-next'} />
+								<button type={'button'} className={'hp-nav-btn swiper-trend-next'} aria-label={t('Next')}>
+									<EastIcon />
+								</button>
 							</div>
-						</Box>
-					</Stack>
+						}
+					/>
 					<Stack className={'card-box'} aria-busy={showSkeleton}>
 						{!showSkeleton && trendCars.length === 0 ? (
 							<Box component={'div'} className={'empty-list'}>

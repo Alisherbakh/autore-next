@@ -1,0 +1,46 @@
+import React from 'react';
+import Link from 'next/link';
+import { Stack } from '@mui/material';
+import { useTranslation } from 'next-i18next';
+
+// "Sell with Autore" bloki — desktop'da oldingi video reklama (Advertisement) o'rnida.
+// Advertisement.tsx o'chirilmagan, mobil versiyada hamon ishlatiladi.
+const STEPS = [
+	{ title: 'Add details & photos', text: 'Brand, model, mileage and a few photos' },
+	{ title: 'Get offers', text: 'Chat with buyers and dealers directly' },
+	{ title: 'Get paid', text: 'Cash, credit or barter — your choice' },
+];
+
+const SellPromo = () => {
+	const { t } = useTranslation('common');
+
+	return (
+		<Stack component={'section'} className={'sell-promo hp-section'} aria-labelledby={'sell-promo-title'}>
+			<Stack className={'container'}>
+				<div className={'sp-card'}>
+					<div className={'sp-copy'}>
+						<span className={'sp-tag'}>SELL WITH AUTORE</span>
+						<h2 id={'sell-promo-title'}>{t('Your car, listed in minutes.')}</h2>
+						<p>{t('Add photos and details, get offers from verified buyers and dealers, and close the deal with credit or barter options.')}</p>
+						<Link href={'/mypage?category=addCar'} className={'sp-btn'}>
+							{t('Sell my car')}
+						</Link>
+					</div>
+					<ol className={'sp-steps'}>
+						{STEPS.map((step, k) => (
+							<li key={step.title}>
+								<span className={'sp-num'}>{String(k + 1).padStart(2, '0')}</span>
+								<div>
+									<strong>{t(step.title)}</strong>
+									<span>{t(step.text)}</span>
+								</div>
+							</li>
+						))}
+					</ol>
+				</div>
+			</Stack>
+		</Stack>
+	);
+};
+
+export default SellPromo;

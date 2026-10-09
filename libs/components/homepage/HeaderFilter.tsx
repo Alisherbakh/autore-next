@@ -663,7 +663,7 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 								onClick={() => carTypeSelectHandler(type)}
 								key={type}
 							>
-								<img src={`/img/types/${type.toLowerCase()}.jpg`} alt="" width={200} height={125} loading={'lazy'} />
+								<img src={`/img/types/studio/${type.toLowerCase()}.webp`} alt="" width={1000} height={442} loading={'lazy'} />
 								<span>{formatEnum(type)}</span>
 							</button>
 						))}

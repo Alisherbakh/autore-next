@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'next-i18next';
 import { Stack } from '@mui/material';
 import { useRouter } from 'next/router';
 import { CarBrand } from '../../enums/car.enum';
@@ -6,6 +7,7 @@ import { CarBrand } from '../../enums/car.enum';
 // Brendlar qatori: brend bosilsa /car sahifasi shu brend filtri bilan ochiladi
 const BrandStrip = () => {
 	const router = useRouter();
+	const { t } = useTranslation('common');
 	const brands = Object.values(CarBrand).filter((brand) => brand !== CarBrand.OTHER);
 
 	const pushBrandHandler = async (brand: CarBrand) => {
@@ -14,13 +16,18 @@ const BrandStrip = () => {
 	};
 
 	return (
-		<Stack className={'brand-strip'}>
+		<Stack component={'nav'} className={'brand-strip'} aria-label={t('Shop by brand')}>
 			<Stack className={'container'}>
-				{brands.map((brand: CarBrand) => (
-					<button type={'button'} key={brand} onClick={() => pushBrandHandler(brand)}>
-						{brand}
-					</button>
-				))}
+				<span className={'brand-label'}>{t('Shop by brand')}</span>
+				<ul className={'brand-list'}>
+					{brands.map((brand: CarBrand) => (
+						<li key={brand}>
+							<button type={'button'} onClick={() => pushBrandHandler(brand)}>
+								{brand}
+							</button>
+						</li>
+					))}
+				</ul>
 			</Stack>
 		</Stack>
 	);

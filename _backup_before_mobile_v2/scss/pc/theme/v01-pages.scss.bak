@@ -1,0 +1,1267 @@
+/**
+ * AUTORE — V01 "SIGNAL": ICHKI SAHIFALAR
+ * My Page · Member (boshqa user / dealer sahifasi) · Dealers · Dealer detail · Admin panel
+ *
+ * Faqat ko'rinish o'zgaradi: komponentlar, klasslar va mantiq asl loyiha bilan bir xil qoladi.
+ * Asl stillar chuqur ichma-ich (3 ta id + ko'p klass) yozilgani uchun bu qatlam
+ * `#pc-wrap#pc-wrap` doirasida yoziladi — u bitta id ko'proq vazn beradi va
+ * asl selektorlarni takrorlamasdan ustidan yozishga imkon beradi.
+ */
+
+$v01: '#pc-wrap#pc-wrap';
+
+@mixin v01-focus-ring {
+	outline: none;
+	border-color: $c-primary;
+	box-shadow: 0 0 0 3px rgba(0, 87, 255, 0.12);
+}
+
+@mixin v01-title-box {
+	.main-title-box {
+		width: 100%;
+		.right-box {
+			width: auto;
+			gap: 6px;
+			.main-title {
+				color: $c-text;
+				font-family: $font;
+				font-size: 32px;
+				font-weight: 800;
+				line-height: 1.15;
+				letter-spacing: -0.03em;
+				text-transform: none;
+			}
+			.sub-title {
+				color: $c-muted;
+				font-family: $font;
+				font-size: 15px;
+				line-height: 1.5;
+			}
+		}
+	}
+}
+
+// My Cars / Member Cars jadvali: sarlavha va qatorlar bitta grid ustunlariga tekislanadi
+@mixin v01-car-table($cols) {
+	.list-box {
+		min-height: 0;
+		padding: 0;
+		overflow: hidden;
+		box-sizing: border-box;
+		border: 1px solid $c-line;
+		border-radius: $r-md;
+		background: $c-surface;
+		box-shadow: none;
+		.listing-title-box {
+			display: grid;
+			grid-template-columns: $cols;
+			gap: 16px;
+			align-items: center;
+			height: 52px;
+			padding: 0 24px;
+			box-sizing: border-box;
+			border-radius: 0;
+			background: #f1f3f8;
+			.title-text {
+				margin: 0;
+				color: $c-muted;
+				font-family: $font;
+				font-size: 12px;
+				font-weight: 800;
+				letter-spacing: 0.1em;
+				text-transform: uppercase;
+				&:first-child {
+					grid-column: span 2; // rasm + nom ustunlari
+				}
+			}
+		}
+		.car-card-box {
+			display: grid;
+			grid-template-columns: $cols;
+			gap: 16px;
+			align-items: center;
+			margin: 0;
+			padding: 14px 24px;
+			box-sizing: border-box;
+			border-bottom: none;
+			border-top: 1px solid $c-line;
+			transition: background 0.2s;
+			&:hover {
+				background: #fbfbf9;
+			}
+			.image-box {
+				width: 120px;
+				height: 76px;
+				margin: 0;
+				padding: 0;
+				border-radius: 12px;
+				background: $c-surface-2;
+				cursor: pointer;
+				img {
+					object-fit: cover;
+					border-radius: 12px;
+				}
+			}
+			.information-box {
+				width: auto;
+				min-width: 0;
+				padding: 0;
+				gap: 3px;
+				cursor: pointer;
+				.name {
+					margin: 0;
+					overflow: hidden;
+					color: $c-text;
+					font-size: 16px;
+					font-weight: 800;
+					white-space: nowrap;
+					text-overflow: ellipsis;
+				}
+				.address {
+					margin: 0;
+					color: $c-muted;
+					font-size: 13px;
+				}
+				.price {
+					color: $c-primary-dark;
+					font-size: 15px;
+					font-weight: 800;
+				}
+			}
+			.date-box,
+			.status-box,
+			.views-box {
+				width: auto;
+				height: auto;
+				margin: 0;
+				align-items: flex-start;
+			}
+			.date-box .date {
+				color: $c-muted;
+				font-size: 14px;
+			}
+			.status-box .coloured-box {
+				width: auto;
+				height: 34px;
+				padding: 0 14px;
+				border-radius: 999px;
+				.status {
+					font-size: 12px;
+					font-weight: 800;
+					letter-spacing: 0.08em;
+				}
+			}
+			.views-box .views {
+				color: $c-text;
+				font-size: 15px;
+				font-weight: 700;
+			}
+			.action-box {
+				gap: 8px;
+				justify-content: flex-start;
+				.icon-button {
+					width: 40px;
+					height: 40px;
+					border: 1px solid $c-line;
+					border-radius: $r-sm;
+					background: $c-surface;
+					.buttons {
+						color: $c-text;
+						font-size: 18px;
+					}
+					&:last-child .buttons {
+						color: #b3202e;
+					}
+					&:hover {
+						border-color: $c-text;
+					}
+				}
+			}
+		}
+		.no-data {
+			padding: 56px 0;
+		}
+		.pagination-config {
+			margin: 0;
+			padding: 20px 24px;
+			border-top: 1px solid $c-line;
+			.total-result p {
+				color: $c-muted;
+				font-size: 14px;
+			}
+		}
+	}
+}
+
+#{$v01} {
+	/* =====================================================================
+	   MY PAGE + MEMBER PAGE — umumiy karkas: chapda menyu, o'ngda kontent
+	   ===================================================================== */
+	#my-page,
+	#member-page {
+		background: $c-bg;
+		.container .my-page,
+		.container .member-page {
+			padding-top: 0;
+			.back-frame {
+				width: 100%;
+				margin: 48px 0 120px;
+				gap: 40px;
+				align-items: flex-start;
+				border: none;
+				border-radius: 0;
+				background: transparent;
+				box-shadow: none;
+				.left-config {
+					position: sticky;
+					top: 111px;
+					flex-shrink: 0;
+					width: 300px;
+					height: auto;
+					margin: 0;
+					padding: 24px 14px 20px;
+					box-sizing: border-box;
+					border: 1px solid $c-line;
+					border-radius: $r-md;
+					background: $c-surface;
+					box-shadow: none;
+					.profile {
+						margin: 0;
+						padding: 0 10px 22px;
+						flex-direction: column;
+						align-items: center;
+						gap: 12px;
+						text-align: center;
+						.profile-img img {
+							display: block;
+							width: 88px;
+							height: 88px;
+							border: 1px solid $c-line;
+							background: $c-surface-2;
+						}
+						.user-info {
+							margin-left: 0;
+							align-items: center;
+							gap: 6px;
+							.user-name {
+								color: $c-text;
+								font-size: 18px;
+								font-weight: 800;
+							}
+							.user-phone {
+								align-items: center;
+								gap: 6px;
+								img {
+									margin: 0;
+									opacity: 0.6;
+								}
+								p {
+									color: $c-muted;
+									font-size: 14px;
+								}
+							}
+							.view-list {
+								display: inline-block;
+								margin-top: 2px;
+								padding: 5px 12px;
+								border-radius: 999px;
+								background: $c-primary;
+								color: #ffffff;
+								font-size: 11px;
+								font-weight: 800;
+								letter-spacing: 0.12em;
+							}
+						}
+					}
+					.follow-button-box {
+						height: auto;
+						margin: 0 0 4px;
+						padding: 0 10px 22px;
+						justify-content: center;
+						gap: 10px;
+						button {
+							height: 42px;
+							padding: 0 22px;
+							border-radius: 12px;
+							font-family: $font;
+							font-size: 14px;
+							font-weight: 800;
+							text-transform: none;
+							box-shadow: none;
+						}
+						p {
+							color: $c-muted;
+							font-style: normal;
+							font-weight: 600;
+						}
+					}
+					.sections {
+						margin-top: 0;
+						padding-top: 18px;
+						gap: 18px;
+						border-top: 1px solid $c-line;
+						.section {
+							height: auto !important; // MyMenu'dagi inline balandlikni bekor qiladi
+							margin-top: 0 !important;
+							.title {
+								padding: 0 10px 6px;
+								color: $c-muted;
+								font-family: $font;
+								font-size: 12px;
+								font-weight: 800;
+								line-height: normal;
+								letter-spacing: 0.12em;
+								text-transform: uppercase;
+							}
+							.sub-section {
+								width: 100%;
+								height: auto;
+								padding: 0;
+								align-items: stretch;
+								li {
+									height: 42px;
+									margin-bottom: 2px;
+									padding: 0 12px;
+									border-radius: $r-sm;
+									transition: background 0.2s;
+									&:hover {
+										background: $c-surface-2;
+									}
+									a {
+										width: 100%;
+									}
+								}
+								.focus {
+									height: 42px;
+									border-radius: $r-sm;
+									background: $c-primary;
+									&:hover {
+										background: $c-primary;
+									}
+									p,
+									.sub-title,
+									.count-title {
+										color: #ffffff;
+									}
+								}
+								.flex-box {
+									width: 100%;
+									.com-icon {
+										margin-left: 0;
+									}
+								}
+							}
+							.sub-title {
+								margin-left: 12px;
+								color: $c-text;
+								font-size: 15px;
+								font-weight: 700;
+								line-height: 42px;
+							}
+							.count-title {
+								margin-left: auto;
+								color: $c-muted;
+								font-size: 12px;
+								font-weight: 700;
+							}
+						}
+					}
+				}
+				.main-config {
+					flex: 1;
+					min-width: 0;
+					width: auto;
+					margin-top: 0;
+					align-items: stretch;
+					gap: 0;
+					.list-config {
+						gap: 24px;
+					}
+				}
+			}
+		}
+	}
+
+	/* ---------- My Cars (/mypage?category=myCars) ---------- */
+	#my-page #my-car-page {
+		gap: 24px;
+		@include v01-title-box;
+		.car-list-box {
+			gap: 16px;
+			.tab-name-box {
+				align-self: flex-start;
+				width: auto;
+				height: auto;
+				padding: 4px;
+				gap: 4px;
+				align-items: center;
+				justify-content: flex-start;
+				border: none;
+				border-radius: 999px;
+				background: $c-surface-2;
+				.tab-name,
+				.active-tab-name {
+					width: auto;
+					height: 40px;
+					padding: 0 18px;
+					border: none;
+					border-radius: 999px;
+					color: $c-muted;
+					font-size: 14px;
+					font-weight: 800;
+				}
+				.active-tab-name {
+					background: $c-surface;
+					color: $c-text;
+					box-shadow: 0 1px 3px rgba(35, 38, 47, 0.08);
+				}
+			}
+		}
+		@include v01-car-table(120px minmax(0, 1fr) 150px 140px 70px 96px);
+	}
+
+	/* ---------- Member Cars (/member?category=cars) ---------- */
+	#member-page #member-cars-page {
+		display: flex;
+		flex-direction: column;
+		gap: 24px;
+		@include v01-title-box;
+		@include v01-car-table(120px minmax(0, 1fr) 150px 140px 70px);
+		.cars-list-box {
+			margin-top: 0;
+		}
+	}
+
+	/* ---------- My Profile ---------- */
+	#my-page #my-profile-page {
+		gap: 24px;
+		@include v01-title-box;
+		.top-box {
+			margin-top: 0;
+			padding: 32px;
+			gap: 24px;
+			box-sizing: border-box;
+			border: 1px solid $c-line;
+			border-radius: $r-md;
+			background: $c-surface;
+			box-shadow: none;
+			.title {
+				color: $c-text;
+				font-family: $font;
+				font-size: 14px;
+				font-weight: 700;
+			}
+			.photo-box {
+				gap: 14px;
+				.image-big-box {
+					align-items: center;
+					gap: 24px;
+					.image-box {
+						width: 104px;
+						height: 104px;
+						img {
+							border: 1px solid $c-line;
+							border-radius: 50%;
+							background: $c-surface-2;
+							object-fit: cover;
+						}
+					}
+					.upload-big-box {
+						gap: 8px;
+						.labeler {
+							width: auto;
+							height: 44px;
+							padding: 0 18px;
+							box-sizing: border-box;
+							border: 1px solid $c-text;
+							border-radius: 12px;
+							background: $c-surface;
+							cursor: pointer;
+							p {
+								color: $c-text;
+								font-size: 14px;
+								font-weight: 800;
+							}
+						}
+						.upload-text {
+							color: $c-muted;
+							font-size: 13px;
+						}
+					}
+				}
+			}
+			.small-input-box {
+				gap: 16px;
+				.input-box {
+					flex: 1;
+					width: auto;
+					gap: 8px;
+				}
+			}
+			.address-box {
+				gap: 8px;
+			}
+			input {
+				height: 52px;
+				padding: 0 16px;
+				box-sizing: border-box;
+				border: 1px solid $c-line;
+				border-radius: 12px;
+				color: $c-text;
+				font-family: $font;
+				font-size: 15px;
+				&:focus {
+					@include v01-focus-ring;
+				}
+			}
+			.about-me-box {
+				align-items: flex-end;
+				.update-button {
+					width: auto;
+					height: 52px;
+					padding: 0 28px;
+					gap: 10px;
+					border-radius: 14px;
+					background: $c-primary;
+					p {
+						color: #ffffff;
+						font-size: 15px;
+						font-weight: 800;
+						text-transform: none;
+					}
+					&:hover {
+						background: $c-primary-dark;
+					}
+					&:disabled {
+						background: #c9d6f5;
+					}
+				}
+			}
+		}
+	}
+
+	/* ---------- Favorites / Recently visited / Articles sarlavhalari ---------- */
+	#my-page #my-favorites-page,
+	#my-page #my-saved-page,
+	#my-articles-page,
+	#member-articles-page,
+	#write-article-page,
+	#my-page #add-car-page {
+		@include v01-title-box;
+	}
+
+	/* ---------- Followers / Followings (mypage va member sahifasida) ---------- */
+	#member-follows-page {
+		align-items: stretch;
+		gap: 24px;
+		@include v01-title-box;
+		.follows-list-box {
+			margin-top: 0;
+			gap: 0;
+			overflow: hidden;
+			border: 1px solid $c-line;
+			border-radius: $r-md;
+			background: $c-surface;
+			.listing-title-box {
+				height: 52px;
+				padding: 0 24px;
+				align-items: center;
+				box-sizing: border-box;
+				border-radius: 0;
+				background: #f1f3f8;
+				.title-text {
+					color: $c-muted;
+					font-size: 12px;
+					font-weight: 800;
+					letter-spacing: 0.1em;
+					text-transform: uppercase;
+				}
+			}
+			.follows-card-box {
+				padding: 14px 24px;
+				box-sizing: border-box;
+				border-bottom: none;
+				border-top: 1px solid $c-line;
+				.info {
+					.image-box {
+						width: 56px;
+						height: 56px;
+						margin-right: 14px;
+						img {
+							border: 1px solid $c-line;
+							background: $c-surface-2;
+						}
+					}
+					.information-box .name {
+						color: $c-text;
+						font-size: 16px;
+						font-weight: 800;
+					}
+				}
+				.details-box .info-box {
+					gap: 4px;
+					color: $c-muted;
+					p {
+						color: $c-text;
+						font-weight: 700;
+					}
+					span {
+						color: $c-muted;
+					}
+				}
+				.action-box {
+					gap: 12px;
+					button {
+						height: 40px;
+						padding: 0 18px;
+						border-radius: 12px;
+						font-family: $font;
+						font-size: 14px;
+						font-weight: 800;
+						text-transform: none;
+						box-shadow: none;
+					}
+					p {
+						color: $c-muted;
+						font-weight: 600;
+					}
+				}
+			}
+			.no-data {
+				padding: 56px 0;
+			}
+		}
+		.pagination-config .total-result p {
+			color: $c-muted;
+			font-size: 14px;
+		}
+	}
+
+	/* =====================================================================
+	   DEALERS — /dealer
+	   ===================================================================== */
+	.dealer-list-page {
+		padding: 56px 0 96px;
+		background: $c-bg;
+		.container {
+			.filter {
+				.left input {
+					width: 360px;
+					height: 52px;
+					padding: 0 18px;
+					border: 1px solid $c-line;
+					border-radius: $r-md;
+					background: $c-surface;
+					color: $c-text;
+					font-size: 15px;
+					&:focus {
+						@include v01-focus-ring;
+					}
+				}
+				.right {
+					gap: 8px;
+					color: $c-muted;
+					font-size: 14px;
+					button {
+						height: 44px;
+						margin-left: 0;
+						padding: 0 16px;
+						border: 1px solid $c-line;
+						border-radius: 12px;
+						background: $c-surface;
+						color: $c-text;
+						font-weight: 800;
+						text-transform: none;
+						&:hover {
+							background: $c-surface;
+							border-color: $c-text;
+						}
+					}
+				}
+			}
+			.card-wrap {
+				margin-top: 28px;
+				min-height: 0;
+				display: grid;
+				grid-template-columns: repeat(4, minmax(0, 1fr));
+				gap: 24px;
+				.dealer-general-card {
+					margin: 0;
+					.dealer-img {
+						width: 100%;
+					}
+				}
+			}
+			.pagination {
+				margin-top: 40px;
+				span {
+					color: $c-muted;
+				}
+			}
+		}
+	}
+
+	/* dealer kartasi (Dealers ro'yxati) */
+	.dealer-general-card {
+		padding: 12px;
+		box-sizing: border-box;
+		border: 1px solid $c-line;
+		border-radius: $r-md;
+		background: $c-surface;
+		transition: box-shadow 0.2s, transform 0.2s;
+		&:hover {
+			box-shadow: $shadow;
+			transform: translateY(-2px);
+		}
+		.dealer-img {
+			height: 240px;
+			border-radius: 12px;
+			background-color: $c-surface-2;
+			div {
+				top: 24px;
+				left: 24px;
+				padding: 6px 12px;
+				border-radius: 999px;
+				font-weight: 800;
+			}
+		}
+		.dealer-desc {
+			margin-top: 14px;
+			padding: 0 4px 2px;
+			.dealer-info {
+				min-width: 0;
+				strong {
+					display: block;
+					overflow: hidden;
+					color: $c-text;
+					font-size: 16px;
+					font-weight: 800;
+					white-space: nowrap;
+					text-overflow: ellipsis;
+				}
+				span {
+					color: $c-muted;
+					font-size: 13px;
+					line-height: 22px;
+				}
+			}
+			.buttons {
+				flex-shrink: 0;
+				button {
+					padding: 4px;
+				}
+				svg {
+					width: 19px;
+					height: 19px;
+					color: $c-muted;
+				}
+				.view-cnt {
+					margin-right: 2px;
+					color: $c-muted;
+					font-size: 13px;
+					font-weight: 600;
+				}
+			}
+		}
+	}
+
+	/* =====================================================================
+	   DEALER DETAIL — /dealer/detail
+	   ===================================================================== */
+	.dealer-detail-page {
+		padding: 0 0 96px;
+		background: $c-bg;
+		.container {
+			align-items: stretch;
+			.dealer-info {
+				margin: 48px 0 0;
+				padding: 32px;
+				gap: 28px;
+				box-sizing: border-box;
+				border: 1px solid $c-line;
+				border-radius: $r-lg;
+				background: $c-surface-2;
+				& > img {
+					margin: 0;
+					width: 120px;
+					height: 120px;
+					border: 1px solid $c-line;
+					background: $c-surface;
+				}
+				.info {
+					gap: 10px;
+					strong {
+						color: $c-text;
+						font-size: 40px;
+						font-weight: 800;
+						line-height: 1.1;
+						letter-spacing: -0.03em;
+					}
+					div {
+						margin: 0;
+						img {
+							margin-right: 8px;
+							opacity: 0.6;
+						}
+						span {
+							color: $c-muted;
+							font-size: 15px;
+						}
+					}
+				}
+			}
+			.dealer-home-list {
+				margin-top: 40px;
+				padding: 0;
+				border-radius: 0;
+				background: transparent;
+				box-shadow: none;
+				.card-wrap {
+					margin-top: 0;
+					display: grid;
+					grid-template-columns: repeat(3, minmax(0, 1fr));
+					gap: 24px;
+					.wrap-main {
+						margin: 0;
+						display: block;
+						.car-big-card-box {
+							margin: 0;
+							width: 100%;
+						}
+					}
+				}
+				.pagination {
+					margin-top: 32px;
+					span {
+						color: $c-muted;
+					}
+				}
+			}
+			.review-box {
+				margin-top: 56px;
+				padding: 0;
+				width: 100%;
+				display: grid;
+				grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+				gap: 24px 40px;
+				align-items: start;
+				border-radius: 0;
+				background: transparent;
+				.main-intro {
+					grid-column: 1 / -1;
+					gap: 4px;
+					span {
+						color: $c-text;
+						font-size: 32px;
+						font-weight: 800;
+						letter-spacing: -0.03em;
+						text-transform: none;
+					}
+					p {
+						color: $c-muted;
+						font-size: 15px;
+					}
+					// sharh bo'lmasa forma butun kenglikni egallaydi
+					& + .leave-review-config {
+						grid-column: 1 / -1;
+					}
+				}
+				.review-wrap {
+					margin: 0;
+					padding: 28px;
+					border: 1px solid $c-line;
+					border-radius: $r-md;
+					box-shadow: none;
+					.title-box {
+						display: flex;
+						align-items: center;
+						svg {
+							width: 18px;
+							height: 18px;
+							color: $c-accent;
+						}
+						span {
+							color: $c-text;
+							font-size: 15px;
+							font-weight: 800;
+						}
+					}
+					.review-card {
+						margin-top: 18px;
+						padding: 18px 0 0;
+						border-bottom: none;
+						border-top: 1px solid $c-line;
+						.info .left {
+							img {
+								width: 44px;
+								height: 44px;
+								background: $c-surface-2;
+							}
+							div {
+								margin-left: 12px;
+								strong {
+									font-weight: 800;
+								}
+								span {
+									color: $c-muted;
+									font-size: 12px;
+								}
+							}
+						}
+						.info .right svg {
+							color: $c-accent;
+						}
+						p {
+							color: #3a3e4a;
+							font-size: 15px;
+							line-height: 1.55;
+						}
+					}
+				}
+				.leave-review-config {
+					margin: 0;
+					padding: 28px;
+					display: flex;
+					flex-direction: column;
+					border: 1px solid $c-line;
+					border-radius: $r-md;
+					box-shadow: none;
+					.main-title {
+						color: $c-text;
+						font-size: 26px;
+						font-weight: 800;
+					}
+					.review-title {
+						margin-top: 16px;
+						font-size: 14px;
+						font-weight: 700;
+					}
+					textarea {
+						height: 140px;
+						padding: 14px 16px;
+						box-sizing: border-box;
+						border-radius: 12px;
+						color: $c-text;
+						font-family: $font;
+						font-size: 15px;
+						line-height: 1.55;
+						resize: none;
+						&:focus {
+							@include v01-focus-ring;
+						}
+					}
+					.submit-btn {
+						.submit-review {
+							width: auto;
+							height: 50px;
+							margin-top: 16px;
+							padding: 0 24px;
+							border: none;
+							border-radius: 14px;
+							background: $c-primary;
+							.title {
+								color: #ffffff;
+								font-weight: 800;
+								text-transform: none;
+							}
+							svg path {
+								fill: #ffffff;
+							}
+							&:hover {
+								background: $c-primary-dark;
+							}
+						}
+						button:disabled {
+							background: #c9d6f5;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/* =====================================================================
+	   ADMIN PANEL — /_admin
+	   ===================================================================== */
+	&.admin {
+		min-height: 100vh;
+		background: $c-bg;
+		.MuiAppBar-root {
+			height: 72px;
+			background: rgba(248, 247, 244, 0.92);
+			backdrop-filter: blur(12px);
+			border-bottom: 1px solid $c-line;
+			box-shadow: none;
+		}
+		.aside {
+			.MuiDrawer-paper {
+				border-right: 1px solid $c-line;
+				background: $c-surface;
+			}
+			.logo-box {
+				width: 100%;
+				padding: 22px 8px 18px;
+				justify-content: flex-start;
+			}
+			.user {
+				width: 100%;
+				box-sizing: border-box;
+				border: 1px solid $c-line;
+				border-radius: $r-md;
+				background: $c-surface-2;
+				p {
+					color: $c-text;
+					font-family: $font;
+					font-weight: 700;
+				}
+			}
+			hr {
+				margin: 20px 0 8px;
+				border-color: $c-line;
+			}
+			.menu_wrap .menu {
+				margin: 2px 12px;
+				border-radius: $r-sm;
+				span {
+					color: $c-text;
+					font-family: $font;
+					font-weight: 700;
+				}
+				svg {
+					color: $c-muted;
+				}
+				&.on span {
+					color: $c-primary;
+				}
+			}
+		}
+		.menu-list {
+			padding: 4px 16px 8px 52px;
+			li {
+				margin: 2px 0;
+				padding: 8px 14px;
+				border-radius: $r-sm;
+				color: $c-muted;
+				font-family: $font;
+				font-weight: 600;
+			}
+			li.on {
+				background: rgba(0, 87, 255, 0.08);
+				color: $c-primary;
+				font-weight: 800;
+				span {
+					color: $c-primary;
+				}
+			}
+		}
+		#bunker {
+			padding: 120px 40px 64px;
+			background: $c-bg;
+			.tit {
+				color: $c-text;
+				font-family: $font;
+				font-size: 32px;
+				font-weight: 800;
+				letter-spacing: -0.03em;
+			}
+			.table-wrap {
+				overflow: hidden;
+				border: 1px solid $c-line;
+				border-radius: $r-md;
+				box-shadow: none;
+				.tab-menu {
+					li {
+						color: $c-muted;
+						font-family: $font;
+						font-weight: 700;
+					}
+					li.on {
+						color: $c-primary;
+						font-weight: 800;
+					}
+				}
+				hr {
+					border-color: $c-line;
+				}
+				thead {
+					tr {
+						background: #f1f3f8;
+					}
+					th {
+						color: $c-muted;
+						font-family: $font;
+						font-size: 12px;
+						font-weight: 800;
+						letter-spacing: 0.08em;
+						text-transform: uppercase;
+					}
+				}
+				tbody td {
+					color: $c-text;
+					font-family: $font;
+				}
+				.flex-box button {
+					color: $c-primary;
+					font-weight: 800;
+				}
+			}
+			.badge {
+				padding: 4px 10px;
+				border-radius: 999px;
+				font-family: $font;
+				font-weight: 800;
+				letter-spacing: 0.04em;
+			}
+			.MuiButton-root.MuiButton-contained {
+				border-radius: 12px;
+				background: $c-primary;
+				box-shadow: none;
+				text-transform: none;
+				&:hover {
+					background: $c-primary-dark;
+				}
+			}
+			input,
+			.MuiOutlinedInput-root {
+				font-family: $font;
+			}
+			.MuiOutlinedInput-root {
+				border-radius: 12px;
+				background: $c-surface;
+			}
+		}
+	}
+}
+
+/* =====================================================================
+   LIVE CHAT (WebSocket) — o'ng pastdagi tugma va chat oynasi
+   ===================================================================== */
+#{$v01} .chatting {
+	.chat-button {
+		width: 56px;
+		height: 56px;
+		background: $c-primary;
+		box-shadow: 0 12px 28px rgba(0, 87, 255, 0.32);
+		svg {
+			color: #ffffff;
+		}
+		&:hover {
+			background: $c-primary-dark;
+			transform: scale(1.06);
+		}
+	}
+	.chat-frame {
+		width: 380px;
+		height: 520px;
+		overflow: hidden;
+		border: 1px solid $c-line;
+		border-radius: $r-lg;
+		background: $c-surface;
+		box-shadow: 0 24px 64px rgba(35, 38, 47, 0.18);
+		font-family: $font;
+		&.open {
+			right: 30px;
+		}
+		.chat-top {
+			height: 72px;
+			flex-shrink: 0;
+			padding: 0 22px;
+			justify-content: flex-start;
+			gap: 10px;
+			box-sizing: border-box;
+			border-bottom: 1px solid $c-line;
+			background: $c-bg;
+			.chat-title {
+				color: $c-text;
+				font-family: $font;
+				font-size: 18px;
+				font-weight: 800;
+				line-height: 1;
+				letter-spacing: -0.01em;
+			}
+			.MuiBadge-badge {
+				background: $c-primary;
+				color: #ffffff;
+				font-family: $font;
+				font-weight: 800;
+			}
+		}
+		.chat-content {
+			padding: 14px 18px;
+			box-sizing: border-box;
+			background: $c-surface;
+			.chat-main {
+				.welcome {
+					margin: 0 auto;
+					padding: 6px 12px;
+					border-radius: 999px;
+					background: $c-surface-2;
+					color: $c-muted;
+					font-size: 12px;
+					font-weight: 700;
+				}
+				.MuiAvatar-root {
+					width: 32px;
+					height: 32px;
+					border: 1px solid $c-line;
+					background: $c-surface-2;
+				}
+				.msg-left {
+					max-width: 250px;
+					margin-left: 8px;
+					padding: 10px 14px;
+					border-radius: 16px 16px 16px 4px;
+					background: $c-surface-2;
+					color: $c-text;
+					font-size: 14px;
+					line-height: 1.45;
+				}
+			}
+		}
+		.msg-right {
+			max-width: 250px;
+			padding: 10px 14px;
+			border-radius: 16px 16px 4px 16px;
+			background: $c-primary;
+			color: #ffffff;
+			font-size: 14px;
+			line-height: 1.45;
+		}
+		.chat-bott {
+			height: 76px;
+			flex-shrink: 0;
+			padding: 0 14px;
+			gap: 10px;
+			box-sizing: border-box;
+			border-top: 1px solid $c-line;
+			.msg-input {
+				flex: 1;
+				width: auto;
+				height: 48px;
+				padding: 0 18px;
+				box-sizing: border-box;
+				border: 1px solid $c-line;
+				border-radius: 999px;
+				background: $c-bg;
+				color: $c-text;
+				font-size: 15px;
+				outline: none;
+				&:focus {
+					border-color: $c-primary;
+					box-shadow: 0 0 0 3px rgba(0, 87, 255, 0.12);
+				}
+			}
+			.send-msg-btn {
+				flex-shrink: 0;
+				margin-left: 0;
+				width: 48px;
+				height: 48px;
+				background: $c-primary;
+				cursor: pointer;
+				&:hover {
+					background: $c-primary-dark;
+				}
+			}
+		}
+	}
+}

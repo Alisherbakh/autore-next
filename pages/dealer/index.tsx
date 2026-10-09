@@ -2,9 +2,11 @@ import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
 import { NextPage } from 'next';
 import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
 import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
-import { Stack, Box, Button, Pagination } from '@mui/material';
+import { Stack, Button, Pagination } from '@mui/material';
 import { Menu, MenuItem } from '@mui/material';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import { useTranslation } from 'next-i18next';
 import DealerCard from '../../libs/components/common/DealerCard';
 import { useRouter } from 'next/router';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
@@ -25,6 +27,7 @@ export const getStaticProps = async ({ locale }: any) => ({
 const DealerList: NextPage = ({ initialInput, ...props }: any) => {
 	const device = useDeviceDetect();
 	const router = useRouter();
+	const { t } = useTranslation('common');
 	const [anchorEl2, setAnchorEl2] = useState<null | HTMLElement>(null);
 	const [filterSortName, setFilterSortName] = useState('Recent');
 	const [sortingOpen, setSortingOpen] = useState(false);
@@ -136,86 +139,137 @@ const DealerList: NextPage = ({ initialInput, ...props }: any) => {
 		}
 	};
 
+	/** RENDER **/
+	// saralash menyusi — desktop va mobil versiyada bir xil ishlatiladi
+	const sortMenu = (
+		<Menu
+			anchorEl={anchorEl}
+			open={sortingOpen}
+			onClose={sortingCloseHandler}
+			sx={{ paddingTop: '5px' }}
+			className={'dl-sort-menu'}
+		>
+			<MenuItem onClick={sortingHandler} id={'recent'} disableRipple>
+				{t('Recent')}
+			</MenuItem>
+			<MenuItem onClick={sortingHandler} id={'old'} disableRipple>
+				{t('Oldest')}
+			</MenuItem>
+			<MenuItem onClick={sortingHandler} id={'likes'} disableRipple>
+				{t('Likes')}
+			</MenuItem>
+			<MenuItem onClick={sortingHandler} id={'views'} disableRipple>
+				{t('Views')}
+			</MenuItem>
+		</Menu>
+	);
+
+	// qidiruv maydoni — logika o'zgarmagan: Enter bosilganda searchFilter.search.text yangilanadi
+	const searchInput = (
+		<label className={'dl-search'}>
+			<SearchRoundedIcon />
+			<input
+				type="text"
+				placeholder={t('Search for a dealer')}
+				value={searchText}
+				onChange={(e: any) => setSearchText(e.target.value)}
+				onKeyDown={(event: any) => {
+					if (event.key == 'Enter') {
+						setSearchFilter({
+							...searchFilter,
+							search: { ...searchFilter.search, text: searchText },
+						});
+					}
+				}}
+			/>
+			<kbd className={'dl-kbd'}>Enter</kbd>
+		</label>
+	);
+
+	// kartalar: yuklanayotganda skeleton, bo'sh bo'lsa xabar, aks holda DealerCard'lar
+	const cardList =
+		getDealersLoading && !dealers?.length ? (
+			Array.from({ length: 8 }).map((_, i: number) => (
+				<div className={'dc-skeleton'} key={i} aria-hidden="true">
+					<span className={'sk-photo'} />
+					<span className={'sk-line'} />
+					<span className={'sk-line short'} />
+				</div>
+			))
+		) : dealers?.length === 0 ? (
+			<div className={'dl-empty'}>
+				<img src="/img/icons/icoAlert.svg" alt="" />
+				<strong>{t('No dealers found')}</strong>
+				<p>{t('Try a different name or check the spelling.')}</p>
+			</div>
+		) : (
+			dealers.map((dealer: Member) => {
+				return <DealerCard dealer={dealer} key={dealer._id} likeMemberHandler={likeMemberHandler} />;
+			})
+		);
+
+	// sahifalash — logika o'zgarmagan
+	const pagination = (
+		<Stack className={'dl-pagination'}>
+			{dealers.length !== 0 && Math.ceil(total / searchFilter.limit) > 1 && (
+				<Stack className="pagination-box">
+					<Pagination
+						page={currentPage}
+						count={Math.ceil(total / searchFilter.limit)}
+						onChange={paginationChangeHandler}
+						shape="circular"
+						color="primary"
+					/>
+				</Stack>
+			)}
+			{dealers.length !== 0 && <span>{t('Total {{count}} dealers available', { count: total })}</span>}
+		</Stack>
+	);
+
 	if (device === 'mobile') {
-		return <h1>DEALERS PAGE MOBILE</h1>;
+		return (
+			<Stack className={'dealer-list-page dl-v2 dl-mobile'}>
+				<div className={'dl-head'}>
+					<h1 className={'dl-title'}>{t('Dealers')}</h1>
+					<p className={'dl-sub'}>{t('Find a trusted dealer and browse their cars.')}</p>
+				</div>
+				<div className={'dl-toolbar'}>
+					{searchInput}
+					<div className={'dl-sort'}>
+						<span className={'dl-result'}>{total ? t('{{count}} dealers', { count: total }) : ''}</span>
+						<Button onClick={sortingClickHandler} endIcon={<KeyboardArrowDownRoundedIcon />}>
+							{t(filterSortName)}
+						</Button>
+						{sortMenu}
+					</div>
+				</div>
+				<div className={'dl-grid'}>{cardList}</div>
+				{pagination}
+			</Stack>
+		);
 	} else {
 		return (
-			<Stack className={'dealer-list-page'}>
-				<Stack className={'container'}>
-					<Stack className={'filter'}>
-						<Box component={'div'} className={'left'}>
-							<input
-								type="text"
-								placeholder={'Search for an dealer'}
-								value={searchText}
-								onChange={(e: any) => setSearchText(e.target.value)}
-								onKeyDown={(event: any) => {
-									if (event.key == 'Enter') {
-										setSearchFilter({
-											...searchFilter,
-											search: { ...searchFilter.search, text: searchText },
-										});
-									}
-								}}
-							/>
-						</Box>
-						<Box component={'div'} className={'right'}>
-							<span>Sort by</span>
-							<div>
-								<Button onClick={sortingClickHandler} endIcon={<KeyboardArrowDownRoundedIcon />}>
-									{filterSortName}
-								</Button>
-								<Menu anchorEl={anchorEl} open={sortingOpen} onClose={sortingCloseHandler} sx={{ paddingTop: '5px' }}>
-									<MenuItem onClick={sortingHandler} id={'recent'} disableRipple>
-										Recent
-									</MenuItem>
-									<MenuItem onClick={sortingHandler} id={'old'} disableRipple>
-										Oldest
-									</MenuItem>
-									<MenuItem onClick={sortingHandler} id={'likes'} disableRipple>
-										Likes
-									</MenuItem>
-									<MenuItem onClick={sortingHandler} id={'views'} disableRipple>
-										Views
-									</MenuItem>
-								</Menu>
-							</div>
-						</Box>
-					</Stack>
-					<Stack className={'card-wrap'}>
-						{dealers?.length === 0 ? (
-							<div className={'no-data'}>
-								<img src="/img/icons/icoAlert.svg" alt="" />
-								<p>No Dealers found!</p>
-							</div>
-						) : (
-							dealers.map((dealer: Member) => {
-								return <DealerCard dealer={dealer} key={dealer._id} likeMemberHandler={likeMemberHandler} />;
-							})
-						)}
-					</Stack>
-					<Stack className={'pagination'}>
-						<Stack className="pagination-box">
-							{dealers.length !== 0 && Math.ceil(total / searchFilter.limit) > 1 && (
-								<Stack className="pagination-box">
-									<Pagination
-										page={currentPage}
-										count={Math.ceil(total / searchFilter.limit)}
-										onChange={paginationChangeHandler}
-										shape="circular"
-										color="primary"
-									/>
-								</Stack>
-							)}
-						</Stack>
-
-						{dealers.length !== 0 && (
-							<span>
-								Total {total} dealer{total > 1 ? 's' : ''} available
+			<Stack className={'dealer-list-page dl-v2'}>
+				<div className={'dl-wrap'}>
+					<div className={'dl-toolbar'}>
+						<div className={'dl-toolbar-left'}>
+							{searchInput}
+							<span className={'dl-result'}>
+								{total ? t('{{count}} dealers', { count: total }) : ''}
+								{searchFilter?.search?.text ? ` · “${searchFilter.search.text}”` : ''}
 							</span>
-						)}
-					</Stack>
-				</Stack>
+						</div>
+						<div className={'dl-sort'}>
+							<span>{t('Sort by')}</span>
+							<Button onClick={sortingClickHandler} endIcon={<KeyboardArrowDownRoundedIcon />}>
+								{t(filterSortName)}
+							</Button>
+							{sortMenu}
+						</div>
+					</div>
+					<div className={'dl-grid'}>{cardList}</div>
+					{pagination}
+				</div>
 			</Stack>
 		);
 	}

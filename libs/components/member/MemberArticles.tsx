@@ -3,6 +3,7 @@ import { NextPage } from 'next';
 import { Pagination, Stack, Typography } from '@mui/material';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { useRouter } from 'next/router';
+import { useTranslation } from 'next-i18next';
 import CommunityCard from '../common/CommunityCard';
 import { T } from '../../types/common';
 import { BoardArticle } from '../../types/board-article/board-article';
@@ -15,6 +16,7 @@ import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../sweetAler
 
 const MemberArticles: NextPage = ({ initialInput, ...props }: any) => {
 	const device = useDeviceDetect();
+	const { t } = useTranslation('common');
 	const router = useRouter();
 	const [total, setTotal] = useState<number>(0);
 	const { memberId } = router.query;
@@ -76,7 +78,35 @@ const MemberArticles: NextPage = ({ initialInput, ...props }: any) => {
 	};
 
 	if (device === 'mobile') {
-		return <div>MEMBER ARTICLES MOBILE</div>;
+		// mobil: CommunityCard'lar bir ustunda
+		return (
+			<div id="mp-member-articles" className={'mp-section'}>
+				<div className="mp-grid">
+					{memberBoArticles?.length === 0 && (
+						<div className={'mp-empty'}>
+							<strong>{t('No posts yet')}</strong>
+						</div>
+					)}
+					{memberBoArticles?.map((boardArticle: BoardArticle) => {
+						return (
+							<CommunityCard boardArticle={boardArticle} likeArticleHandler={likeArticleHandler} key={boardArticle?._id} />
+						);
+					})}
+				</div>
+				{memberBoArticles?.length !== 0 && (
+					<Stack className="mp-pagination">
+						<Pagination
+							count={Math.ceil(total / searchFilter.limit) || 1}
+							page={searchFilter.page}
+							shape="circular"
+							color="primary"
+							onChange={paginationHandler}
+						/>
+						<Typography className="mp-total">{t('Total {{count}} articles available', { count: total })}</Typography>
+					</Stack>
+				)}
+			</div>
+		);
 	} else {
 		return (
 			<div id="member-articles-page">

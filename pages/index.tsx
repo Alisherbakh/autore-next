@@ -11,7 +11,13 @@ import { Stack } from '@mui/material';
 import Advertisement from '../libs/components/homepage/Advertisement';
 import BrandStrip from '../libs/components/homepage/BrandStrip';
 import CarTypes from '../libs/components/homepage/CarTypes';
+import QuickMenu from '../libs/components/homepage/QuickMenu';
+import SellPromo from '../libs/components/homepage/SellPromo';
+import PayYourWay from '../libs/components/homepage/PayYourWay';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { useTranslation } from 'next-i18next';
+import Link from 'next/link';
+import HeroShowcase from '../libs/components/homepage/HeroShowcase';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -21,26 +27,59 @@ export const getStaticProps = async ({ locale }: any) => ({
 
 const Home: NextPage = () => {
 	const device = useDeviceDetect();
+	const { t } = useTranslation('common');
 
 	if (device === 'mobile') {
+		// mobil bosh sahifa: hero → qidiruv + tezkor filtrlar → trend → turlar → "Find a dealer" → dealerlar → community
+		const carsHref = (search: any) => {
+			const input = { page: 1, limit: 9, sort: 'createdAt', direction: 'DESC', search: { pricesRange: { start: 0, end: 1000000000 }, ...search } };
+			return `/car?input=${JSON.stringify(input)}`;
+		};
+		const chips = [
+			{ label: 'SUV', search: { typeList: ['SUV'] } },
+			{ label: t('Sedan'), search: { typeList: ['SEDAN'] } },
+			{ label: t('Electric'), search: { fuelTypeList: ['ELECTRIC'] } },
+			{ label: `${t('Credit')} ✓`, search: { options: ['carCredit'] } },
+			{ label: `${t('Barter')} ✓`, search: { options: ['carBarter'] } },
+			{ label: t('Seoul'), search: { locationList: ['SEOUL'] } },
+		];
 		return (
-			<Stack className={'home-page'}>
+			<Stack className={'home-page m-home'}>
+				<HeroShowcase />
+				<div className={'m-search'}>
+					<Link href={'/car'} className={'m-search-box'}>
+						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+							<circle cx="11" cy="11" r="7" />
+							<path d="m20 20-3.5-3.5" />
+						</svg>
+						<span>{t('Model, brand or keyword')}</span>
+					</Link>
+					<div className={'m-chips'}>
+						{chips.map((chip) => (
+							<Link key={chip.label} href={carsHref(chip.search)} className={'m-chip'}>
+								{chip.label}
+							</Link>
+						))}
+					</div>
+				</div>
 				<TrendCars />
-				<PopularCars />
-				<Advertisement />
-				<TopCars />
+				<CarTypes />
+				<SellPromo />
 				<TopDealers />
+				<CommunityBoards />
 			</Stack>
 		);
 	} else {
 		return (
 			<Stack className={'home-page'}>
+				<QuickMenu />
 				<BrandStrip />
 				<TrendCars />
-				<PopularCars />
 				<CarTypes />
-				<Advertisement />
-				<TopCars />
+				<PopularCars />
+				<SellPromo />
+				{/* "Top cars" o'rnida — kredit / barter bilan sotiladigan mashinalar (TopCars mobil versiyada qoladi) */}
+				<PayYourWay />
 				<TopDealers />
 				<Events />
 				<CommunityBoards />

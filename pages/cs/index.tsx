@@ -7,6 +7,7 @@ import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
 import Notice from '../../libs/components/cs/Notice';
 import Faq from '../../libs/components/cs/Faq';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { useTranslation } from 'next-i18next';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -16,6 +17,7 @@ export const getStaticProps = async ({ locale }: any) => ({
 
 const CS: NextPage = () => {
 	const device = useDeviceDetect();
+	const { t } = useTranslation('common');
 	const router = useRouter();
 
 	/** HANDLERS **/
@@ -33,7 +35,32 @@ const CS: NextPage = () => {
 	const tab = router.query.tab ?? 'notice';
 
 	if (device === 'mobile') {
-		return <h1>CS PAGE MOBILE</h1>;
+		// mobil: sarlavha, Notice / FAQ tablari (o'sha changeTabHandler), kontent va "Call" kartasi
+		return (
+			<Stack className={'cs-page m-cs'}>
+				<h1 className={'m-cs-title'}>{t('Customer service')}</h1>
+				<p className={'m-cs-sub'}>{t('Announcements from Autore and answers to common questions.')}</p>
+				<div className={'m-segment'} role="tablist">
+					<button type="button" role="tab" aria-selected={tab == 'notice'} className={tab == 'notice' ? 'is-active' : ''} onClick={() => changeTabHandler('notice')}>
+						{t('Notice')}
+					</button>
+					<button type="button" role="tab" aria-selected={tab == 'faq'} className={tab == 'faq' ? 'is-active' : ''} onClick={() => changeTabHandler('faq')}>
+						{t('FAQ')}
+					</button>
+				</div>
+				<div className={'m-cs-content'}>
+					{tab === 'notice' && <Notice />}
+					{tab === 'faq' && <Faq />}
+				</div>
+				<div className={'m-cs-call'}>
+					<div>
+						<span>{t('Still need help?')}</span>
+						<strong>+82 10 4867 2909</strong>
+					</div>
+					<a href="tel:+821048672909">{t('Call')}</a>
+				</div>
+			</Stack>
+		);
 	} else {
 		return (
 			<Stack className={'cs-page'}>

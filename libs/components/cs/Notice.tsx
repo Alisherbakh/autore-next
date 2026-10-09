@@ -1,30 +1,59 @@
-import React from 'react';
-import { Stack, Box } from '@mui/material';
+import React, { useState } from 'react';
+import { Stack, Box, Pagination } from '@mui/material';
+import { useQuery } from '@apollo/client';
+import moment from 'moment';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
+import { GET_NOTICES } from '../../../apollo/user/query';
+import { NoticeCategory } from '../../enums/notice.enum';
+import { Notice as NoticeType } from '../../types/notice/notice';
+import { T } from '../../types/common';
+import { useTranslation } from 'next-i18next';
+
+const LIMIT = 10;
 
 const Notice = () => {
 	const device = useDeviceDetect();
+	const { t } = useTranslation('common');
+	const [page, setPage] = useState<number>(1);
+	const [openId, setOpenId] = useState<string | null>(null);
 
 	/** APOLLO REQUESTS **/
-	/** LIFECYCLES **/
-	/** HANDLERS **/
+	// GET_NOTICES — admin yozgan, faqat ACTIVE holatdagi e'lonlar (eng yangisi birinchi)
+	const { data } = useQuery(GET_NOTICES, {
+		fetchPolicy: 'cache-and-network',
+		variables: { input: { page, limit: LIMIT, search: { noticeCategory: NoticeCategory.NOTICE } } },
+	});
+	const notices: NoticeType[] = data?.getNotices?.list ?? [];
+	const total: number = data?.getNotices?.metaCounter?.[0]?.total ?? 0;
 
-	const data = [
-		{
-			no: 1,
-			event: true,
-			title: 'Register to use and get discounts',
-			date: '01.03.2024',
-		},
-		{
-			no: 2,
-			title: "It's absolutely free to upload and trade cars",
-			date: '31.03.2024',
-		},
-	];
+	/** HANDLERS **/
+	// sarlavha bosilsa matni ochiladi/yopiladi
+	const toggleHandler = (id: string) => setOpenId(openId === id ? null : id);
 
 	if (device === 'mobile') {
-		return <div>NOTICE MOBILE</div>;
+		// mobil: karta ichida ro'yxat, bosilganda matn ochiladi (o'sha toggleHandler)
+		return (
+			<Stack className={'m-notice'}>
+				{notices.length === 0 && <p className={'m-empty'}>{t('No notices yet.')}</p>}
+				{notices.map((ele: NoticeType) => {
+					const open = openId === ele._id;
+					return (
+						<div className={`m-notice-item ${open ? 'is-open' : ''}`} key={ele._id}>
+							<button type="button" aria-expanded={open} onClick={() => toggleHandler(ele._id)}>
+								<span className={'m-notice-date'}>{moment(ele.createdAt).format('YYYY.MM.DD')}</span>
+								<strong>{ele.noticeTitle}</strong>
+							</button>
+							{open && <p className={'m-notice-body'}>{ele.noticeContent}</p>}
+						</div>
+					);
+				})}
+				{total > LIMIT && (
+					<Stack className={'m-pagination'}>
+						<Pagination count={Math.ceil(total / LIMIT)} page={page} onChange={(e: T, value: number) => setPage(value)} />
+					</Stack>
+				)}
+			</Stack>
+		);
 	} else {
 		return (
 			<Stack className={'notice-content'}>
@@ -36,15 +65,32 @@ const Notice = () => {
 						<span>date</span>
 					</Box>
 					<Stack className={'bottom'}>
-						{data.map((ele: any) => (
-							<div className={`notice-card ${ele?.event && 'event'}`} key={ele.title}>
-								{ele?.event ? <div>event</div> : <span className={'notice-number'}>{ele.no}</span>}
-								<span className={'notice-title'}>{ele.title}</span>
-								<span className={'notice-date'}>{ele.date}</span>
+						{notices.length === 0 && (
+							<div className={'notice-card'}>
+								<span className={'notice-title'}>No notices yet.</span>
 							</div>
+						)}
+						{notices.map((ele: NoticeType, index: number) => (
+							<React.Fragment key={ele._id}>
+								<div className={'notice-card'} onClick={() => toggleHandler(ele._id)} style={{ cursor: 'pointer' }}>
+									<span className={'notice-number'}>{total - (page - 1) * LIMIT - index}</span>
+									<span className={'notice-title'}>{ele.noticeTitle}</span>
+									<span className={'notice-date'}>{moment(ele.createdAt).format('YYYY.MM.DD')}</span>
+								</div>
+								{openId === ele._id && (
+									<div className={'notice-card'} style={{ whiteSpace: 'pre-line', height: 'auto', padding: '20px 24px' }}>
+										{ele.noticeContent}
+									</div>
+								)}
+							</React.Fragment>
 						))}
 					</Stack>
 				</Stack>
+				{total > LIMIT && (
+					<Stack direction={'row'} justifyContent={'center'} sx={{ mt: '24px' }}>
+						<Pagination count={Math.ceil(total / LIMIT)} page={page} onChange={(e: T, value: number) => setPage(value)} />
+					</Stack>
+				)}
 			</Stack>
 		);
 	}

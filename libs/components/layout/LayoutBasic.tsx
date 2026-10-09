@@ -131,6 +131,8 @@ const withLayoutBasic = (Component: any) => {
 							<Top />
 						</Stack>
 
+						{/* login / sign up sahifasida sarlavha banneri yo'q — sahifaning o'zi to'liq ekranli qorong'i fon */}
+						{router.pathname !== '/account/join' && (
 						<Stack
 							className={`header-basic ${authHeader && 'auth'}`}
 							style={{
@@ -150,6 +152,7 @@ const withLayoutBasic = (Component: any) => {
 								<span>{t(memoizedValues.desc)}</span>
 							</Stack>
 						</Stack>
+						)}
 
 						<Stack id={'main'}>
 							<Component {...props} />

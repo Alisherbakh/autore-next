@@ -11,6 +11,10 @@ import IconButton from '@mui/material/IconButton';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import ChatBubbleOutlineRoundedIcon from '@mui/icons-material/ChatBubbleOutlineRounded';
+import { useTranslation } from 'next-i18next';
+
+import { CATEGORY_META } from '../community/categories';
 
 interface CommunityCardProps {
 	boardArticle: BoardArticle;
@@ -23,6 +27,7 @@ const CommunityCard = (props: CommunityCardProps) => {
 	const device = useDeviceDetect();
 	const router = useRouter();
 	const user = useReactiveVar(userVar);
+	const { t } = useTranslation('common');
 	const imagePath: string = boardArticle?.articleImage
 		? `${REACT_APP_API_URL}/${boardArticle?.articleImage}`
 		: '/img/community/communityImg.png';
@@ -46,59 +51,72 @@ const CommunityCard = (props: CommunityCardProps) => {
 		else router.push(`/member?memberId=${id}`);
 	};
 
-	if (device === 'mobile') {
-		return <div>COMMUNITY CARD MOBILE</div>;
-	} else {
-		return (
-			<Stack
-				sx={{ width: size === 'small' ? '285px' : '317px' }}
-				className="community-general-card-config"
-				onClick={(e) => chooseArticleHandler(e, boardArticle)}
-			>
-				<Stack className="image-box">
-					<img src={imagePath} alt="" className="card-img" />
-				</Stack>
-				<Stack className="desc-box" sx={{ marginTop: '-20px' }}>
-					<Stack>
-						<Typography
-							className="desc"
-							onClick={(e) => {
-								e.stopPropagation();
-								goMemberPage(boardArticle?.memberData?._id as string);
-							}}
-						>
-							{boardArticle?.memberData?.memberNick}
-						</Typography>
-						<Typography className="title">{boardArticle?.articleTitle}</Typography>
-					</Stack>
-					<Stack className={'buttons'}>
-						<IconButton color={'default'}>
-							<RemoveRedEyeIcon />
-						</IconButton>
-						<Typography className="view-cnt">{boardArticle?.articleViews}</Typography>
-						<IconButton color={'default'}
-						onClick={(e:any) => likeArticleHandler(e, user, boardArticle?._id)}
-						>
-							{boardArticle?.meLiked && boardArticle?.meLiked[0]?.myFavorite ? (
-								<FavoriteIcon style={{ color: LIKED_COLOR }} />
-							) : (
-								<FavoriteBorderIcon />
-							)}
-						</IconButton>
-						<Typography className="view-cnt">{boardArticle?.articleLikes}</Typography>
-					</Stack>
-				</Stack>
-				<Stack className="date-box">
-					<Moment className="month" format={'MMMM'}>
+	// rasm bo'lmasa muallif nickidan 1–2 harf
+	const authorNick: string = boardArticle?.memberData?.memberNick ?? '';
+	const authorImage: string | null = boardArticle?.memberData?.memberImage
+		? `${REACT_APP_API_URL}/${boardArticle?.memberData?.memberImage}`
+		: null;
+	const liked: boolean = !!(boardArticle?.meLiked && boardArticle?.meLiked[0]?.myFavorite);
+
+	// mobil va desktop'da bir xil karta — stillar scss/pc/community/communityV2.scss'da
+	return (
+		<Stack
+			sx={size === 'small' ? { width: '285px' } : undefined}
+			className="community-general-card-config cm-card"
+			onClick={(e) => chooseArticleHandler(e, boardArticle)}
+		>
+			<div className="cm-card-img">
+				<img src={imagePath} alt="" loading={'lazy'} />
+				{boardArticle?.articleCategory && (
+					<span className="cm-card-cat">{t(CATEGORY_META[boardArticle.articleCategory]?.label ?? boardArticle.articleCategory)}</span>
+				)}
+			</div>
+
+			<div className="cm-card-body">
+				<Typography className="cm-card-title">{boardArticle?.articleTitle}</Typography>
+
+				<div
+					className="cm-card-author"
+					onClick={(e) => {
+						e.stopPropagation();
+						goMemberPage(boardArticle?.memberData?._id as string);
+					}}
+				>
+					<span className="cm-avatar">
+						{authorImage ? <img src={authorImage} alt="" /> : authorNick.slice(0, 1).toUpperCase() || 'A'}
+					</span>
+					<span className="cm-author-name">{authorNick}</span>
+					<span className="cm-dot" aria-hidden="true">
+						·
+					</span>
+					<Moment className="cm-date" format={'MMM D, YYYY'}>
 						{boardArticle?.createdAt}
 					</Moment>
-					<Typography className="day">
-						<Moment format={'DD'}>{boardArticle?.createdAt}</Moment>
-					</Typography>
-				</Stack>
-			</Stack>
-		);
-	}
+				</div>
+
+				<div className="cm-card-stats">
+					<span title={t('Views')}>
+						<RemoveRedEyeIcon />
+						{boardArticle?.articleViews ?? 0}
+					</span>
+					<span title={t('Comments')}>
+						<ChatBubbleOutlineRoundedIcon />
+						{boardArticle?.articleComments ?? 0}
+					</span>
+					<span className="cm-like">
+						<IconButton
+							color={'default'}
+							onClick={(e: any) => likeArticleHandler(e, user, boardArticle?._id)}
+							aria-label={liked ? t('Unlike') : t('Like')}
+						>
+							{liked ? <FavoriteIcon style={{ color: LIKED_COLOR }} /> : <FavoriteBorderIcon />}
+						</IconButton>
+						{boardArticle?.articleLikes ?? 0}
+					</span>
+				</div>
+			</div>
+		</Stack>
+	);
 };
 
 export default CommunityCard;

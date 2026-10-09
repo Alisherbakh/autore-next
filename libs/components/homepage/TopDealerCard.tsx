@@ -1,21 +1,19 @@
 import React from 'react';
-import { useRouter } from 'next/router';
 import { Stack } from '@mui/material';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { Member } from '../../types/member/member';
+import DealerCard from '../common/DealerCard';
 
 interface TopDealerProps {
 	dealer: Member;
+	likeMemberHandler?: any;
 }
 const TopDealerCard = (props: TopDealerProps) => {
-	const { dealer } = props;
+	const { dealer, likeMemberHandler } = props;
 	const device = useDeviceDetect();
-	const router = useRouter();
 	const dealerImage = dealer?.memberImage
 		? `${process.env.REACT_APP_API_URL}/${dealer?.memberImage}`
 		: '/img/profile/defaultUser.svg';
-
-	/** HANDLERS **/
 
 	if (device === 'mobile') {
 		return (
@@ -27,14 +25,8 @@ const TopDealerCard = (props: TopDealerProps) => {
 			</Stack>
 		);
 	} else {
-		return (
-			<Stack className="top-dealer-card">
-				<img src={dealerImage} alt="" />
-
-				<strong>{dealer?.memberNick}</strong>
-				<span>{dealer?.memberType}</span>
-			</Stack>
-		);
+		// desktop: /dealer sahifasidagi bilan bir xil karta (like tugmasisiz — bosh sahifada like mantiqi yo'q)
+		return <DealerCard dealer={dealer} likeMemberHandler={likeMemberHandler} />;
 	}
 };
 

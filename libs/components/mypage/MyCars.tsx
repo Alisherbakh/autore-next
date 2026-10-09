@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NextPage } from 'next';
-import { Pagination, Stack, Typography } from '@mui/material';
+import { Button, Pagination, Stack, Typography } from '@mui/material';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { CarCard } from './CarCard';
 import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
@@ -13,6 +13,9 @@ import { CarStatus } from '../../enums/car.enum';
 import { userVar } from '../../../apollo/store';
 import { useRouter } from 'next/router';
 import { sweetConfirmAlert, sweetErrorHandling } from '../../sweetAlert';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import DirectionsCarRoundedIcon from '@mui/icons-material/DirectionsCarRounded';
+import { useTranslation } from 'next-i18next';
 
 const MyCars: NextPage = ({ initialInput, ...props }: any) => {
 	const device = useDeviceDetect();
@@ -21,6 +24,7 @@ const MyCars: NextPage = ({ initialInput, ...props }: any) => {
 	const [total, setTotal] = useState<number>(0);
 	const user = useReactiveVar(userVar);
 	const router = useRouter();
+	const { t } = useTranslation('common');
 
 	/** APOLLO REQUESTS **/
 	// UPDATE_CAR — apollo/user/mutation.ts dan; e'lon maydonlarini (shu jumladan statusni) yangilash uchun mutatsiya
@@ -98,85 +102,89 @@ const MyCars: NextPage = ({ initialInput, ...props }: any) => {
 		router.back();
 	}
 
-	if (device === 'mobile') {
-		return <div>AUTORE CARS MOBILE</div>;
-	} else {
-		return (
-			<div id="my-car-page">
-				<Stack className="main-title-box">
-					<Stack className="right-box">
-						<Typography className="main-title">My Cars</Typography>
-						<Typography className="sub-title">We are glad to see you again!</Typography>
-					</Stack>
-				</Stack>
-				<Stack className="car-list-box">
-					<Stack className="tab-name-box">
-						<Typography
-							onClick={() => changeStatusHandler(CarStatus.ACTIVE)}
-							className={searchFilter.search.carStatus === 'ACTIVE' ? 'active-tab-name' : 'tab-name'}
-						>
-							On Sale
-						</Typography>
-						<Typography
-							onClick={() => changeStatusHandler(CarStatus.RESERVED)}
-							className={searchFilter.search.carStatus === 'RESERVED' ? 'active-tab-name' : 'tab-name'}
-						>
-							Reserved
-						</Typography>
-						<Typography
-							onClick={() => changeStatusHandler(CarStatus.SOLD)}
-							className={searchFilter.search.carStatus === 'SOLD' ? 'active-tab-name' : 'tab-name'}
-						>
-							On Sold
-						</Typography>
-					</Stack>
-					<Stack className="list-box">
-						<Stack className="listing-title-box">
-							<Typography className="title-text">Listing title</Typography>
-							<Typography className="title-text">Date Published</Typography>
-							<Typography className="title-text">Status</Typography>
-							<Typography className="title-text">View</Typography>
-							{searchFilter.search.carStatus === 'ACTIVE' && <Typography className="title-text">Action</Typography>}
-						</Stack>
+	const tabs: { key: CarStatus; label: string }[] = [
+		{ key: CarStatus.ACTIVE, label: 'On sale' },
+		{ key: CarStatus.RESERVED, label: 'Reserved' },
+		{ key: CarStatus.SOLD, label: 'Sold' },
+	];
 
-						{dealerCars?.length === 0 ? (
-							<div className={'no-data'}>
-								<img src="/img/icons/icoAlert.svg" alt="" />
-								<p>No Car found!</p>
-							</div>
-						) : (
-							dealerCars.map((car: Car) => {
+	// mobil va desktop'da bir xil — farqi stillarda (scss/pc/mypage/mypageV2.scss)
+	return (
+		<div id="mp-cars" className={'mp-section'}>
+			<Stack className="main-title-box">
+				<Stack className="right-box">
+					<Typography className="main-title">{t('My Cars')}</Typography>
+					<Typography className="sub-title">{t('Manage your listings and update their status.')}</Typography>
+				</Stack>
+				<Button
+					className={'mp-btn-primary'}
+					startIcon={<AddRoundedIcon />}
+					onClick={() => router.push({ pathname: '/mypage', query: { category: 'addCar' } })}
+				>
+					{t('Add Car')}
+				</Button>
+			</Stack>
+			<Stack className="car-list-box">
+				<div className="tab-name-box mp-segment" role="tablist">
+					{tabs.map((tab) => (
+						<button
+							type="button"
+							role="tab"
+							key={tab.key}
+							aria-selected={searchFilter.search.carStatus === tab.key}
+							onClick={() => changeStatusHandler(tab.key)}
+							className={searchFilter.search.carStatus === tab.key ? 'active-tab-name' : 'tab-name'}
+						>
+							{t(tab.label)}
+						</button>
+					))}
+				</div>
+				<Stack className="list-box mp-table">
+					<div className={`listing-title-box mp-table-head ${searchFilter.search.carStatus === 'ACTIVE' ? 'has-actions' : ''}`}>
+						<span className="title-text">{t('Listing title')}</span>
+						<span className="title-text">{t('Date published')}</span>
+						<span className="title-text">{t('Status')}</span>
+						<span className="title-text">{t('Views')}</span>
+						{searchFilter.search.carStatus === 'ACTIVE' && <span className="title-text">{t('Action')}</span>}
+					</div>
+					{dealerCars?.length === 0 ? (
+						<div className={'mp-empty'}>
+							<span className={'mp-empty-icon'}>
+								<DirectionsCarRoundedIcon />
+							</span>
+							<strong>{t('No cars here yet')}</strong>
+							<p>{t('Cars you list will appear here.')}</p>
+						</div>
+					) : (
+						<div className={`mp-rows ${searchFilter.search.carStatus === 'ACTIVE' ? 'has-actions' : ''}`}>
+							{dealerCars.map((car: Car) => {
 								return (
 									<CarCard
 										car={car}
+										key={car?._id}
 										deleteCarHandler={deleteCarHandler}
 										updateCarHandler={updateCarHandler}
 									/>
 								);
-							})
-						)}
-
-						{dealerCars.length !== 0 && (
-							<Stack className="pagination-config">
-								<Stack className="pagination-box">
-									<Pagination
-										count={Math.ceil(total / searchFilter.limit)}
-										page={searchFilter.page}
-										shape="circular"
-										color="primary"
-										onChange={paginationHandler}
-									/>
-								</Stack>
-								<Stack className="total-result">
-									<Typography>{total} car available</Typography>
-								</Stack>
-							</Stack>
-						)}
-					</Stack>
+							})}
+						</div>
+					)}
+					{dealerCars.length !== 0 && (
+						<Stack className="pagination-config mp-pagination">
+							<Pagination
+								count={Math.ceil(total / searchFilter.limit)}
+								page={searchFilter.page}
+								shape="circular"
+								color="primary"
+								onChange={paginationHandler}
+							/>
+							<Typography className="mp-total">{t('Total {{count}} cars available', { count: total })}</Typography>
+						</Stack>
+					)}
 				</Stack>
-			</div>
-		);
-	}
+			</Stack>
+		</div>
+	);
 };
 
 MyCars.defaultProps = {

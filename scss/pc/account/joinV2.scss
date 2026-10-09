@@ -1,0 +1,367 @@
+/**
+ * LOGIN / SIGN UP (pages/account/join.tsx) — desktop: to'liq ekranli qorong'i "yo'l" foni,
+ * markazda qorong'i forma oynasi (V01 "Signal" ranglari).
+ * main.scss oxirida import qilinadi. Faqat .jn-v2 ichida ishlaydi.
+ * Mobil versiya: scss/mobile/mobileV2.scss (.m-join)
+ */
+$jn-ease: cubic-bezier(0.23, 1, 0.32, 1);
+$jn-bg: #0e1015;
+$jn-card: #14171c;
+$jn-field: #1b1f27;
+$jn-line: #2a2e36;
+$jn-text-2: #aeb4c0;
+$jn-label: #c9ceda;
+$jn-faint: #7c8291;
+$jn-blue-light: #3d8bff;
+
+#pc-wrap .join-page.jn-v2 {
+	position: relative;
+	min-height: 100vh;
+	padding: 128px 24px 72px; // tepada fixed navbar uchun joy
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+	background: $jn-bg;
+	font-family: $font;
+	color: #ffffff;
+
+	// fon chiroqlari + yengil qoraytirish
+	.jn-road {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		pointer-events: none;
+	}
+	&::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: rgba(8, 10, 14, 0.35);
+		pointer-events: none;
+	}
+
+	/* ---------- markazdagi oyna ---------- */
+	.jn-dialog {
+		position: relative;
+		z-index: 1;
+		width: 460px;
+		max-width: 100%;
+		padding: 32px 36px 28px;
+		box-sizing: border-box;
+		display: flex;
+		flex-direction: column;
+		border: 1px solid $jn-line;
+		border-radius: 24px;
+		background: $jn-card;
+		box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(61, 139, 255, 0.08);
+		animation: jn-in 420ms $jn-ease both;
+		h1 {
+			margin: 0;
+			padding-right: 40px;
+			color: #ffffff;
+			font-size: 30px;
+			font-weight: 800;
+			letter-spacing: -0.02em;
+		}
+	}
+	@keyframes jn-in {
+		from {
+			opacity: 0;
+			transform: translateY(12px) scale(0.98);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+	// oyna tepasidagi ko'k nur
+	.jn-glow {
+		position: absolute;
+		left: 50%;
+		top: -1px;
+		width: 220px;
+		height: 2px;
+		margin-left: -110px;
+		border-radius: 1px;
+		background: $jn-blue-light;
+		box-shadow: 0 0 24px 6px rgba(61, 139, 255, 0.45);
+	}
+	.jn-close {
+		position: absolute;
+		right: 16px;
+		top: 16px;
+		width: 40px;
+		height: 40px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border: none;
+		border-radius: 20px;
+		background: transparent;
+		color: #9aa0ae;
+		cursor: pointer;
+		transition: background-color 160ms ease, color 160ms ease;
+		svg {
+			font-size: 22px;
+		}
+		&:hover {
+			background: $jn-field;
+			color: #ffffff;
+		}
+		&:focus-visible {
+			outline: 2px solid $jn-blue-light;
+			outline-offset: 2px;
+		}
+	}
+	.jn-sub {
+		margin: 6px 0 0;
+		color: $jn-text-2;
+		font-size: 15px;
+		line-height: 1.5;
+	}
+
+	.jn-tabs {
+		margin-top: 22px;
+		padding: 4px;
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 4px;
+		border: 1px solid $jn-line;
+		border-radius: 14px;
+		background: $jn-bg;
+		button {
+			height: 40px;
+			border: none;
+			border-radius: 10px;
+			background: transparent;
+			color: #9aa0ae;
+			font-family: $font;
+			font-size: 14px;
+			font-weight: 700;
+			cursor: pointer;
+			transition: background-color 160ms ease, color 160ms ease;
+			&:hover {
+				color: #ffffff;
+			}
+			&.is-active {
+				background: $c-primary;
+				color: #ffffff;
+			}
+			&:focus-visible {
+				outline: 2px solid $jn-blue-light;
+				outline-offset: 2px;
+			}
+		}
+	}
+
+	.jn-field {
+		margin-top: 16px;
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		> span:first-child {
+			color: $jn-label;
+			font-size: 13px;
+			font-weight: 700;
+		}
+	}
+	.jn-tabs + .jn-field {
+		margin-top: 20px;
+	}
+	.jn-input {
+		height: 50px;
+		padding: 0 6px 0 14px;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		box-sizing: border-box;
+		border: 1px solid $jn-line;
+		border-radius: 12px;
+		background: $jn-field;
+		transition: border-color 160ms ease, box-shadow 160ms ease;
+		input {
+			flex: 1;
+			min-width: 0;
+			height: 100%;
+			padding: 0;
+			border: none;
+			outline: none;
+			background: transparent;
+			color: #ffffff;
+			font-family: $font;
+			font-size: 15px;
+			&::placeholder {
+				color: $jn-faint;
+			}
+			// brauzer avto-to'ldirishida oq fon chiqmasin
+			&:-webkit-autofill {
+				-webkit-text-fill-color: #ffffff;
+				box-shadow: 0 0 0 1000px $jn-field inset;
+				caret-color: #ffffff;
+			}
+		}
+		&:hover {
+			border-color: #3a404b;
+		}
+		&:focus-within {
+			border-color: $jn-blue-light;
+			box-shadow: 0 0 0 4px rgba(61, 139, 255, 0.18);
+		}
+	}
+	.jn-eye {
+		width: 38px;
+		height: 38px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border: none;
+		border-radius: 10px;
+		background: transparent;
+		color: #9aa0ae;
+		cursor: pointer;
+		svg {
+			font-size: 20px;
+		}
+		&:hover {
+			background: #252a33;
+			color: #ffffff;
+		}
+	}
+
+	.jn-types {
+		margin-top: 14px;
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 10px;
+	}
+	.jn-type {
+		padding: 12px;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 2px;
+		border: 1px solid $jn-line;
+		border-radius: 14px;
+		background: $jn-field;
+		color: #ffffff;
+		font-family: $font;
+		text-align: left;
+		cursor: pointer;
+		transition: border-color 160ms ease, background-color 160ms ease;
+		strong {
+			font-size: 14px;
+			font-weight: 800;
+		}
+		small {
+			color: $jn-text-2;
+			font-size: 12px;
+			line-height: 1.4;
+		}
+		&:hover {
+			border-color: #3a404b;
+		}
+		&.is-active {
+			border-color: $jn-blue-light;
+			background: rgba(0, 87, 255, 0.16);
+		}
+		&:focus-visible {
+			outline: 2px solid $jn-blue-light;
+			outline-offset: 2px;
+		}
+	}
+
+	.jn-remember {
+		margin-top: 12px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		.MuiFormControlLabel-label {
+			color: $jn-label;
+			font-family: $font;
+			font-size: 14px;
+		}
+		.MuiCheckbox-root {
+			color: #5b6070;
+			&.Mui-checked {
+				color: $jn-blue-light;
+			}
+		}
+		a {
+			color: #7fb0ff;
+			font-size: 14px;
+			font-weight: 700;
+			cursor: pointer;
+			&:hover {
+				color: #a9c6ff;
+			}
+		}
+	}
+
+	.jn-submit {
+		margin-top: 22px;
+		height: 52px;
+		gap: 8px;
+		border-radius: 14px;
+		background: $c-primary;
+		color: #ffffff;
+		font-family: $font;
+		font-size: 15px;
+		font-weight: 800;
+		text-transform: none;
+		box-shadow: 0 14px 28px -14px rgba(0, 87, 255, 0.8);
+		transition: background-color 160ms ease, box-shadow 200ms $jn-ease, transform 120ms $jn-ease;
+		.MuiButton-endIcon {
+			margin: 0;
+			transition: transform 200ms $jn-ease;
+		}
+		&:hover {
+			background: #1a6aff;
+			box-shadow: 0 18px 34px -14px rgba(0, 87, 255, 0.95);
+			.MuiButton-endIcon {
+				transform: translateX(3px);
+			}
+		}
+		&:active {
+			transform: scale(0.98);
+		}
+		&.Mui-disabled {
+			background: $c-primary;
+			color: #ffffff;
+			opacity: 0.4;
+			box-shadow: none;
+		}
+	}
+	.jn-switch {
+		margin: 16px 0 0;
+		color: $jn-text-2;
+		font-size: 14px;
+		text-align: center;
+		button {
+			padding: 0;
+			border: none;
+			background: none;
+			color: #7fb0ff;
+			font-family: $font;
+			font-size: 14px;
+			font-weight: 800;
+			cursor: pointer;
+			&:hover {
+				color: #a9c6ff;
+				text-decoration: underline;
+			}
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.jn-dialog {
+			animation: none;
+		}
+		.jn-submit,
+		.jn-submit .MuiButton-endIcon {
+			transition: none;
+		}
+	}
+}

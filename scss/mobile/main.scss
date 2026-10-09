@@ -858,3 +858,21 @@
     }
   }
 }
+
+// Dealers + Dealer sahifasi (mobil)
+@import '/scss/mobile/dealer.scss';
+
+// Community (mobil)
+@import '/scss/mobile/community.scss';
+
+// Mashinalar ro'yxati (mobil)
+@import '/scss/mobile/car.scss';
+
+// My Page (mobil)
+@import '/scss/mobile/mypage.scss';
+
+// Qolgan mobil qismlar: karkas, bosh sahifa, mashina, member, CS, login, About (eng oxirida)
+@import '/scss/mobile/mobileV2.scss';
+
+// Bosilgandagi effektlar (hover o'rniga) — eng oxirida
+@import '/scss/mobile/press.scss';

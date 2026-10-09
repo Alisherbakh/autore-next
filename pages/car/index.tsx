@@ -1,6 +1,6 @@
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
 import { NextPage } from 'next';
-import { Box, Button, Menu, MenuItem, Pagination, Stack, Typography } from '@mui/material';
+import { Button, Drawer, Menu, MenuItem, Pagination, Stack, Typography } from '@mui/material';
 import CarCard from '../../libs/components/car/CarCard';
 import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
 import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
@@ -16,6 +16,11 @@ import { GET_CARS } from '../../apollo/user/query';
 import { T } from '../../libs/types/common';
 import { LIKE_TARGET_CAR } from '../../apollo/user/mutation';
 import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
+import { useTranslation } from 'next-i18next';
+import { formatterStr, formatEnum } from '../../libs/utils';
+import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import DirectionsCarRoundedIcon from '@mui/icons-material/DirectionsCarRounded';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -26,6 +31,7 @@ export const getStaticProps = async ({ locale }: any) => ({
 const CarList: NextPage = ({ initialInput, ...props }: any) => {
 	const device = useDeviceDetect();
 	const router = useRouter();
+	const { t } = useTranslation('common');
 	const [searchFilter, setSearchFilter] = useState<CarsInquiry>(
 		router?.query?.input ? JSON.parse(router?.query?.input as string) : initialInput,
 	);
@@ -35,6 +41,8 @@ const CarList: NextPage = ({ initialInput, ...props }: any) => {
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 	const [sortingOpen, setSortingOpen] = useState(false);
 	const [filterSortName, setFilterSortName] = useState('New');
+	// mobil: filtr oynasi (pastdan ochiladi) ochiq/yopiq
+	const [filterOpen, setFilterOpen] = useState<boolean>(false);
 
 	/** APOLLO REQUESTS **/
 	// LIKE_TARGET_CAR — apollo/user/mutation.ts dan; e'longa like bosish/olib tashlash uchun mutatsiya
@@ -98,7 +106,8 @@ const CarList: NextPage = ({ initialInput, ...props }: any) => {
 				await likeTargetCar({
 					variables: { input: id },
 				});
-				await getCarsRefetch({ input: initialInput });
+				// joriy filtr bilan qayta so'raydi (avval initialInput edi — like'dan keyin filtrlar tushib qolardi)
+				await getCarsRefetch({ input: searchFilter });
 	
 				await sweetTopSmallSuccessAlert('success', 800);
 			} catch (err: any) {
@@ -123,7 +132,7 @@ const CarList: NextPage = ({ initialInput, ...props }: any) => {
 	const sortingHandler = (e: React.MouseEvent<HTMLLIElement>) => {
 		switch (e.currentTarget.id) {
 			case 'new':
-				setSearchFilter({ ...searchFilter, sort: 'createdAt', direction: Direction.ASC });
+				setSearchFilter({ ...searchFilter, sort: 'createdAt', direction: Direction.DESC }); // eng yangilari birinchi
 				setFilterSortName('New');
 				break;
 			case 'lowest':
@@ -138,87 +147,217 @@ const CarList: NextPage = ({ initialInput, ...props }: any) => {
 		setAnchorEl(null);
 	};
 
+	// tanlangan filtrni olib tashlash (chip'dagi ×): yangi filtrni URL'ga yozadi — Filter komponentidagi bilan bir xil yo'l
+	const removeFilterHandler = async (key: string, value?: string) => {
+		const search: any = { ...searchFilter.search };
+		if (value !== undefined) {
+			const list: string[] = (search[key] || []).filter((item: string) => item !== value);
+			if (list.length) search[key] = list;
+			else delete search[key];
+		} else if (key === 'pricesRange') {
+			search.pricesRange = initialInput.search.pricesRange;
+		} else {
+			delete search[key];
+		}
+		const next = { ...searchFilter, page: 1, search };
+		await router.push(`/car?input=${JSON.stringify(next)}`, `/car?input=${JSON.stringify(next)}`, { scroll: false });
+	};
+
+	// "Clear all": barcha filtrlarni boshlang'ich holatga qaytaradi (Filter'dagi "Reset all" bilan bir xil)
+	const clearFiltersHandler = async () => {
+		await router.push(`/car?input=${JSON.stringify(initialInput)}`, `/car?input=${JSON.stringify(initialInput)}`, {
+			scroll: false,
+		});
+	};
+
+	/** RENDER **/
+	// tanlangan filtrlar ro'yxati — chip ko'rinishida ko'rsatish uchun
+	const activeChips: { key: string; value?: string; label: string }[] = [];
+	const listKeys = ['locationList', 'brandList', 'typeList', 'fuelTypeList', 'transmissionList', 'options'];
+	listKeys.forEach((key: string) => {
+		((searchFilter?.search as any)?.[key] || []).forEach((value: string) => {
+			const label = key === 'options' ? t(value === 'carBarter' ? 'Barter' : 'Credit') : formatEnum(value);
+			activeChips.push({ key, value, label });
+		});
+	});
+	const years = searchFilter?.search?.yearsRange;
+	if (years) activeChips.push({ key: 'yearsRange', label: `${years.start ?? '…'} – ${years.end ?? '…'}` });
+	const mileage = searchFilter?.search?.mileageRange;
+	if (mileage)
+		activeChips.push({
+			key: 'mileageRange',
+			label: `${(mileage.start ?? 0).toLocaleString()} – ${(mileage.end ?? 0).toLocaleString()} km`,
+		});
+	const prices = searchFilter?.search?.pricesRange;
+	if (
+		prices &&
+		(prices.start !== initialInput.search.pricesRange.start || prices.end !== initialInput.search.pricesRange.end)
+	)
+		activeChips.push({ key: 'pricesRange', label: `₩${formatterStr(prices.start) || 0} – ₩${formatterStr(prices.end)}` });
+
+	const sortMenu = (
+		<Menu
+			anchorEl={anchorEl}
+			open={sortingOpen}
+			onClose={sortingCloseHandler}
+			sx={{ paddingTop: '5px' }}
+			className={'cl-sort-menu'}
+		>
+			<MenuItem onClick={sortingHandler} id={'new'} disableRipple>
+				{t('New')}
+			</MenuItem>
+			<MenuItem onClick={sortingHandler} id={'lowest'} disableRipple>
+				{t('Lowest Price')}
+			</MenuItem>
+			<MenuItem onClick={sortingHandler} id={'highest'} disableRipple>
+				{t('Highest Price')}
+			</MenuItem>
+		</Menu>
+	);
+
+	const chipsRow =
+		activeChips.length > 0 ? (
+			<div className={'cl-chips'}>
+				{activeChips.map((chip) => (
+					<button
+						type="button"
+						className={'cl-chip'}
+						key={`${chip.key}-${chip.value ?? ''}`}
+						onClick={() => removeFilterHandler(chip.key, chip.value)}
+						aria-label={t('Remove filter {{name}}', { name: chip.label })}
+					>
+						{chip.label}
+						<CloseRoundedIcon />
+					</button>
+				))}
+				<button type="button" className={'cl-chip-clear'} onClick={clearFiltersHandler}>
+					{t('Clear all')}
+				</button>
+			</div>
+		) : null;
+
+	const cardGrid = (
+		<div className={'list-config cl-grid'}>
+			{getCarsLoading && !cars?.length ? (
+				Array.from({ length: 6 }).map((_, i: number) => (
+					<div className={'cl-skeleton'} key={i} aria-hidden="true">
+						<span className={'sk-img'} />
+						<span className={'sk-line'} />
+						<span className={'sk-line short'} />
+					</div>
+				))
+			) : cars?.length === 0 ? (
+				<div className={'cl-empty'}>
+					<span className={'cl-empty-icon'}>
+						<DirectionsCarRoundedIcon />
+					</span>
+					<strong>{t('No cars match your filters')}</strong>
+					<p>{t('Try removing a filter or widening the price range.')}</p>
+					{activeChips.length > 0 && (
+						<Button className={'cl-btn-primary'} onClick={clearFiltersHandler}>
+							{t('Clear all filters')}
+						</Button>
+					)}
+				</div>
+			) : (
+				cars.map((car: Car) => {
+					return <CarCard car={car} likeCarHandler={likeCarHandler} key={car?._id} />;
+				})
+			)}
+		</div>
+	);
+
+	const pagination =
+		cars.length !== 0 ? (
+			<Stack className="cl-pagination">
+				<Pagination
+					page={currentPage}
+					count={Math.ceil(total / searchFilter.limit)}
+					onChange={handlePaginationChange}
+					shape="circular"
+					color="primary"
+				/>
+				<Typography className={'cl-total'}>{t('Total {{count}} cars available', { count: total })}</Typography>
+			</Stack>
+		) : null;
+
 	if (device === 'mobile') {
-		return <h1>CARS MOBILE</h1>;
+		return (
+			<div id="car-list-page" className={'cl-v2 cl-mobile'}>
+				<div className={'cl-head'}>
+					<h1 className={'cl-title'}>{t('Find your car')}</h1>
+					<p className={'cl-sub'}>{total ? t('{{count}} cars found', { count: total }) : ' '}</p>
+				</div>
+				<div className={'cl-toolbar'}>
+					<Button
+						className={'cl-filter-btn'}
+						onClick={() => setFilterOpen(true)}
+						startIcon={<TuneRoundedIcon />}
+					>
+						{t('Filters')}
+						{activeChips.length > 0 && <span className={'cl-filter-count'}>{activeChips.length}</span>}
+					</Button>
+					<Button
+						className={'cl-sort-btn'}
+						onClick={sortingClickHandler}
+						endIcon={<KeyboardArrowDownRoundedIcon />}
+					>
+						{t(filterSortName)}
+					</Button>
+					{sortMenu}
+				</div>
+				{chipsRow}
+				{cardGrid}
+				{pagination}
+
+				<Drawer
+					anchor={'bottom'}
+					open={filterOpen}
+					onClose={() => setFilterOpen(false)}
+					className={'cl-drawer'}
+					PaperProps={{ className: 'cl-drawer-paper' }}
+				>
+					<div className={'cl-drawer-handle'} />
+					{/* @ts-ignore */}
+					<Filter searchFilter={searchFilter} setSearchFilter={setSearchFilter} initialInput={initialInput} />
+					<div className={'cl-drawer-foot'}>
+						<Button className={'cl-btn-primary'} onClick={() => setFilterOpen(false)}>
+							{total ? t('Show {{count}} cars', { count: total }) : t('Show results')}
+						</Button>
+					</div>
+				</Drawer>
+			</div>
+		);
 	} else {
 		return (
-			<div id="car-list-page" style={{ position: 'relative' }}>
-				<div className="container">
-					<Box component={'div'} className={'right'}>
-						<span>Sort by</span>
-						<div>
-							<Button onClick={sortingClickHandler} endIcon={<KeyboardArrowDownRoundedIcon />}>
-								{filterSortName}
-							</Button>
-							<Menu anchorEl={anchorEl} open={sortingOpen} onClose={sortingCloseHandler} sx={{ paddingTop: '5px' }}>
-								<MenuItem
-									onClick={sortingHandler}
-									id={'new'}
-									disableRipple
-									sx={{ boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px' }}
-								>
-									New
-								</MenuItem>
-								<MenuItem
-									onClick={sortingHandler}
-									id={'lowest'}
-									disableRipple
-									sx={{ boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px' }}
-								>
-									Lowest Price
-								</MenuItem>
-								<MenuItem
-									onClick={sortingHandler}
-									id={'highest'}
-									disableRipple
-									sx={{ boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px' }}
-								>
-									Highest Price
-								</MenuItem>
-							</Menu>
+			<div id="car-list-page" className={'cl-v2'}>
+				<div className={'cl-wrap'}>
+					<aside className={'filter-config cl-side'}>
+						{/* @ts-ignore */}
+						<Filter searchFilter={searchFilter} setSearchFilter={setSearchFilter} initialInput={initialInput} />
+					</aside>
+					<section className={'cl-main'}>
+						<div className={'cl-topbar'}>
+							<div>
+								<strong className={'cl-found'}>
+									{total ? t('{{count}} cars found', { count: total }) : t('Cars')}
+								</strong>
+								{searchFilter?.search?.text ? (
+									<span className={'cl-query'}>“{searchFilter.search.text}”</span>
+								) : null}
+							</div>
+							<div className={'cl-sort'}>
+								<span>{t('Sort by')}</span>
+								<Button onClick={sortingClickHandler} endIcon={<KeyboardArrowDownRoundedIcon />}>
+									{t(filterSortName)}
+								</Button>
+								{sortMenu}
+							</div>
 						</div>
-					</Box>
-					<Stack className={'car-page'}>
-						<Stack className={'filter-config'}>
-							{/* @ts-ignore */}
-							<Filter searchFilter={searchFilter} setSearchFilter={setSearchFilter} initialInput={initialInput} />
-						</Stack>
-						<Stack className="main-config" mb={'76px'}>
-							<Stack className={'list-config'}>
-								{cars?.length === 0 ? (
-									<div className={'no-data'}>
-										<img src="/img/icons/icoAlert.svg" alt="" />
-										<p>No Cars found!</p>
-									</div>
-								) : (
-									cars.map((car: Car) => {
-										return <CarCard car={car} likeCarHandler={likeCarHandler} key={car?._id} />;
-									})
-								)}
-							</Stack>
-							<Stack className="pagination-config">
-								{cars.length !== 0 && (
-									<Stack className="pagination-box">
-										<Pagination
-											page={currentPage}
-											count={Math.ceil(total / searchFilter.limit)}
-											onChange={handlePaginationChange}
-											shape="circular"
-											color="primary"
-										/>
-									</Stack>
-								)}
-
-								{cars.length !== 0 && (
-									<Stack className="total-result">
-										<Typography>
-											Total {total} car{total > 1 ? 's' : ''} available
-										</Typography>
-									</Stack>
-								)}
-							</Stack>
-						</Stack>
-					</Stack>
+						{chipsRow}
+						{cardGrid}
+						{pagination}
+					</section>
 				</div>
 			</div>
 		);

@@ -1,0 +1,1731 @@
+/**
+ * MOBIL V2 — qolgan mobil qismlar (V01 "Signal"):
+ * ilova paneli + pastki tab bar + menyu oynasi (Top.tsx), footer, bosh sahifa, mashina sahifasi,
+ * member sahifasi, CS, login/sign up, About va admin xabari.
+ * scss/mobile/main.scss oxirida import qilinadi.
+ */
+$m-ease: cubic-bezier(0.23, 1, 0.32, 1);
+$m-graphite: #14171c;
+$m-body: #3b414a;
+$m-faint: #9aa0a8;
+$m-tabbar-h: 64px;
+
+@mixin m-input {
+	width: 100%;
+	height: 48px;
+	padding: 0 14px;
+	box-sizing: border-box;
+	border: 1px solid $c-line;
+	border-radius: 12px;
+	outline: none;
+	background: $c-surface;
+	color: $c-text;
+	font-family: $font;
+	font-size: 16px; // iOS'da avtomatik zoom bo'lmasligi uchun
+	&::placeholder {
+		color: $m-faint;
+	}
+	&:focus {
+		border-color: $c-primary;
+		box-shadow: 0 0 0 4px rgba(0, 87, 255, 0.12);
+	}
+}
+@mixin m-skeleton {
+	background: linear-gradient(90deg, $c-surface-2 0%, #f6f8fc 50%, $c-surface-2 100%);
+	background-size: 200% 100%;
+	animation: m-shimmer 1.2s linear infinite;
+	@media (prefers-reduced-motion: reduce) {
+		animation: none;
+	}
+}
+@keyframes m-shimmer {
+	0% {
+		background-position: 100% 0;
+	}
+	100% {
+		background-position: -100% 0;
+	}
+}
+
+/* =====================================================================
+   KARKAS: ilova paneli, pastki tab bar, footer
+   ===================================================================== */
+#mobile-wrap {
+	min-height: 100vh;
+	padding-bottom: 0; // tab bar uchun joy footer'ning o'zida (pastda och rangli chiziq qolmasligi uchun)
+	box-sizing: border-box;
+	background: $c-bg;
+	font-family: $font;
+	color: $c-text;
+
+	#top {
+		position: sticky;
+		top: 0;
+		z-index: 1100;
+	}
+	#main {
+		min-width: 0;
+	}
+
+	.m-appbar {
+		height: 60px;
+		padding: 0 8px 0 16px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		border-bottom: 1px solid $c-line;
+		background: rgba(255, 255, 255, 0.96);
+		backdrop-filter: blur(8px);
+	}
+	.m-logo {
+		display: flex;
+		align-items: center;
+		.autore-logo-mark {
+			width: 28px;
+			height: 28px;
+		}
+		.autore-logo-text {
+			font-size: 17px;
+		}
+	}
+	.m-appbar-actions {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
+	.m-lang {
+		height: 36px;
+		padding: 0 10px;
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		border: 1px solid $c-line;
+		border-radius: 18px;
+		background: $c-surface;
+		color: $c-text;
+		font-family: $font;
+		font-size: 13px;
+		font-weight: 700;
+	}
+	.m-icon-btn {
+		width: 44px;
+		height: 44px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border: none;
+		border-radius: 22px;
+		background: transparent;
+		color: $c-text;
+		&:active {
+			background: $c-surface-2;
+		}
+	}
+
+	.m-tabbar {
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 1100;
+		height: calc(#{$m-tabbar-h} + env(safe-area-inset-bottom));
+		padding: 4px 6px env(safe-area-inset-bottom);
+		box-sizing: border-box;
+		display: grid;
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+		border-top: 1px solid $c-line;
+		background: rgba(255, 255, 255, 0.97);
+		backdrop-filter: blur(8px);
+	}
+	.m-tab {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 2px;
+		color: $c-muted;
+		font-size: 11px;
+		font-weight: 700;
+		white-space: nowrap;
+		-webkit-tap-highlight-color: transparent;
+		.m-tab-icon {
+			width: 46px;
+			height: 30px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 15px;
+			transition: background-color 200ms ease;
+		}
+		&.is-active {
+			color: $c-primary;
+			.m-tab-icon {
+				background: rgba(0, 87, 255, 0.1);
+			}
+		}
+	}
+
+	// footer (eski 1300px kenglikdagi stillar o'rniga)
+	#footer {
+		// eski mobil stil: flex-direction: row — footer ichidagi blok torayib qolardi
+		display: block;
+		width: 100%;
+		padding: 0 0 calc(#{$m-tabbar-h} + env(safe-area-inset-bottom));
+		box-sizing: border-box;
+		background: $m-graphite;
+		.footer-container.m-footer {
+			width: 100%;
+			max-width: none;
+			margin: 0;
+			box-sizing: border-box;
+			padding: 28px 16px 24px;
+			display: flex;
+			flex-direction: column;
+			gap: 16px;
+			color: #bebdbd;
+		}
+	}
+	.m-footer-logo {
+		display: flex;
+		.autore-logo-text {
+			color: #ffffff;
+			font-size: 18px;
+		}
+	}
+	.m-footer-phone {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		span {
+			color: #bebdbd;
+			font-size: 13px;
+		}
+		strong {
+			color: #ffffff;
+			font-size: 18px;
+			font-weight: 800;
+		}
+	}
+	.m-footer-groups {
+		border-top: 1px solid #2a2e36;
+		details {
+			border-bottom: 1px solid #2a2e36;
+		}
+		summary {
+			height: 50px;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			color: #ffffff;
+			font-size: 15px;
+			font-weight: 700;
+			list-style: none;
+			cursor: pointer;
+			&::-webkit-details-marker {
+				display: none;
+			}
+			svg {
+				transition: transform 200ms $m-ease;
+			}
+		}
+		details[open] summary svg {
+			transform: rotate(180deg);
+		}
+		ul {
+			margin: 0 0 14px;
+			padding: 0;
+			list-style: none;
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+			li {
+				color: #bebdbd;
+				font-size: 14px;
+			}
+		}
+	}
+	.m-footer-social {
+		display: flex;
+		gap: 18px;
+		color: #929495;
+		svg {
+			font-size: 26px;
+		}
+	}
+	.m-footer-copy {
+		font-size: 12px;
+	}
+
+	/* umumiy kichik bloklar */
+	.m-segment {
+		padding: 4px;
+		display: flex;
+		gap: 4px;
+		border: 1px solid $c-line;
+		border-radius: 14px;
+		background: $c-surface;
+		button {
+			flex: 1;
+			height: 40px;
+			border: none;
+			border-radius: 10px;
+			background: transparent;
+			color: $c-muted;
+			font-family: $font;
+			font-size: 14px;
+			font-weight: 700;
+			&.is-active {
+				background: $m-graphite;
+				color: #ffffff;
+			}
+		}
+	}
+	.m-empty {
+		margin: 0;
+		padding: 28px 16px;
+		border: 1px dashed $c-line;
+		border-radius: $r-md;
+		background: $c-surface;
+		color: $c-muted;
+		font-size: 14px;
+		text-align: center;
+	}
+	.m-skeleton {
+		height: 280px;
+		border-radius: $r-md;
+		@include m-skeleton;
+		&.is-row {
+			height: 82px;
+		}
+	}
+	.m-cs-call {
+		padding: 16px;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		border-radius: $r-md;
+		background: $m-graphite;
+		color: #ffffff;
+		> div {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			gap: 2px;
+		}
+		span {
+			color: #bebdbd;
+			font-size: 12px;
+		}
+		strong {
+			font-size: 16px;
+			font-weight: 800;
+		}
+		a {
+			height: 42px;
+			padding: 0 18px;
+			display: inline-flex;
+			align-items: center;
+			border-radius: 12px;
+			background: #ffffff;
+			color: $m-graphite;
+			font-size: 14px;
+			font-weight: 800;
+		}
+	}
+
+	/* =====================================================================
+	   BOSH SAHIFA
+	   ===================================================================== */
+	.m-home {
+		padding-bottom: 32px;
+	}
+	// hero — butun kenglikda, burchaklarsiz (ilova paneli ostidan to'g'ridan-to'g'ri boshlanadi)
+	.m-hero {
+		position: relative;
+		margin: 0;
+		min-height: 420px;
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		border-radius: 0;
+		background: radial-gradient(120% 80% at 70% 20%, #2b3240 0%, $m-graphite 70%);
+		touch-action: pan-y;
+	}
+	.m-hero-media {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 56px;
+		height: 200px;
+		img {
+			position: absolute;
+			inset: 0;
+			width: 100%;
+			height: 100%;
+			object-fit: contain;
+			opacity: 0;
+			transform: translateX(24px);
+			// eski rasm tez yo'qoladi — ikki mashina bir-birining ustida ko'rinib qolmasligi uchun
+			transition: opacity 220ms ease, transform 600ms $m-ease;
+			&.is-active {
+				opacity: 1;
+				transform: none;
+				transition: opacity 500ms ease 120ms, transform 600ms $m-ease;
+			}
+		}
+	}
+	.m-hero-copy {
+		position: relative;
+		padding: 0 16px 18px;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		h1 {
+			margin: 0;
+			color: #ffffff;
+			font-size: 28px;
+			font-weight: 800;
+			letter-spacing: -0.02em;
+		}
+		p {
+			margin: 0 0 12px;
+			color: #c9ceda;
+			font-size: 14px;
+			line-height: 1.45;
+		}
+	}
+	.m-hero-tag {
+		align-self: flex-start;
+		height: 24px;
+		padding: 0 10px;
+		display: inline-flex;
+		align-items: center;
+		border-radius: 12px;
+		background: rgba(255, 255, 255, 0.14);
+		color: #ffffff;
+		font-size: 11px;
+		font-weight: 800;
+		letter-spacing: 0.1em;
+	}
+	.m-hero-actions {
+		display: flex;
+		gap: 8px;
+	}
+	.m-hero-btn {
+		flex: 1;
+		height: 46px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 23px;
+		font-size: 14px;
+		font-weight: 700;
+		&.is-primary {
+			background: $c-primary;
+			color: #ffffff;
+		}
+		&.is-light {
+			background: #ffffff;
+			color: $m-graphite;
+		}
+		&:active {
+			transform: scale(0.97);
+		}
+	}
+	// nuqtalar — tugmalar ostida, markazda
+	.m-hero-dots {
+		position: relative;
+		padding: 0 16px 20px;
+		display: flex;
+		justify-content: center;
+		gap: 6px;
+		button {
+			width: 6px;
+			height: 6px;
+			padding: 0;
+			border: none;
+			border-radius: 3px;
+			background: rgba(255, 255, 255, 0.4);
+			transition: width 300ms $m-ease;
+			&.is-active {
+				width: 18px;
+				background: #ffffff;
+			}
+		}
+	}
+
+	.m-search {
+		padding: 14px 16px 0;
+	}
+	.m-search-box {
+		height: 52px;
+		padding: 0 16px;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		border: 1px solid $c-line;
+		border-radius: 14px;
+		background: $c-surface;
+		color: $c-muted;
+		font-size: 15px;
+	}
+	.m-chips {
+		margin: 12px -16px 0;
+		padding: 0 16px;
+		display: flex;
+		gap: 8px;
+		overflow-x: auto;
+		scrollbar-width: none;
+		&::-webkit-scrollbar {
+			display: none;
+		}
+	}
+	.m-chip {
+		flex-shrink: 0;
+		height: 36px;
+		padding: 0 14px;
+		display: inline-flex;
+		align-items: center;
+		border: 1px solid $c-line;
+		border-radius: 18px;
+		background: $c-surface;
+		color: $m-body;
+		font-size: 13px;
+		font-weight: 700;
+		white-space: nowrap;
+	}
+
+	.m-sec {
+		margin-top: 30px;
+	}
+	.m-sec-head {
+		padding: 0 16px;
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		h2 {
+			margin: 0;
+			font-size: 21px;
+			font-weight: 800;
+			letter-spacing: -0.02em;
+		}
+	}
+	.m-see {
+		color: $c-primary-dark;
+		font-size: 14px;
+		font-weight: 700;
+	}
+	.m-scroll {
+		margin-top: 14px;
+		padding: 0 16px 4px;
+		display: flex;
+		gap: 12px;
+		overflow-x: auto;
+		scroll-snap-type: x mandatory;
+		scroll-padding: 0 16px;
+		scrollbar-width: none;
+		&::-webkit-scrollbar {
+			display: none;
+		}
+		.m-empty {
+			flex: 1;
+		}
+	}
+	.m-scroll-item {
+		flex: 0 0 264px;
+		scroll-snap-align: start;
+		display: flex;
+		> * {
+			width: 100%;
+		}
+	}
+	.m-scroll.is-narrow .m-scroll-item {
+		flex-basis: 220px;
+	}
+	// Top dealers: ixchamroq karta — pastroq rasm, tavsif 1 qator, kichikroq bo'shliqlar
+	.m-scroll.is-narrow .dc-card {
+		.dc-photo {
+			aspect-ratio: 16 / 10;
+		}
+		.dc-initials {
+			font-size: 40px;
+		}
+		.dc-cars-badge {
+			left: 10px;
+			bottom: 10px;
+			height: 24px;
+			padding: 0 10px;
+			font-size: 11px;
+		}
+		.dc-body {
+			padding: 12px 14px 14px;
+			gap: 6px;
+		}
+		.dc-name {
+			font-size: 16px;
+		}
+		.dc-desc {
+			-webkit-line-clamp: 1;
+			min-height: 1.45em;
+			font-size: 13px;
+		}
+		.dc-stats {
+			padding-top: 8px;
+			gap: 12px;
+			font-size: 13px;
+		}
+		.dc-btn {
+			margin-top: 2px;
+			height: 38px;
+			font-size: 13px;
+		}
+	}
+	.m-scroll-item.m-skeleton {
+		height: 320px;
+	}
+
+	// "Browse by type" (CarTypes) — 2 ustunli plitkalar
+	.m-home .car-types {
+		margin-top: 30px;
+		.container {
+			width: auto;
+			padding: 0 16px;
+		}
+		.bs-head {
+			display: flex;
+			align-items: baseline;
+			justify-content: space-between;
+			h2 {
+				margin: 0;
+				font-size: 21px;
+				font-weight: 800;
+				letter-spacing: -0.02em;
+			}
+			p {
+				display: none;
+			}
+		}
+		.bs-all {
+			color: $c-primary-dark;
+			font-size: 14px;
+			font-weight: 700;
+		}
+		.bs-grid {
+			margin-top: 14px;
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 10px;
+		}
+		.bs-tile {
+			position: relative;
+			height: 116px;
+			padding: 12px;
+			overflow: hidden;
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			border: 1px solid $c-line;
+			border-radius: $r-md;
+			background: $c-surface;
+			text-align: left;
+			font-family: $font;
+			&:active {
+				transform: scale(0.98);
+			}
+		}
+		.bs-text {
+			position: relative;
+			z-index: 1;
+			display: flex;
+			flex-direction: column;
+			strong,
+			b {
+				color: $c-text;
+				font-size: 15px;
+				font-weight: 800;
+			}
+			span,
+			small {
+				color: $c-muted;
+				font-size: 12px;
+			}
+		}
+		.bs-stage {
+			position: absolute;
+			right: -10px;
+			bottom: 4px;
+			width: 150px;
+			img {
+				width: 100%;
+				height: auto;
+				display: block;
+			}
+		}
+		.bs-shadow,
+		.bs-go {
+			display: none;
+		}
+	}
+
+	// "Find a dealer" (SellPromo)
+	.m-home .sell-promo {
+		margin-top: 30px;
+		.container {
+			width: auto;
+			padding: 0 16px;
+		}
+		.sp-card {
+			padding: 22px;
+			display: flex;
+			flex-direction: column;
+			gap: 18px;
+			border-radius: $r-lg;
+			background: $c-primary;
+			color: #ffffff;
+		}
+		.sp-copy {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+		}
+		.sp-tag {
+			color: #cfe0ff;
+			font-size: 11px;
+			font-weight: 800;
+			letter-spacing: 0.12em;
+		}
+		h2 {
+			margin: 0;
+			color: #ffffff;
+			font-size: 23px;
+			font-weight: 800;
+			letter-spacing: -0.02em;
+			line-height: 1.2;
+		}
+		p {
+			margin: 0;
+			color: #dce7ff;
+			font-size: 14px;
+			line-height: 1.5;
+		}
+		.sp-btn {
+			margin-top: 8px;
+			align-self: flex-start;
+			height: 46px;
+			padding: 0 20px;
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			border-radius: 23px;
+			background: #ffffff;
+			color: $c-primary-dark;
+			font-size: 14px;
+			font-weight: 800;
+			&::after {
+				content: '→';
+			}
+		}
+		.sp-steps {
+			margin: 0;
+			padding: 0;
+			list-style: none;
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			li {
+				padding: 12px 14px;
+				display: flex;
+				align-items: center;
+				gap: 12px;
+				border-radius: 14px;
+				background: rgba(255, 255, 255, 0.12);
+			}
+			div {
+				display: flex;
+				flex-direction: column;
+				gap: 2px;
+			}
+			strong {
+				color: #ffffff;
+				font-size: 14px;
+				font-weight: 800;
+			}
+			span {
+				color: #dce7ff;
+				font-size: 12px;
+			}
+		}
+		.sp-num {
+			flex-shrink: 0;
+			color: #ffffff !important;
+			font-size: 13px !important;
+			font-weight: 800;
+			opacity: 0.8;
+		}
+	}
+
+	// Community (News / Free Board)
+	.m-community {
+		padding: 0 16px;
+		.m-sec-head {
+			padding: 0;
+		}
+		.m-segment {
+			margin-top: 12px;
+		}
+	}
+	.m-community-list {
+		margin-top: 10px;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		.horizontal-card {
+			padding: 10px;
+			display: grid;
+			grid-template-columns: 76px minmax(0, 1fr);
+			align-items: center;
+			gap: 12px;
+			border: 1px solid $c-line;
+			border-radius: 14px;
+			background: $c-surface;
+			color: $c-text;
+			white-space: normal;
+			img {
+				width: 76px;
+				height: 58px;
+				border-radius: 10px;
+				object-fit: cover;
+				background: $c-surface-2;
+			}
+		}
+		.horizontal-text {
+			min-width: 0;
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+			strong {
+				display: -webkit-box;
+				-webkit-line-clamp: 2;
+				-webkit-box-orient: vertical;
+				overflow: hidden;
+				font-size: 14px;
+				font-weight: 700;
+				line-height: 1.35;
+			}
+		}
+		.community-meta {
+			color: $c-muted;
+			font-size: 12px;
+		}
+	}
+
+	/* =====================================================================
+	   MASHINA SAHIFASI (/car/detail) — desktop tuzilmasi, mobil ko'rinish
+	   ===================================================================== */
+	#car-detail-page.cd-v2.cd-mobile {
+		padding-bottom: 0;
+		.cd-wrap {
+			width: 100%;
+			padding: 0 0 calc(96px + env(safe-area-inset-bottom));
+		}
+		.cd-crumbs {
+			display: none;
+		}
+		// galereya: barmoq bilan suriladigan rasmlar qatori
+		.cd-gallery {
+			height: 280px !important;
+			margin: 0;
+			display: flex !important;
+			gap: 0 !important;
+			overflow-x: auto;
+			scroll-snap-type: x mandatory;
+			border-radius: 0;
+			scrollbar-width: none;
+			&::-webkit-scrollbar {
+				display: none;
+			}
+		}
+		.cd-tile {
+			flex: 0 0 100%;
+			height: 100%;
+			border-radius: 0 !important;
+			scroll-snap-align: start;
+		}
+		.cd-photo-count {
+			left: 12px;
+			bottom: 12px;
+			height: 28px;
+			font-size: 12px;
+		}
+		.cd-all-photos {
+			right: 12px;
+			bottom: 12px;
+			height: 34px;
+			padding: 0 12px;
+			font-size: 13px;
+		}
+		.cd-columns {
+			margin-top: 0;
+			padding: 20px 16px 0;
+			display: flex;
+			flex-direction: column;
+			gap: 24px;
+		}
+		.cd-main {
+			min-width: 0;
+			width: 100%;
+		}
+		.cd-head h1 {
+			font-size: 24px;
+			line-height: 1.2;
+		}
+		.cd-meta {
+			gap: 6px 14px;
+			font-size: 14px;
+		}
+		.cd-specs {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 8px;
+		}
+		.cd-spec {
+			padding: 12px;
+		}
+		.cd-section {
+			margin-top: 28px;
+		}
+		.cd-section-head {
+			flex-wrap: wrap;
+			gap: 8px;
+		}
+		.cd-map {
+			height: 200px;
+			border-radius: $r-md;
+			overflow: hidden;
+		}
+		.cd-side {
+			position: static;
+			max-width: none;
+			flex: none;
+		}
+		.cd-head .cd-title-price {
+			margin: 6px 0 10px;
+			font-size: 24px;
+			.cd-currency {
+				font-size: 16px;
+			}
+		}
+		// narx endi nom ostida — pastdagi panelda takrorlanmaydi (pastki qatorda ham bor)
+		.cd-panel > div:first-child {
+			display: none;
+		}
+		.cd-similar {
+			margin-top: 32px;
+			padding: 0 16px;
+		}
+		.cd-similar-grid {
+			margin: 16px -16px 0;
+			padding: 0 16px 4px;
+			display: flex;
+			gap: 12px;
+			overflow-x: auto;
+			scroll-snap-type: x mandatory;
+			scrollbar-width: none;
+			&::-webkit-scrollbar {
+				display: none;
+			}
+			> * {
+				flex: 0 0 260px;
+				width: 260px !important;
+				height: auto;
+				margin: 0;
+				scroll-snap-align: start;
+			}
+		}
+		.cd-review-form textarea,
+		input {
+			font-size: 16px;
+		}
+		// sharh kartasi (car/Review.tsx) — mobilda biroz ixchamroq
+		.cd-review-list .review-config {
+			padding: 16px;
+			gap: 10px;
+		}
+		.cd-review-list .img-box {
+			width: 38px;
+			height: 38px;
+		}
+		.cd-review-list .description {
+			font-size: 14px;
+			line-height: 1.6;
+		}
+	}
+	.cd-mbar {
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 1100;
+		padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		border-top: 1px solid $c-line;
+		background: rgba(255, 255, 255, 0.97);
+		backdrop-filter: blur(8px);
+	}
+	.cd-mbar-price {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		span {
+			color: $c-muted;
+			font-size: 12px;
+		}
+		strong {
+			overflow: hidden;
+			font-size: 18px;
+			font-weight: 800;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+	}
+	.cd-mbar-btn {
+		height: 50px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+		border-radius: 14px;
+		font-size: 15px;
+		font-weight: 800;
+		&.is-outline {
+			width: 50px;
+			border: 1px solid $c-line;
+			color: $c-text;
+		}
+		&.is-primary {
+			padding: 0 18px;
+			background: $c-primary;
+			color: #ffffff;
+		}
+		svg {
+			font-size: 21px;
+		}
+		&:active {
+			transform: scale(0.97);
+		}
+	}
+
+	/* =====================================================================
+	   MEMBER SAHIFASI (/member)
+	   ===================================================================== */
+	#member-page.mb-v2 {
+		padding: 16px 16px 40px;
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+		.mb-content {
+			min-width: 0;
+		}
+	}
+	.mb-profile {
+		padding: 22px 18px 18px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 6px;
+		border: 1px solid $c-line;
+		border-radius: $r-lg;
+		background: $c-surface;
+		text-align: center;
+	}
+	.mb-avatar {
+		width: 88px;
+		height: 88px;
+		overflow: hidden;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 26px;
+		background: #e8eeff;
+		color: $c-primary;
+		font-size: 30px;
+		font-weight: 800;
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+	}
+	.mb-role {
+		margin-top: 6px;
+		height: 22px;
+		padding: 0 9px;
+		display: inline-flex;
+		align-items: center;
+		border-radius: 11px;
+		background: $c-surface-2;
+		color: $c-text;
+		font-size: 11px;
+		font-weight: 800;
+		letter-spacing: 0.08em;
+		&.is-dealer {
+			background: $m-graphite;
+			color: #ffffff;
+		}
+	}
+	.mb-name {
+		color: $c-text;
+		font-family: $font;
+		font-size: 24px;
+		font-weight: 800;
+		letter-spacing: -0.02em;
+	}
+	.mb-address {
+		color: $c-muted;
+		font-size: 14px;
+	}
+	.mb-actions {
+		margin-top: 12px;
+		width: 100%;
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 8px;
+		> *:only-child {
+			grid-column: 1 / -1;
+		}
+	}
+	.mb-btn {
+		min-width: 0;
+		height: 46px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+		border-radius: 12px;
+		font-family: $font;
+		font-size: 14px;
+		font-weight: 700;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		text-transform: none;
+		&.is-primary {
+			background: $c-primary;
+			color: #ffffff;
+		}
+		&.is-following {
+			border: 1px solid $c-line;
+			background: $c-surface-2;
+			color: $c-text;
+		}
+		&.is-outline {
+			border: 1px solid $c-line;
+			background: $c-surface;
+			color: $c-text;
+		}
+	}
+	.mb-stats {
+		margin: 14px 0 0;
+		padding: 14px 0 0;
+		width: 100%;
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		border-top: 1px solid $c-line;
+		list-style: none;
+		li {
+			display: flex;
+			flex-direction: column;
+			gap: 2px;
+		}
+		strong {
+			font-size: 18px;
+			font-weight: 800;
+			font-variant-numeric: tabular-nums;
+		}
+		span {
+			color: $c-muted;
+			font-size: 11px;
+			font-weight: 700;
+		}
+	}
+	.mb-chips {
+		margin: 0 -16px;
+		padding: 0 16px;
+		display: flex;
+		gap: 8px;
+		overflow-x: auto;
+		scrollbar-width: none;
+		&::-webkit-scrollbar {
+			display: none;
+		}
+		a {
+			flex-shrink: 0;
+			height: 38px;
+			padding: 0 14px;
+			display: inline-flex;
+			align-items: center;
+			border: 1px solid $c-line;
+			border-radius: 19px;
+			background: $c-surface;
+			color: $m-body;
+			font-size: 13px;
+			font-weight: 700;
+			white-space: nowrap;
+			&.is-active {
+				border-color: $c-primary;
+				background: $c-primary;
+				color: #ffffff;
+			}
+		}
+	}
+	// member sahifasidagi bo'limlar sarlavhasi — chip'lar bor, sarlavha kerak emas
+	#member-page.mb-v2 .mp-section .main-title-box {
+		display: none;
+	}
+
+	/* =====================================================================
+	   CS (/cs)
+	   ===================================================================== */
+	.m-cs {
+		padding: 20px 16px 40px;
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+	}
+	.m-cs-title {
+		margin: 0;
+		font-size: 28px;
+		font-weight: 800;
+		letter-spacing: -0.02em;
+	}
+	.m-cs-sub {
+		margin: -8px 0 0;
+		color: $c-muted;
+		font-size: 14px;
+		line-height: 1.45;
+	}
+	.m-notice {
+		padding: 4px 14px;
+		border: 1px solid $c-line;
+		border-radius: $r-md;
+		background: $c-surface;
+		.m-empty {
+			margin: 10px 0;
+			border: none;
+		}
+	}
+	.m-notice-item {
+		border-bottom: 1px solid #eef0f3;
+		&:last-of-type {
+			border-bottom: none;
+		}
+		button {
+			width: 100%;
+			padding: 14px 0;
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 6px;
+			border: none;
+			background: transparent;
+			color: $c-text;
+			font-family: $font;
+			text-align: left;
+		}
+		strong {
+			font-size: 15px;
+			font-weight: 700;
+			line-height: 1.35;
+		}
+		&.is-open strong {
+			color: $c-primary-dark;
+		}
+	}
+	.m-notice-date {
+		color: $c-muted;
+		font-size: 12px;
+	}
+	.m-notice-body {
+		margin: 0 0 14px;
+		color: $m-body;
+		font-size: 14px;
+		line-height: 1.6;
+		white-space: pre-line;
+	}
+	.m-faq {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+	.m-faq-item {
+		overflow: hidden;
+		border: 1px solid $c-line;
+		border-radius: 14px;
+		background: $c-surface;
+		transition: border-color 200ms ease;
+		&.is-open {
+			border-color: $c-primary;
+			.m-faq-arrow {
+				transform: rotate(180deg);
+			}
+		}
+		button {
+			width: 100%;
+			min-height: 54px;
+			padding: 12px 14px;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			border: none;
+			background: transparent;
+			color: $c-text;
+			font-family: $font;
+			text-align: left;
+		}
+		strong {
+			flex: 1;
+			font-size: 15px;
+			font-weight: 700;
+			line-height: 1.35;
+		}
+	}
+	.m-faq-q {
+		flex-shrink: 0;
+		width: 26px;
+		height: 26px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 8px;
+		background: rgba(0, 87, 255, 0.1);
+		color: $c-primary;
+		font-size: 13px;
+		font-weight: 800;
+	}
+	.m-faq-arrow {
+		color: $c-muted;
+		transition: transform 200ms $m-ease;
+	}
+	.m-faq-a {
+		margin: 0;
+		padding: 0 14px 14px 50px;
+		color: $m-body;
+		font-size: 14px;
+		line-height: 1.6;
+		white-space: pre-line;
+	}
+	.m-pagination {
+		padding: 12px 0;
+		align-items: center;
+	}
+
+	/* =====================================================================
+	   LOGIN / SIGN UP (/account/join)
+	   ===================================================================== */
+	.m-join {
+		min-height: calc(100vh - 60px - #{$m-tabbar-h});
+		display: flex;
+		flex-direction: column;
+	}
+	.m-join-hero {
+		padding: 40px 20px 40px;
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		background: $m-graphite;
+		color: #ffffff;
+		h1 {
+			margin: 0;
+			font-size: 28px;
+			font-weight: 800;
+			letter-spacing: -0.02em;
+		}
+		p {
+			margin: 0;
+			color: #c9ceda;
+			font-size: 14px;
+		}
+	}
+	.m-join-brand {
+		font-size: 13px;
+		font-weight: 800;
+		letter-spacing: 0.16em;
+		color: #a9c6ff;
+	}
+	.m-join-card {
+		position: relative;
+		margin-top: -18px;
+		flex: 1;
+		padding: 20px 16px 28px;
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+		border-radius: 22px 22px 0 0;
+		background: $c-bg;
+	}
+	.m-field {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		> span {
+			font-size: 13px;
+			font-weight: 700;
+		}
+		input {
+			@include m-input;
+		}
+	}
+	.m-join-types {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 8px;
+		button {
+			height: 46px;
+			border: 1px solid $c-line;
+			border-radius: 12px;
+			background: $c-surface;
+			color: $m-body;
+			font-family: $font;
+			font-size: 14px;
+			font-weight: 700;
+			&.is-active {
+				border-color: $c-primary;
+				background: rgba(0, 87, 255, 0.08);
+				color: $c-primary-dark;
+			}
+		}
+	}
+	.m-join-submit {
+		margin-top: 6px;
+		height: 50px;
+		border-radius: 14px;
+		background: $c-primary;
+		color: #ffffff;
+		font-family: $font;
+		font-size: 15px;
+		font-weight: 800;
+		text-transform: none;
+		&.Mui-disabled {
+			background: $c-primary;
+			color: #ffffff;
+			opacity: 0.4;
+		}
+	}
+	.m-join-switch {
+		margin: 0;
+		color: $c-muted;
+		font-size: 13px;
+		text-align: center;
+		button {
+			padding: 0;
+			border: none;
+			background: none;
+			color: $c-primary-dark;
+			font-family: $font;
+			font-size: 13px;
+			font-weight: 800;
+		}
+	}
+
+	/* =====================================================================
+	   ABOUT (/about)
+	   ===================================================================== */
+	.m-about {
+		padding: 24px 16px 40px;
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+		h1 {
+			margin: 0;
+			font-size: 26px;
+			font-weight: 800;
+			letter-spacing: -0.02em;
+			line-height: 1.2;
+		}
+	}
+	.m-about-tag {
+		color: $c-primary;
+		font-size: 12px;
+		font-weight: 800;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+	}
+	.m-about-lead {
+		margin: 0;
+		color: $c-muted;
+		font-size: 15px;
+	}
+	.m-about-img {
+		width: 100%;
+		height: 200px;
+		object-fit: cover;
+		border-radius: $r-lg;
+	}
+	.m-about-list {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+	.m-about-item {
+		padding: 14px;
+		display: flex;
+		gap: 12px;
+		border: 1px solid $c-line;
+		border-radius: $r-md;
+		background: $c-surface;
+		strong {
+			font-size: 15px;
+			font-weight: 800;
+		}
+		p {
+			margin: 4px 0 0;
+			color: $m-body;
+			font-size: 14px;
+			line-height: 1.5;
+		}
+	}
+	.m-about-num {
+		flex-shrink: 0;
+		color: $c-primary;
+		font-size: 14px;
+		font-weight: 800;
+	}
+	.m-about-cta {
+		height: 50px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 14px;
+		background: $c-primary;
+		color: #ffffff;
+		font-size: 15px;
+		font-weight: 800;
+	}
+}
+
+/* =====================================================================
+   MENYU OYNASI (MUI Drawer — #mobile-wrap tashqarisida, portal)
+   ===================================================================== */
+.m-sheet {
+	max-height: 88vh;
+	padding: 0 16px calc(20px + env(safe-area-inset-bottom));
+	box-sizing: border-box;
+	border-radius: 22px 22px 0 0;
+	background: #ffffff !important;
+	font-family: $font;
+	color: $c-text;
+	.m-sheet-handle {
+		align-self: center;
+		margin: 10px 0 14px;
+		width: 40px;
+		height: 4px;
+		flex-shrink: 0;
+		border-radius: 2px;
+		background: $c-line;
+	}
+	.m-sheet-profile {
+		padding: 14px;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		border: 1px solid $c-line;
+		border-radius: 16px;
+	}
+	.m-sheet-avatar {
+		flex-shrink: 0;
+		width: 52px;
+		height: 52px;
+		overflow: hidden;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 26px;
+		background: #e8eeff;
+		color: $c-primary;
+		font-size: 20px;
+		font-weight: 800;
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+	}
+	.m-sheet-who {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 4px;
+		strong {
+			max-width: 100%;
+			overflow: hidden;
+			font-size: 16px;
+			font-weight: 800;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+	}
+	.m-sheet-role {
+		height: 20px;
+		padding: 0 8px;
+		display: inline-flex;
+		align-items: center;
+		border-radius: 10px;
+		background: $c-surface-2;
+		color: $c-text;
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.08em;
+		&.is-dealer {
+			background: #14171c;
+			color: #ffffff;
+		}
+		&.is-admin {
+			background: $c-accent;
+			color: #ffffff;
+		}
+	}
+	.m-sheet-btn {
+		flex-shrink: 0;
+		height: 38px;
+		padding: 0 14px;
+		display: inline-flex;
+		align-items: center;
+		border: 1px solid $c-line;
+		border-radius: 10px;
+		color: $c-text;
+		font-size: 13px;
+		font-weight: 700;
+	}
+	.m-sheet-login {
+		height: 50px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 14px;
+		background: $c-primary;
+		color: #ffffff;
+		font-size: 15px;
+		font-weight: 800;
+	}
+	.m-sheet-links {
+		margin-top: 10px;
+		display: flex;
+		flex-direction: column;
+		a {
+			height: 52px;
+			padding: 0 4px;
+			display: flex;
+			align-items: center;
+			gap: 14px;
+			border-bottom: 1px solid $c-line;
+			color: $c-text;
+			font-size: 15px;
+			font-weight: 700;
+			svg:first-child {
+				color: $c-muted;
+			}
+			svg:last-child {
+				color: #9aa0a8;
+			}
+			span {
+				flex: 1;
+			}
+			&.is-active {
+				color: $c-primary;
+				svg:first-child {
+					color: $c-primary;
+				}
+			}
+		}
+	}
+	.m-sheet-lang {
+		margin-top: 18px;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		> span {
+			color: $c-muted;
+			font-size: 12px;
+			font-weight: 800;
+			letter-spacing: 0.1em;
+			text-transform: uppercase;
+		}
+		> div {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 8px;
+		}
+		button {
+			height: 44px;
+			border: 1px solid $c-line;
+			border-radius: 12px;
+			background: #ffffff;
+			color: #3b414a;
+			font-family: $font;
+			font-size: 14px;
+			font-weight: 700;
+			&.is-active {
+				border-color: $c-primary;
+				background: rgba(0, 87, 255, 0.08);
+				color: $c-primary-dark;
+			}
+		}
+	}
+	.m-sheet-logout {
+		margin-top: 18px;
+		height: 48px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		border: 1px solid $c-line;
+		border-radius: 12px;
+		background: #ffffff;
+		color: #c62828;
+		font-family: $font;
+		font-size: 15px;
+		font-weight: 700;
+	}
+}
+
+/* admin panel telefonda */
+.m-admin-note {
+	min-height: 100vh;
+	padding: 32px 24px;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	background: $c-bg;
+	font-family: $font;
+	color: $c-text;
+	text-align: center;
+	strong {
+		font-size: 22px;
+		font-weight: 800;
+	}
+	p {
+		margin: 0;
+		max-width: 300px;
+		color: $c-muted;
+		font-size: 15px;
+		line-height: 1.5;
+	}
+	a {
+		margin-top: 10px;
+		height: 46px;
+		padding: 0 20px;
+		display: inline-flex;
+		align-items: center;
+		border-radius: 12px;
+		background: $c-primary;
+		color: #ffffff;
+		font-weight: 800;
+	}
+}

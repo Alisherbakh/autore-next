@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import FavoriteBorderRoundedIcon from '@mui/icons-material/FavoriteBorderRounded';
+import Link from 'next/link';
+import { useTranslation } from 'next-i18next';
 import { NextPage } from 'next';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { Pagination, Stack, Typography } from '@mui/material';
@@ -13,6 +16,7 @@ import { sweetMixinErrorAlert } from '../../sweetAlert';
 
 const MyFavorites: NextPage = () => {
 	const device = useDeviceDetect();
+	const { t } = useTranslation('common');
 	const [myFavorites, setMyFavorites] = useState<Car[]>([]);
 	const [total, setTotal] = useState<number>(0);
 	const [searchFavorites, setSearchFavorites] = useState<T>({ page: 1, limit: 6 });
@@ -67,50 +71,47 @@ const MyFavorites: NextPage = () => {
 		}
 	};
 
-	if (device === 'mobile') {
-		return <div>AUTORE MY FAVORITES MOBILE</div>;
-	} else {
-		return (
-			<div id="my-favorites-page">
-				<Stack className="main-title-box">
-					<Stack className="right-box">
-						<Typography className="main-title">My Favorites</Typography>
-						<Typography className="sub-title">We are glad to see you again!</Typography>
-					</Stack>
+	// mobil va desktop'da bir xil — farqi stillarda (scss/pc/mypage/mypageV2.scss)
+	return (
+		<div id="mp-favorites" className={'mp-section'}>
+			<Stack className="main-title-box">
+				<Stack className="right-box">
+					<Typography className="main-title">{t('My Favorites')}</Typography>
+					<Typography className="sub-title">{t('Cars you liked, saved in one place.')}</Typography>
 				</Stack>
-				<Stack className="favorites-list-box">
-					{myFavorites?.length ? (
-						myFavorites?.map((car: Car) => {
-							return <CarCard car={car} likeCarHandler={likeCarHandler} myFavorites={true} />;
-						})
-					) : (
-						<div className={'no-data'}>
-							<img src="/img/icons/icoAlert.svg" alt="" />
-							<p>No Favorites found!</p>
-						</div>
-					)}
-				</Stack>
+			</Stack>
+			<div className="favorites-list-box mp-grid">
 				{myFavorites?.length ? (
-					<Stack className="pagination-config">
-						<Stack className="pagination-box">
-							<Pagination
-								count={Math.ceil(total / searchFavorites.limit)}
-								page={searchFavorites.page}
-								shape="circular"
-								color="primary"
-								onChange={paginationHandler}
-							/>
-						</Stack>
-						<Stack className="total-result">
-							<Typography>
-								Total {total} favorite car{total > 1 ? 's' : ''}
-							</Typography>
-						</Stack>
-					</Stack>
-				) : null}
+					myFavorites?.map((car: Car) => {
+						return <CarCard car={car} likeCarHandler={likeCarHandler} myFavorites={true} key={car?._id} />;
+					})
+				) : (
+						<div className={'mp-empty'}>
+							<span className={'mp-empty-icon'}>
+								<FavoriteBorderRoundedIcon />
+							</span>
+							<strong>{t('No favorites yet')}</strong>
+							<p>{t('Tap the heart on any car to save it here.')}</p>
+							<Link href={'/car'} className={'mp-btn-link'}>
+								{t('Browse cars')}
+							</Link>
+						</div>
+				)}
 			</div>
-		);
-	}
+			{myFavorites?.length ? (
+				<Stack className="pagination-config mp-pagination">
+					<Pagination
+						count={Math.ceil(total / searchFavorites.limit)}
+						page={searchFavorites.page}
+						shape="circular"
+						color="primary"
+						onChange={paginationHandler}
+					/>
+					<Typography className="mp-total">{t('Total {{count}} favorite cars', { count: total ?? 0 })}</Typography>
+				</Stack>
+			) : null}
+		</div>
+	);
 };
 
 export default MyFavorites;

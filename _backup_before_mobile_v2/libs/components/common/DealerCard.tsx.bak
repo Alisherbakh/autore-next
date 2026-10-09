@@ -1,0 +1,97 @@
+import React from 'react';
+import { useTranslation } from 'next-i18next';
+import useDeviceDetect from '../../hooks/useDeviceDetect';
+import { Stack, Box } from '@mui/material';
+import Link from 'next/link';
+import { REACT_APP_API_URL, LIKED_COLOR } from '../../config';
+import IconButton from '@mui/material/IconButton';
+import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import DirectionsCarRoundedIcon from '@mui/icons-material/DirectionsCarRounded';
+import { useReactiveVar } from '@apollo/client';
+import { userVar } from '../../../apollo/store';
+
+interface DealerCardProps {
+	dealer: any;
+	// /dealer sahifasida like ishlaydi; bosh sahifada (TopDealerCard) berilmaydi — u yerda faqat son ko'rinadi
+	likeMemberHandler?: any;
+}
+
+// rasm bo'lmasa: nickdan 1–2 harf (masalan seoul_motors → "SM")
+const getInitials = (name: string = ''): string => {
+	const parts = name.split(/[\s_.-]+/).filter(Boolean);
+	const letters = parts.length > 1 ? parts[0][0] + parts[1][0] : name.slice(0, 2);
+	return letters.toUpperCase() || 'D';
+};
+
+const DealerCard = (props: DealerCardProps) => {
+	const { dealer, likeMemberHandler } = props;
+	const device = useDeviceDetect();
+	const user = useReactiveVar(userVar);
+	const { t } = useTranslation('common');
+	const imagePath: string | null = dealer?.memberImage ? `${REACT_APP_API_URL}/${dealer?.memberImage}` : null;
+	const name: string = dealer?.memberFullName || dealer?.memberNick || '';
+	const liked: boolean = !!(dealer?.meLiked && dealer?.meLiked[0]?.myFavorite);
+	const detailHref = { pathname: '/dealer/detail', query: { dealerId: dealer?._id } };
+
+	// mobil va desktop'da bir xil karta — mobil ko'rinishi scss/mobile/dealer.scss'da
+	return (
+		<Stack className="dc-card">
+			<Link href={detailHref} className={'dc-photo'} aria-label={t('{{name}} profile', { name })}>
+				{imagePath ? (
+					<img src={imagePath} alt={name} loading={'lazy'} />
+				) : (
+					<span className={'dc-initials'} aria-hidden="true">
+						{getInitials(dealer?.memberNick)}
+					</span>
+				)}
+				<span className={'dc-cars-badge'}>{t('{{count}} cars', { count: dealer?.memberCars ?? 0 })}</span>
+			</Link>
+
+			<div className={'dc-body'}>
+				{/* oldin bu havola dealerId: 'id' ga ketardi (xato) — endi haqiqiy dealer _id */}
+				<Link href={detailHref} className={'dc-name'}>
+					{name}
+				</Link>
+				<div className={'dc-meta'}>
+					<span className={'dc-badge'}>{t('DEALER')}</span>
+					{dealer?.memberAddress && <span className={'dc-city'}>{dealer.memberAddress}</span>}
+				</div>
+				{/* tavsif bo'lmasa ham joy saqlanadi — kartalardagi tugmalar bir qatorda turishi uchun */}
+				<p className={`dc-desc ${dealer?.memberDesc ? '' : 'is-empty'}`}>{dealer?.memberDesc || t('No description yet.')}</p>
+
+				<div className={'dc-stats'}>
+					<span title={t('Cars')}>
+						<DirectionsCarRoundedIcon /> {dealer?.memberCars ?? 0}
+					</span>
+					<span title={t('Views')}>
+						<RemoveRedEyeIcon /> {dealer?.memberViews ?? 0}
+					</span>
+					{likeMemberHandler ? (
+						<span className={'dc-like'}>
+							<IconButton
+								size={'small'}
+								onClick={() => likeMemberHandler(user, dealer?._id)}
+								aria-label={liked ? t('Unlike dealer') : t('Like dealer')}
+							>
+								{liked ? <FavoriteIcon style={{ color: LIKED_COLOR }} /> : <FavoriteBorderIcon />}
+							</IconButton>
+							{dealer?.memberLikes ?? 0}
+						</span>
+					) : (
+						<span title={t('Likes')}>
+							<FavoriteBorderIcon /> {dealer?.memberLikes ?? 0}
+						</span>
+					)}
+				</div>
+
+				<Link href={detailHref} className={'dc-btn'}>
+					{t('View cars')}
+				</Link>
+			</div>
+		</Stack>
+	);
+};
+
+export default DealerCard;

@@ -1,0 +1,782 @@
+/**
+ * MASHINALAR RO'YXATI (pages/car/index.tsx) — V01 "Signal" yangilangan ko'rinish.
+ * main.scss oxirida import qilinadi. Eski car.scss stillari (.container ichida) bilan to'qnashmaydi.
+ * Filtr (.cl-filter), CarCard (.cl-card), saralash menyusi va mobil filtr oynasi stillari global —
+ * mobil versiya va MyPage (Favorites / Recently visited) ham shulardan foydalanadi.
+ * Mobil sahifa: scss/mobile/car.scss
+ */
+$cl-ease: cubic-bezier(0.23, 1, 0.32, 1);
+$cl-body: #3b414a;
+$cl-faint: #9aa0a8;
+
+@keyframes cl-shimmer {
+	0% {
+		background-position: -480px 0;
+	}
+	100% {
+		background-position: 480px 0;
+	}
+}
+@mixin cl-skeleton {
+	background: linear-gradient(90deg, $c-surface-2 0%, #f6f8fc 50%, $c-surface-2 100%);
+	background-size: 960px 100%;
+	animation: cl-shimmer 1.3s linear infinite;
+	@media (prefers-reduced-motion: reduce) {
+		animation: none;
+	}
+}
+
+/* =====================================================================
+   FILTR — libs/components/car/Filter.tsx (desktop chap panel + mobil oyna)
+   ===================================================================== */
+.filter-main.cl-filter {
+	font-family: $font;
+	color: $c-text;
+
+	.cl-filter-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		.title-main {
+			color: $c-text;
+			font-family: $font;
+			font-size: 20px;
+			font-weight: 800;
+			letter-spacing: -0.02em;
+		}
+	}
+	.cl-reset {
+		padding: 6px 8px;
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		border: none;
+		border-radius: 8px;
+		background: transparent;
+		color: $c-muted;
+		font-family: $font;
+		font-size: 13px;
+		font-weight: 700;
+		cursor: pointer;
+		svg {
+			font-size: 17px;
+		}
+		&:hover {
+			background: $c-surface-2;
+			color: $c-primary-dark;
+		}
+	}
+
+	.cl-search {
+		position: relative;
+		margin-top: 14px;
+		.cl-search-icon {
+			position: absolute;
+			left: 12px;
+			top: 50%;
+			z-index: 1;
+			transform: translateY(-50%);
+			font-size: 21px;
+			color: $c-muted;
+			pointer-events: none;
+		}
+		.search-input {
+			width: 100%;
+			height: 46px;
+			padding-left: 30px;
+			border-radius: 12px;
+			background: $c-bg;
+			font-family: $font;
+			font-size: 15px;
+			.MuiOutlinedInput-notchedOutline {
+				border-color: $c-line;
+			}
+			&:hover .MuiOutlinedInput-notchedOutline {
+				border-color: $c-muted;
+			}
+			&.Mui-focused .MuiOutlinedInput-notchedOutline {
+				border-width: 1px;
+				border-color: $c-primary;
+				box-shadow: 0 0 0 4px rgba(0, 87, 255, 0.12);
+			}
+			input::placeholder {
+				color: $cl-faint;
+				opacity: 1;
+			}
+		}
+		.cl-clear {
+			font-size: 19px;
+			color: $cl-faint;
+			cursor: pointer;
+			&:hover {
+				color: $c-text;
+			}
+		}
+	}
+
+	.cl-section {
+		margin-top: 18px;
+		padding-top: 16px;
+		border-top: 1px solid $c-line;
+		.title {
+			margin-bottom: 10px;
+			color: $c-text;
+			font-family: $font;
+			font-size: 14px;
+			font-weight: 800;
+		}
+	}
+
+	// Location / Brand — belgilash ro'yxati, "Show all" bilan ochiladi
+	.car-location {
+		max-height: 176px;
+		overflow: hidden;
+		transition: max-height 300ms $cl-ease;
+		&.is-open {
+			max-height: 460px;
+			overflow-y: auto;
+		}
+	}
+	.car-location .input-box {
+		height: 34px;
+		flex-direction: row;
+		align-items: center;
+		gap: 4px;
+		.car-checkbox {
+			padding: 5px;
+			color: #c4c7cf;
+			&.Mui-checked {
+				color: $c-primary;
+			}
+		}
+		.car-type {
+			color: $cl-body;
+			font-family: $font;
+			font-size: 14px;
+		}
+		&.is-checked .car-type {
+			color: $c-text;
+			font-weight: 700;
+		}
+	}
+	.cl-more {
+		margin-top: 6px;
+		padding: 4px 0;
+		display: inline-flex;
+		align-items: center;
+		gap: 2px;
+		border: none;
+		background: transparent;
+		color: $c-primary-dark;
+		font-family: $font;
+		font-size: 13px;
+		font-weight: 700;
+		cursor: pointer;
+		svg {
+			font-size: 19px;
+			transition: transform 200ms $cl-ease;
+			&.is-up {
+				transform: rotate(180deg);
+			}
+		}
+	}
+
+	// Car type / Fuel / Transmission / Options — bosiladigan "pill"lar (ichida o'sha checkbox)
+	.cl-pills {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		.input-box {
+			position: relative;
+			flex-direction: row;
+		}
+		.car-checkbox {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			padding: 0;
+			overflow: hidden;
+			opacity: 0;
+		}
+		label {
+			display: block;
+		}
+		.car-type {
+			height: 34px;
+			padding: 0 13px;
+			display: inline-flex;
+			align-items: center;
+			box-sizing: border-box;
+			border: 1px solid $c-line;
+			border-radius: 17px;
+			background: $c-surface;
+			color: $cl-body;
+			font-family: $font;
+			font-size: 13px;
+			font-weight: 600;
+			transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+			&:hover {
+				border-color: $c-muted;
+			}
+		}
+		.input-box.is-checked .car-type {
+			border-color: $c-primary;
+			background: $c-primary;
+			color: #ffffff;
+		}
+		.input-box:focus-within .car-type {
+			outline: 2px solid $c-primary;
+			outline-offset: 2px;
+		}
+	}
+
+	// Yil / Probeg / Narx — min va max bir qatorda
+	.range-input {
+		flex-direction: row;
+		align-items: center;
+		gap: 8px;
+		.MuiFormControl-root {
+			flex: 1;
+			min-width: 0;
+		}
+		.MuiInputLabel-root {
+			font-family: $font;
+			font-size: 14px;
+		}
+		.MuiOutlinedInput-root {
+			border-radius: 10px;
+			font-family: $font;
+			font-size: 14px;
+			.MuiOutlinedInput-notchedOutline {
+				border-color: $c-line;
+			}
+			&.Mui-focused .MuiOutlinedInput-notchedOutline {
+				border-width: 1px;
+				border-color: $c-primary;
+			}
+		}
+		.central-divider {
+			flex-shrink: 0;
+			width: 10px;
+			height: 1px;
+			background: $c-muted;
+		}
+	}
+	.cl-price {
+		flex: 1;
+		min-width: 0;
+		height: 40px;
+		padding: 0 10px;
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		box-sizing: border-box;
+		border: 1px solid $c-line;
+		border-radius: 10px;
+		background: $c-surface;
+		span {
+			color: $c-muted;
+			font-size: 14px;
+		}
+		input {
+			width: 100%;
+			min-width: 0;
+			border: none;
+			outline: none;
+			background: transparent;
+			color: $c-text;
+			font-family: $font;
+			font-size: 14px;
+			-moz-appearance: textfield;
+			&::-webkit-outer-spin-button,
+			&::-webkit-inner-spin-button {
+				-webkit-appearance: none;
+				margin: 0;
+			}
+		}
+		&:focus-within {
+			border-color: $c-primary;
+		}
+	}
+}
+
+/* =====================================================================
+   MASHINA KARTASI — libs/components/car/CarCard.tsx (ro'yxat + MyPage)
+   ===================================================================== */
+.card-config.cl-card {
+	height: auto !important; // MyPage'dagi eski 413px balandlik o'rniga
+	min-width: 0;
+	margin-bottom: 0;
+	overflow: hidden;
+	box-sizing: border-box;
+	border: 1px solid $c-line;
+	border-radius: $r-md;
+	background: $c-surface;
+	box-shadow: none;
+	font-family: $font;
+	transition: transform 240ms $cl-ease, box-shadow 240ms $cl-ease;
+
+	.cl-card-img {
+		position: relative;
+		aspect-ratio: 16 / 10;
+		overflow: hidden;
+		background: $c-surface-2;
+		a {
+			display: block;
+			width: 100%;
+			height: 100%;
+		}
+		img {
+			width: 100%;
+			height: 100%;
+			display: block;
+			object-fit: cover;
+			transition: transform 500ms $cl-ease;
+		}
+	}
+	.cl-badges {
+		position: absolute;
+		left: 12px;
+		top: 12px;
+		display: flex;
+		gap: 6px;
+		pointer-events: none;
+	}
+	.cl-badge {
+		height: 24px;
+		padding: 0 9px;
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
+		border-radius: 12px;
+		color: #ffffff;
+		font-size: 11px;
+		font-weight: 800;
+		letter-spacing: 0.06em;
+		svg {
+			font-size: 15px;
+		}
+		&.is-top {
+			background: $c-primary;
+		}
+		&.is-reserved {
+			background: $c-accent;
+		}
+	}
+	.cl-price {
+		position: absolute;
+		left: 12px;
+		bottom: 12px;
+		padding: 6px 12px;
+		border-radius: 10px;
+		background: rgba(255, 255, 255, 0.95);
+		box-shadow: 0 6px 16px -8px rgba(20, 23, 28, 0.4);
+		color: $c-text;
+		font-size: 16px;
+		font-weight: 800;
+		font-variant-numeric: tabular-nums;
+		pointer-events: none;
+	}
+
+	.cl-card-body {
+		flex: 1;
+		padding: 16px 18px;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+	.cl-title {
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		color: $c-text;
+		font-size: 17px;
+		font-weight: 700;
+		line-height: 1.35;
+		white-space: normal;
+		word-break: break-word;
+		&:hover {
+			color: $c-primary-dark;
+		}
+	}
+	.cl-address {
+		min-width: 0;
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		color: $c-muted;
+		font-size: 13px;
+		svg {
+			flex-shrink: 0;
+			font-size: 16px;
+		}
+		span {
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+	}
+	.cl-specs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		span {
+			height: 28px;
+			padding: 0 10px;
+			display: inline-flex;
+			align-items: center;
+			gap: 4px;
+			border: 1px solid $c-line;
+			border-radius: 14px;
+			background: $c-bg;
+			color: $cl-body;
+			font-size: 12.5px;
+			font-weight: 600;
+			white-space: nowrap;
+		}
+		svg {
+			font-size: 15px;
+			color: $c-muted;
+		}
+	}
+	.cl-card-foot {
+		margin-top: auto;
+		padding-top: 12px;
+		min-height: 36px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		border-top: 1px solid $c-line;
+	}
+	.cl-deals {
+		display: flex;
+		gap: 6px;
+		span {
+			height: 24px;
+			padding: 0 8px;
+			display: inline-flex;
+			align-items: center;
+			gap: 3px;
+			border-radius: 12px;
+			background: #e9f7ef;
+			color: #1e7e46;
+			font-size: 12px;
+			font-weight: 700;
+		}
+		svg {
+			font-size: 14px;
+		}
+	}
+	.cl-stats {
+		margin-left: auto;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		color: $cl-body;
+		font-size: 14px;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		span {
+			display: inline-flex;
+			align-items: center;
+			gap: 4px;
+		}
+		svg {
+			font-size: 18px;
+			color: #8a9099;
+		}
+		.cl-like {
+			gap: 2px;
+			.MuiIconButton-root {
+				margin: -8px 0;
+				padding: 6px;
+			}
+			svg {
+				font-size: 22px;
+			}
+		}
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		&:hover {
+			transform: translateY(-4px);
+			box-shadow: 0 18px 40px -18px rgba(20, 23, 28, 0.35);
+			.cl-card-img img {
+				transform: scale(1.04);
+			}
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		&,
+		.cl-card-img img {
+			transition: none;
+		}
+	}
+}
+
+/* saralash menyusi (MUI portal) */
+.cl-sort-menu .MuiPaper-root {
+	margin-top: 6px;
+	min-width: 170px;
+	border: 1px solid $c-line;
+	border-radius: 12px;
+	box-shadow: $shadow !important;
+	.MuiMenuItem-root {
+		font-family: $font;
+		font-size: 14px;
+		font-weight: 600;
+		color: $c-text;
+	}
+}
+
+/* mobil: pastdan ochiladigan filtr oynasi (MUI portal — #mobile-wrap tashqarisida) */
+.cl-drawer-paper {
+	max-height: 88vh;
+	padding: 0 16px;
+	box-sizing: border-box;
+	border-radius: 20px 20px 0 0;
+	background: $c-surface !important;
+	.cl-drawer-handle {
+		width: 40px;
+		height: 4px;
+		margin: 10px auto 12px;
+		flex-shrink: 0;
+		border-radius: 2px;
+		background: $c-line;
+	}
+	.cl-filter .search-input input {
+		font-size: 16px; // iOS'da avtomatik zoom bo'lmasligi uchun
+	}
+	.cl-drawer-foot {
+		position: sticky;
+		bottom: 0;
+		margin: 18px -16px 0;
+		padding: 12px 16px 16px;
+		border-top: 1px solid $c-line;
+		background: $c-surface;
+		.cl-btn-primary {
+			width: 100%;
+			height: 48px;
+			border-radius: 12px;
+			background: $c-primary;
+			color: #ffffff;
+			font-family: $font;
+			font-size: 15px;
+			font-weight: 700;
+		}
+	}
+}
+
+/* =====================================================================
+   SAHIFA — /car (desktop)
+   ===================================================================== */
+#pc-wrap #car-list-page.cl-v2 {
+	display: block;
+	padding: 40px 0 96px;
+	background: $c-bg;
+	font-family: $font;
+	color: $c-text;
+
+	.cl-wrap {
+		width: min(1300px, calc(100% - 48px));
+		margin: 0 auto;
+		display: grid;
+		grid-template-columns: 296px minmax(0, 1fr);
+		gap: 32px;
+		align-items: start;
+	}
+	.cl-side {
+		position: sticky;
+		top: 108px; // fixed navbar ostida
+		max-height: calc(100vh - 128px);
+		padding: 20px;
+		overflow-y: auto;
+		box-sizing: border-box;
+		border: 1px solid $c-line;
+		border-radius: $r-lg;
+		background: $c-surface;
+		scrollbar-width: thin;
+	}
+
+	.cl-topbar {
+		padding: 10px 10px 10px 18px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		border: 1px solid $c-line;
+		border-radius: $r-lg;
+		background: $c-surface;
+		.cl-found {
+			color: $c-text;
+			font-size: 16px;
+			font-weight: 800;
+		}
+		.cl-query {
+			margin-left: 8px;
+			color: $c-muted;
+			font-size: 14px;
+		}
+	}
+	.cl-sort {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		> span {
+			color: $c-muted;
+			font-size: 14px;
+		}
+		.MuiButton-root {
+			height: 42px;
+			padding: 0 12px 0 16px;
+			border: 1px solid $c-line;
+			border-radius: 12px;
+			background: $c-surface;
+			color: $c-text;
+			font-family: $font;
+			font-size: 14px;
+			font-weight: 700;
+			&:hover {
+				border-color: $c-text;
+				background: $c-surface;
+			}
+		}
+	}
+
+	.cl-chips {
+		margin-top: 14px;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 8px;
+	}
+	.cl-chip {
+		height: 32px;
+		padding: 0 8px 0 12px;
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		border: none;
+		border-radius: 16px;
+		background: rgba(0, 87, 255, 0.08);
+		color: $c-primary;
+		font-family: $font;
+		font-size: 13px;
+		font-weight: 700;
+		cursor: pointer;
+		transition: background-color 160ms ease;
+		svg {
+			font-size: 16px;
+		}
+		&:hover {
+			background: rgba(0, 87, 255, 0.15);
+		}
+	}
+	.cl-chip-clear {
+		padding: 6px 8px;
+		border: none;
+		background: transparent;
+		color: $c-muted;
+		font-family: $font;
+		font-size: 13px;
+		font-weight: 700;
+		cursor: pointer;
+		&:hover {
+			color: $c-text;
+			text-decoration: underline;
+		}
+	}
+
+	.cl-grid {
+		margin-top: 20px;
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 24px;
+	}
+	.cl-skeleton {
+		overflow: hidden;
+		border: 1px solid $c-line;
+		border-radius: $r-md;
+		background: $c-surface;
+		.sk-img {
+			display: block;
+			aspect-ratio: 16 / 10;
+			@include cl-skeleton;
+		}
+		.sk-line {
+			display: block;
+			height: 12px;
+			margin: 16px 18px 0;
+			border-radius: 6px;
+			@include cl-skeleton;
+			&.short {
+				width: 45%;
+				margin-bottom: 22px;
+			}
+		}
+	}
+	.cl-empty {
+		grid-column: 1 / -1;
+		padding: 64px 24px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+		border: 1px dashed $c-line;
+		border-radius: $r-lg;
+		background: $c-surface;
+		text-align: center;
+		.cl-empty-icon {
+			width: 56px;
+			height: 56px;
+			margin-bottom: 6px;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 16px;
+			background: rgba(0, 87, 255, 0.08);
+			color: $c-primary;
+			svg {
+				font-size: 28px;
+			}
+		}
+		strong {
+			color: $c-text;
+			font-size: 18px;
+			font-weight: 800;
+		}
+		p {
+			color: $c-muted;
+			font-size: 14px;
+		}
+	}
+	.cl-btn-primary {
+		margin-top: 10px;
+		height: 44px;
+		padding: 0 18px;
+		border-radius: 12px;
+		background: $c-primary;
+		color: #ffffff;
+		font-family: $font;
+		font-size: 14px;
+		font-weight: 700;
+		&:hover {
+			background: $c-primary-dark;
+		}
+	}
+	.cl-pagination {
+		margin-top: 36px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 12px;
+		.cl-total {
+			color: $c-muted;
+			font-family: $font;
+			font-size: 14px;
+		}
+	}
+}

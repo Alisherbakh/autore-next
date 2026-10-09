@@ -1,17 +1,24 @@
 import React from 'react';
-import { Stack, Typography, Box } from '@mui/material';
+import { Stack } from '@mui/material';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import { Car } from '../../types/car/car';
 import Link from 'next/link';
-import { formatterStr } from '../../utils';
+import { formatterStr, formatEnum } from '../../utils';
 import { REACT_APP_API_URL, topCarRank, LIKED_COLOR } from '../../config';
 import { useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
 import { CarStatus } from '../../enums/car.enum';
 import IconButton from '@mui/material/IconButton';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
+import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
+import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
+import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
+import SpeedRoundedIcon from '@mui/icons-material/SpeedRounded';
+import LocalGasStationRoundedIcon from '@mui/icons-material/LocalGasStationRounded';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import { useTranslation } from 'next-i18next';
 
 interface CarCardType {
 	car: Car;
@@ -24,120 +31,97 @@ const CarCard = (props: CarCardType) => {
 	const { car, likeCarHandler, myFavorites, recentlyVisited } = props;
 	const device = useDeviceDetect();
 	const user = useReactiveVar(userVar);
+	const { t } = useTranslation('common');
 	const imagePath: string = car?.carImages[0]
 		? `${REACT_APP_API_URL}/${car?.carImages[0]}`
 		: '/video/hero-poster.jpg';
 
-	if (device === 'mobile') {
-		return <div>CAR CARD</div>;
-	} else {
-		return (
-			<Stack className="card-config">
-				<Stack className="top">
-					<Link
-						href={{
-							pathname: '/car/detail',
-							query: { id: car?._id },
-						}}
-					>
-						<img src={imagePath} alt="" />
-					</Link>
+	const detailHref = { pathname: '/car/detail', query: { id: car?._id } };
+	const liked: boolean = !!(myFavorites || (car?.meLiked && car?.meLiked[0]?.myFavorite));
+
+	// mobil va desktop'da bir xil karta — stillar scss/pc/car/carListV2.scss'da
+	return (
+		<Stack className="card-config cl-card">
+			<div className="cl-card-img">
+				<Link href={detailHref} aria-label={car?.carTitle}>
+					<img src={imagePath} alt="" loading={'lazy'} />
+				</Link>
+				<div className="cl-badges">
 					{car && car?.carRank > topCarRank && (
-						<Box component={'div'} className={'top-badge'}>
-							<img src="/img/icons/electricity.svg" alt="" />
-							<Typography>TOP</Typography>
-						</Box>
+						<span className={'cl-badge is-top'}>
+							<BoltRoundedIcon />
+							{t('TOP')}
+						</span>
 					)}
-					{car?.carStatus === CarStatus.RESERVED && (
-						<Box
-							component={'div'}
-							sx={{
-								position: 'absolute',
-								top: '20px',
-								right: '16px',
-								padding: '6px 12px',
-								borderRadius: '6px',
-								background: '#f57c00',
-								color: '#fff',
-								fontSize: '12px',
-								fontWeight: 600,
-							}}
-						>
-							RESERVED
-						</Box>
-					)}
-					<Box component={'div'} className={'price-box'}>
-						<Typography>₩{formatterStr(car?.carPrice)}</Typography>
-					</Box>
-				</Stack>
-				<Stack className="bottom">
-					<Stack className="name-address">
-						<Stack className="name">
-							<Link
-								href={{
-									pathname: '/car/detail',
-									query: { id: car?._id },
-								}}
-							>
-								<Typography>{car.carTitle}</Typography>
-							</Link>
-						</Stack>
-						<Stack className="address">
-							<Typography>
-								{car.carAddress}, {car.carLocation}
-							</Typography>
-						</Stack>
-					</Stack>
-					<Stack className="options">
-						<Stack className="option">
-							<img src="/img/icons/calendar.svg" alt="" /> <Typography>{car.carYear}</Typography>
-						</Stack>
-						<Stack className="option">
-							<img src="/img/icons/speedometer.svg" alt="" /> <Typography>{car.carMileage?.toLocaleString()} km</Typography>
-						</Stack>
-						<Stack className="option">
-							<img src="/img/icons/fuel.svg" alt="" /> <Typography>{car.carFuelType}</Typography>
-						</Stack>
-					</Stack>
-					<Stack className="divider"></Stack>
-					<Stack className="type-buttons">
-						<Stack className="type">
-							<Typography
-								sx={{ fontWeight: 500, fontSize: '13px' }}
-								className={car.carCredit ? '' : 'disabled-type'}
-							>
-								Credit
-							</Typography>
-							<Typography
-								sx={{ fontWeight: 500, fontSize: '13px' }}
-								className={car.carBarter ? '' : 'disabled-type'}
-							>
-								Barter
-							</Typography>
-						</Stack>
-						{!recentlyVisited && (
-							<Stack className="buttons">
-								<IconButton color={'default'}>
-									<RemoveRedEyeIcon />
-								</IconButton>
-								<Typography className="view-cnt">{car?.carViews}</Typography>
-								<IconButton color={'default'} onClick={() => likeCarHandler(user, car?._id)}>
-									{myFavorites ? (
-										<FavoriteIcon style={{ color: LIKED_COLOR }} />
-									) : car?.meLiked && car?.meLiked[0]?.myFavorite ? (
-										<FavoriteIcon style={{ color: LIKED_COLOR }} />
-									) : (
-										<FavoriteBorderIcon />
-									)}
-								</IconButton>
-								<Typography className="view-cnt">{car?.carLikes}</Typography>
-							</Stack>
+					{car?.carStatus === CarStatus.RESERVED && <span className={'cl-badge is-reserved'}>{t('RESERVED')}</span>}
+				</div>
+				<span className={'cl-price'}>₩{formatterStr(car?.carPrice)}</span>
+			</div>
+
+			<div className="cl-card-body">
+				<Link href={detailHref} className={'cl-title'}>
+					{car.carTitle}
+				</Link>
+				<p className={'cl-address'}>
+					<PlaceRoundedIcon />
+					<span>
+						{car.carAddress}
+						{car.carLocation ? `, ${formatEnum(car.carLocation)}` : ''}
+					</span>
+				</p>
+
+				<div className="cl-specs">
+					<span>
+						<CalendarMonthRoundedIcon />
+						{car.carYear}
+					</span>
+					<span>
+						<SpeedRoundedIcon />
+						{car.carMileage?.toLocaleString()} km
+					</span>
+					<span>
+						<LocalGasStationRoundedIcon />
+						{formatEnum(car.carFuelType)}
+					</span>
+				</div>
+
+				<div className="cl-card-foot">
+					<div className="cl-deals">
+						{car.carCredit && (
+							<span>
+								<CheckRoundedIcon />
+								{t('Credit')}
+							</span>
 						)}
-					</Stack>
-				</Stack>
-			</Stack>
-		);
-	}
+						{car.carBarter && (
+							<span>
+								<CheckRoundedIcon />
+								{t('Barter')}
+							</span>
+						)}
+					</div>
+					{!recentlyVisited && (
+						<div className="cl-stats">
+							<span title={t('Views')}>
+								<RemoveRedEyeIcon />
+								{car?.carViews ?? 0}
+							</span>
+							<span className={'cl-like'}>
+								<IconButton
+									color={'default'}
+									onClick={() => likeCarHandler(user, car?._id)}
+									aria-label={liked ? t('Unlike') : t('Like')}
+								>
+									{liked ? <FavoriteIcon style={{ color: LIKED_COLOR }} /> : <FavoriteBorderIcon />}
+								</IconButton>
+								{car?.carLikes ?? 0}
+							</span>
+						</div>
+					)}
+				</div>
+			</div>
+		</Stack>
+	);
 };
 
 export default CarCard;

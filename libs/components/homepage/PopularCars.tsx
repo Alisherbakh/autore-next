@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Stack, Box } from '@mui/material';
+import { useTranslation } from 'next-i18next';
+import { Stack } from '@mui/material';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Pagination } from 'swiper';
@@ -9,9 +10,13 @@ import PopularCarCard from './PopularCarCard';
 import { Car } from '../../types/car/car';
 import Link from 'next/link';
 import { CarsInquiry } from '../../types/car/car.input';
-import { useQuery } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
+import { LIKE_TARGET_CAR } from '../../../apollo/user/mutation';
+import { Message } from '../../enums/common.enum';
+import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../sweetAlert';
 import { GET_CARS } from '../../../apollo/user/query';
 import { T } from '../../types/common';
+import SectionHead from './SectionHead';
 
 interface PopularCarsProps {
 	initialInput: CarsInquiry;
@@ -20,9 +25,12 @@ interface PopularCarsProps {
 const PopularCars = (props: PopularCarsProps) => {
 	const { initialInput } = props;
 	const device = useDeviceDetect();
+	const { t } = useTranslation('common');
 	const [popularCars, setPopularCars] = useState<Car[]>([]);
 
 	/** APOLLO REQUESTS **/
+	// e'longa like bosish uchun mutatsiya
+	const [likeTargetCar] = useMutation(LIKE_TARGET_CAR);
 	// GET_CARS — apollo/user/query.ts dan; ko'rishlar soni (carViews) bo'yicha eng mashhur e'lonlarni oladi
 	const {
 		loading: getCarsLoading, // so'rov hali javob kutayotganini bildiradi
@@ -38,6 +46,20 @@ const PopularCars = (props: PopularCarsProps) => {
 		},
 	});
 	/** HANDLERS **/
+	// e'longa like bosish: login tekshiradi, mutatsiya yuboradi, ro'yxatni yangilaydi
+	const likeCarHandler = async (user: T, id: string) => {
+		try {
+			if (!id) return;
+			if (!user._id) throw new Error(Message.NOT_AUTHENTICATED);
+			await likeTargetCar({ variables: { input: id } });
+			const result = await getCarsRefetch({ input: initialInput });
+			if (result?.data?.getCars?.list) setPopularCars(result.data.getCars.list);
+			await sweetTopSmallSuccessAlert('success', 800);
+		} catch (err: any) {
+			console.log('ERROR, likeCarHandler:', err.message);
+			sweetMixinErrorAlert(err.message).then();
+		}
+	};
 
 	if (!popularCars) return null;
 
@@ -46,7 +68,7 @@ const PopularCars = (props: PopularCarsProps) => {
 			<Stack className={'popular-cars'}>
 				<Stack className={'container'}>
 					<Stack className={'info-box'}>
-						<span>Popular cars</span>
+						<span>{t('Popular cars')}</span>
 					</Stack>
 					<Stack className={'card-box'}>
 						<Swiper
@@ -59,7 +81,7 @@ const PopularCars = (props: PopularCarsProps) => {
 							{popularCars.map((car: Car) => {
 								return (
 									<SwiperSlide key={car._id} className={'popular-car-slide'}>
-										<PopularCarCard car={car} />
+										<PopularCarCard car={car} likeCarHandler={likeCarHandler} />
 									</SwiperSlide>
 								);
 							})}
@@ -70,22 +92,29 @@ const PopularCars = (props: PopularCarsProps) => {
 		);
 	} else {
 		return (
-			<Stack className={'popular-cars'}>
+			<Stack component={'section'} className={'popular-cars hp-section'}>
 				<Stack className={'container'}>
-					<Stack className={'info-box'}>
-						<Box component={'div'} className={'left'}>
-							<span>Popular cars</span>
-							<p>Popularity is based on views</p>
-						</Box>
-						<Box component={'div'} className={'right'}>
-							<div className={'more-box'}>
-								<Link href={'/car'}>
-									<span>See All Categories</span>
+					<SectionHead
+						title={t('Popular cars')}
+						sub={t('Popularity is based on views')}
+						actions={
+							<>
+								<Link href={'/car'} className={'hp-more'}>
+									{t('See All Categories')}
+									<img src="/img/icons/rightup.svg" alt="" width={16} height={16} />
 								</Link>
-								<img src="/img/icons/rightup.svg" alt="" />
-							</div>
-						</Box>
-					</Stack>
+								<div className={'hp-nav'}>
+									<button type={'button'} className={'hp-nav-btn swiper-popular-prev'} aria-label={t('Previous')}>
+										<WestIcon />
+									</button>
+									<div className={'swiper-popular-pagination'}></div>
+									<button type={'button'} className={'hp-nav-btn swiper-popular-next'} aria-label={t('Next')}>
+										<EastIcon />
+									</button>
+								</div>
+							</>
+						}
+					/>
 					<Stack className={'card-box'}>
 						<Swiper
 							className={'popular-car-swiper'}
@@ -103,16 +132,11 @@ const PopularCars = (props: PopularCarsProps) => {
 							{popularCars.map((car: Car) => {
 								return (
 									<SwiperSlide key={car._id} className={'popular-car-slide'}>
-										<PopularCarCard car={car} />
+										<PopularCarCard car={car} likeCarHandler={likeCarHandler} />
 									</SwiperSlide>
 								);
 							})}
 						</Swiper>
-					</Stack>
-					<Stack className={'pagination-box'}>
-						<WestIcon className={'swiper-popular-prev'} />
-						<div className={'swiper-popular-pagination'}></div>
-						<EastIcon className={'swiper-popular-next'} />
 					</Stack>
 				</Stack>
 			</Stack>

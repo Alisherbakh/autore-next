@@ -168,6 +168,14 @@ export const logOut = () => {
 	window.location.reload(); // sahifani yangilayapti (tozalab boshlash uchun)
 };
 
+// Mobil uchun: logOut bilan bir xil, lekin joriy sahifani yangilash o'rniga bosh sahifaga o'tkazadi
+// (homePath — tanlangan tilga mos bosh sahifa manzili, masalan '/' yoki '/kr')
+export const logOutToHome = (homePath: string = '/') => {
+	deleteStorage(); // localStorage'dan tokenni o'chiryapti
+	deleteUserInfo(); // global state'ni bo'shatyapti
+	window.location.assign(homePath); // bosh sahifaga to'liq yuklash bilan o'tadi (tozalab boshlash uchun)
+};
+
 // Tokenni localStorage'dan o'chiradi va boshqa tablarga "logout bo'ldi" deb signal beradi
 const deleteStorage = () => {
 	localStorage.removeItem('accessToken'); // tokenni o'chiryapti

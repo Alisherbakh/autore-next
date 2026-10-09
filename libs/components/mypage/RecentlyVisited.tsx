@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
+import Link from 'next/link';
+import { useTranslation } from 'next-i18next';
 import { NextPage } from 'next';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { Pagination, Stack, Typography } from '@mui/material';
@@ -10,6 +13,7 @@ import { GET_VISITED } from '../../../apollo/user/query';
 
 const RecentlyVisited: NextPage = () => {
 	const device = useDeviceDetect();
+	const { t } = useTranslation('common');
 	const [recentlyVisited, setRecentlyVisited] = useState<Car[]>([]);
 	const [total, setTotal] = useState<number>(0);
 	const [searchVisited, setSearchVisited] = useState<T>({ page: 1, limit: 6 });
@@ -40,50 +44,47 @@ const RecentlyVisited: NextPage = () => {
 		setSearchVisited({ ...searchVisited, page: value });
 	};
 
-	if (device === 'mobile') {
-		return <div>AUTORE MY FAVORITES MOBILE</div>;
-	} else {
-		return (
-			<div id="my-favorites-page">
-				<Stack className="main-title-box">
-					<Stack className="right-box">
-						<Typography className="main-title">Recently Visited</Typography>
-						<Typography className="sub-title">We are glad to see you again!</Typography>
-					</Stack>
+	// mobil va desktop'da bir xil — farqi stillarda (scss/pc/mypage/mypageV2.scss)
+	return (
+		<div id="mp-recent" className={'mp-section'}>
+			<Stack className="main-title-box">
+				<Stack className="right-box">
+					<Typography className="main-title">{t('Recently Visited')}</Typography>
+					<Typography className="sub-title">{t('Cars you looked at recently.')}</Typography>
 				</Stack>
-				<Stack className="favorites-list-box">
-					{recentlyVisited?.length ? (
-						recentlyVisited?.map((car: Car) => {
-							return <CarCard car={car} recentlyVisited={true} />;
-						})
-					) : (
-						<div className={'no-data'}>
-							<img src="/img/icons/icoAlert.svg" alt="" />
-							<p>No Recently Visited Cars found!</p>
-						</div>
-					)}
-				</Stack>
+			</Stack>
+			<div className="favorites-list-box mp-grid">
 				{recentlyVisited?.length ? (
-					<Stack className="pagination-config">
-						<Stack className="pagination-box">
-							<Pagination
-								count={Math.ceil(total / searchVisited.limit)}
-								page={searchVisited.page}
-								shape="circular"
-								color="primary"
-								onChange={paginationHandler}
-							/>
-						</Stack>
-						<Stack className="total-result">
-							<Typography>
-								Total {total} recently visited car{total > 1 ? 's' : ''}
-							</Typography>
-						</Stack>
-					</Stack>
-				) : null}
+					recentlyVisited?.map((car: Car) => {
+						return <CarCard car={car} recentlyVisited={true} key={car?._id} />;
+					})
+				) : (
+						<div className={'mp-empty'}>
+							<span className={'mp-empty-icon'}>
+								<HistoryRoundedIcon />
+							</span>
+							<strong>{t('Nothing here yet')}</strong>
+							<p>{t('Cars you open will show up here.')}</p>
+							<Link href={'/car'} className={'mp-btn-link'}>
+								{t('Browse cars')}
+							</Link>
+						</div>
+				)}
 			</div>
-		);
-	}
+			{recentlyVisited?.length ? (
+				<Stack className="pagination-config mp-pagination">
+					<Pagination
+						count={Math.ceil(total / searchVisited.limit)}
+						page={searchVisited.page}
+						shape="circular"
+						color="primary"
+						onChange={paginationHandler}
+					/>
+					<Typography className="mp-total">{t('Total {{count}} recently visited cars', { count: total ?? 0 })}</Typography>
+				</Stack>
+			) : null}
+		</div>
+	);
 };
 
 export default RecentlyVisited;

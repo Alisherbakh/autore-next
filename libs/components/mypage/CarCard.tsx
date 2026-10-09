@@ -9,6 +9,9 @@ import { formatterStr } from '../../utils';
 import Moment from 'react-moment';
 import { useRouter } from 'next/router';
 import { CarStatus } from '../../enums/car.enum';
+import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
+import RemoveRedEyeRoundedIcon from '@mui/icons-material/RemoveRedEyeRounded';
+import { useTranslation } from 'next-i18next';
 
 interface CarCardProps {
 	car: Car;
@@ -21,6 +24,7 @@ export const CarCard = (props: CarCardProps) => {
 	const { car, deleteCarHandler, memberPage, updateCarHandler } = props;
 	const device = useDeviceDetect();
 	const router = useRouter();
+	const { t } = useTranslation('common');
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 	const open = Boolean(anchorEl);
 
@@ -56,101 +60,103 @@ export const CarCard = (props: CarCardProps) => {
 		setAnchorEl(null);
 	};
 
-	if (device === 'mobile') {
-		return <div>MOBILE CAR CARD</div>;
-	} else
-		return (
-			<Stack className="car-card-box">
-				<Stack className="image-box" onClick={() => pushCarDetail(car?._id)}>
-					<img src={`${process.env.REACT_APP_API_URL}/${car.carImages[0]}`} alt="" />
-				</Stack>
-				<Stack className="information-box" onClick={() => pushCarDetail(car?._id)}>
+	const statusClass = `is-${(car?.carStatus ?? 'ACTIVE').toLowerCase()}`;
+	const STATUS_LABEL: Record<string, string> = { ACTIVE: 'On sale', RESERVED: 'Reserved', SOLD: 'Sold' };
+
+	// mobil va desktop'da bir xil qator — desktop'da jadval qatori, mobilda karta (stillar mypageV2.scss'da)
+	return (
+		<Stack className={`car-card-box mp-row ${memberPage ? 'is-link' : ''}`}>
+			<div className="mp-row-main" onClick={() => pushCarDetail(car?._id)}>
+				<div className="image-box">
+					<img
+						src={car?.carImages?.[0] ? `${process.env.REACT_APP_API_URL}/${car.carImages[0]}` : '/video/hero-poster.jpg'}
+						alt=""
+						loading={'lazy'}
+					/>
+				</div>
+				<div className="information-box">
 					<Typography className="name">{car.carTitle}</Typography>
 					<Typography className="address">{car.carAddress}</Typography>
-					<Typography className="price">
-						<strong>₩{formatterStr(car?.carPrice)}</strong>
-					</Typography>
-				</Stack>
-				<Stack className="date-box">
-					<Typography className="date">
-						<Moment format="DD MMMM, YYYY">{car.createdAt}</Moment>
-					</Typography>
-				</Stack>
-				<Stack className="status-box">
-					<Stack className="coloured-box" sx={{ background: '#EEF1F7' }} onClick={handleClick}>
-						<Typography className="status" sx={{ color: '#0047D1' }}>
-							{car.carStatus}
-						</Typography>
-					</Stack>
-				</Stack>
-				{!memberPage && car.carStatus !== 'SOLD' && (
-					<Menu
-						anchorEl={anchorEl}
-						open={open}
-						onClose={handleClose}
-						PaperProps={{
-							elevation: 0,
-							sx: {
-								minWidth: '90px',
-								mt: 1,
-								ml: '10px',
-								overflow: 'visible',
-								filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
-							},
-							style: {
-								padding: 0,
-								display: 'flex',
-								justifyContent: 'center',
-							},
-						}}
-					>
-						{car.carStatus === 'ACTIVE' && (
-							<MenuItem
-								disableRipple
-								onClick={() => {
-									handleClose();
-									updateCarHandler(CarStatus.RESERVED, car?._id);
-								}}
-							>
-								Reserved
-							</MenuItem>
-						)}
-						{car.carStatus === 'RESERVED' && (
-							<MenuItem
-								disableRipple
-								onClick={() => {
-									handleClose();
-									updateCarHandler(CarStatus.ACTIVE, car?._id);
-								}}
-							>
-								Active
-							</MenuItem>
-						)}
+					<Typography className="price">₩{formatterStr(car?.carPrice)}</Typography>
+				</div>
+			</div>
+			<div className="date-box">
+				<span className="mp-cell-label">{t('Published')}</span>
+				<Moment className="date" format="MMM D, YYYY">
+					{car.createdAt}
+				</Moment>
+			</div>
+			<div className="status-box">
+				<span className="mp-cell-label">{t('Status')}</span>
+				<button
+					type="button"
+					className={`mp-status ${statusClass} ${!memberPage && car.carStatus !== 'SOLD' ? 'is-editable' : ''}`}
+					onClick={handleClick}
+				>
+					{t(STATUS_LABEL[car.carStatus] ?? car.carStatus)}
+					{!memberPage && car.carStatus !== 'SOLD' && <KeyboardArrowDownRoundedIcon />}
+				</button>
+			</div>
+			{!memberPage && car.carStatus !== 'SOLD' && (
+				<Menu anchorEl={anchorEl} open={open} onClose={handleClose} className={'mp-status-menu'}>
+					{car.carStatus === 'ACTIVE' && (
 						<MenuItem
 							disableRipple
 							onClick={() => {
 								handleClose();
-								updateCarHandler(CarStatus.SOLD, car?._id);
+								updateCarHandler(CarStatus.RESERVED, car?._id);
 							}}
 						>
-							Sold
+							<span className="mp-dot is-reserved" />
+							{t('Reserved')}
 						</MenuItem>
-					</Menu>
-				)}
+					)}
+					{car.carStatus === 'RESERVED' && (
+						<MenuItem
+							disableRipple
+							onClick={() => {
+								handleClose();
+								updateCarHandler(CarStatus.ACTIVE, car?._id);
+							}}
+						>
+							<span className="mp-dot is-active" />
+							{t('On sale')}
+						</MenuItem>
+					)}
+					<MenuItem
+						disableRipple
+						onClick={() => {
+							handleClose();
+							updateCarHandler(CarStatus.SOLD, car?._id);
+						}}
+					>
+						<span className="mp-dot is-sold" />
+						{t('Sold')}
+					</MenuItem>
+				</Menu>
+			)}
 
-				<Stack className="views-box">
-					<Typography className="views">{car.carViews.toLocaleString()}</Typography>
-				</Stack>
-				{!memberPage && car.carStatus === CarStatus.ACTIVE && (
-					<Stack className="action-box">
-						<IconButton className="icon-button" onClick={() => pushEditCar(car._id)}>
-							<ModeIcon className="buttons" />
-						</IconButton>
-						<IconButton className="icon-button" onClick={() => deleteCarHandler(car._id)}>
-							<DeleteIcon className="buttons" />
-						</IconButton>
-					</Stack>
-				)}
-			</Stack>
-		);
+			<div className="views-box">
+				<span className="mp-cell-label">{t('Views')}</span>
+				<span className="views">
+					<RemoveRedEyeRoundedIcon />
+					{car.carViews.toLocaleString()}
+				</span>
+			</div>
+			{!memberPage && car.carStatus === CarStatus.ACTIVE && (
+				<div className="action-box">
+					<IconButton className="icon-button" onClick={() => pushEditCar(car._id)} aria-label={t('Edit')}>
+						<ModeIcon className="buttons" />
+					</IconButton>
+					<IconButton
+						className="icon-button is-danger"
+						onClick={() => deleteCarHandler(car._id)}
+						aria-label={t('Delete')}
+					>
+						<DeleteIcon className="buttons" />
+					</IconButton>
+				</div>
+			)}
+		</Stack>
+	);
 };

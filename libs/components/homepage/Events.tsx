@@ -1,6 +1,8 @@
 import React from 'react';
+import { useTranslation } from 'next-i18next';
 import { Stack, Box } from '@mui/material';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
+import SectionHead from './SectionHead';
 
 interface EventData {
 	eventTitle: string;
@@ -8,81 +10,67 @@ interface EventData {
 	description: string;
 	imageSrc: string;
 }
+// Koreyadagi haqiqiy avtomobil tadbirlari (sanalar har yili o'zgargani uchun ko'rsatilmaydi).
+// Rasmlar: Wikimedia Commons (CC BY-SA 4.0) — mualliflar public/img/fiber/CREDITS.md da
 const eventsData: EventData[] = [
 	{
-		eventTitle: 'Paradise City Theme Park',
-		city: 'Incheon',
+		eventTitle: 'Seoul Mobility Show',
+		city: 'Goyang',
 		description:
-			'Experience magic and wonder in Incheon with a visit to the night-themed indoor theme park Wonderbox at Paradise City!',
-		imageSrc: '/img/events/INCHEON.webp',
+			'Korea’s largest motor show, held every two years at KINTEX. Carmakers unveil new models, concepts and future mobility tech.',
+		imageSrc: '/img/events/seoul-mobility-show.jpg',
 	},
 	{
-		eventTitle: 'Taebaeksan Snow Festival',
-		city: 'Seoul',
-		description: 'If you have the opportunity to travel to South Korea, do not miss the Taebaeksan Snow Festival!',
-		imageSrc: '/img/events/SEOUL.webp',
-	},
-	{
-		eventTitle: 'Suseong Lake Event',
-		city: 'Daegu',
-		description: 'The Suseong Lake Festival is a culture and arts festival held alongside Suseongmot Lake!',
-		imageSrc: '/img/events/DAEGU.webp',
-	},
-	{
-		eventTitle: 'Sand Festival',
+		eventTitle: 'Busan International Mobility Show',
 		city: 'Busan',
 		description:
-			'Haeundae Sand Festival, the nation’s largest eco-friendly exhibition on sand, is held at Haeundae Beach!',
-		imageSrc: '/img/events/BUSAN.webp',
+			'Biennial show at BEXCO since 2001, known as the Busan International Motor Show until 2024.',
+		imageSrc: '/img/events/busan-mobility-show.jpg',
+	},
+	{
+		eventTitle: 'Superrace Championship',
+		city: 'Yongin',
+		description:
+			'Korea’s top touring-car series. V8 Super 6000 cars race at Everland Speedway, Inje Speedium and Korea International Circuit.',
+		imageSrc: '/img/events/superrace.jpg',
 	},
 ];
 
-const EventCard = ({ event }: { event: EventData }) => {
+const EventCard = ({ event, featured }: { event: EventData; featured: boolean }) => {
 	const device = useDeviceDetect();
+	const { t } = useTranslation('common');
 
 	if (device === 'mobile') {
 		return <div>EVENT CARD</div>;
 	} else {
 		return (
-			<Stack
-				className="event-card"
-				style={{
-					backgroundImage: `url(${event?.imageSrc})`,
-					backgroundSize: 'cover',
-					backgroundPosition: 'center',
-					backgroundRepeat: 'no-repeat',
-				}}
-			>
+			<article className={`event-card ${featured ? 'is-featured' : ''}`}>
+				<img src={event?.imageSrc} alt={''} loading={'lazy'} />
 				<Box component={'div'} className={'info'}>
-					<strong>{event?.city}</strong>
-					<span>{event?.eventTitle}</span>
+					<h3>{t(event.eventTitle)}</h3>
+					<span className={'event-city'}>{t(event.city)}</span>
+					<p>{t(event.description)}</p>
 				</Box>
-				<Box component={'div'} className={'more'}>
-					<span>{event?.description}</span>
-				</Box>
-			</Stack>
+			</article>
 		);
 	}
 };
 
 const Events = () => {
 	const device = useDeviceDetect();
+	const { t } = useTranslation('common');
 
 	if (device === 'mobile') {
 		return <div>EVENT CARD</div>;
 	} else {
 		return (
-			<Stack className={'events'}>
+			<Stack component={'section'} className={'events hp-section'}>
 				<Stack className={'container'}>
-					<Stack className={'info-box'}>
-						<Box component={'div'} className={'left'}>
-							<span className={'white'}>Events</span>
-							<p className={'white'}>Events waiting your attention!</p>
-						</Box>
-					</Stack>
+					<SectionHead title={t('Events')} sub={t('Events waiting your attention!')} />
+					{/* bento: birinchi tadbir katta, qolganlari o'ng ustunda */}
 					<Stack className={'card-wrapper'}>
-						{eventsData.map((event: EventData) => {
-							return <EventCard event={event} key={event?.eventTitle} />;
+						{eventsData.map((event: EventData, index: number) => {
+							return <EventCard event={event} featured={index === 0} key={event?.eventTitle} />;
 						})}
 					</Stack>
 				</Stack>

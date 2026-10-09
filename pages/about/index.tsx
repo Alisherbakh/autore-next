@@ -3,12 +3,56 @@ import { NextPage } from 'next';
 import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
 import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
 import { Stack, Box } from '@mui/material';
+import Link from 'next/link';
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+
+export const getStaticProps = async ({ locale }: any) => ({
+	props: {
+		...(await serverSideTranslations(locale, ['common'])),
+	},
+});
 
 const About: NextPage = () => {
 	const device = useDeviceDetect();
+	const { t } = useTranslation('common');
 
 	if (device === 'mobile') {
-		return <div>ABOUT PAGE MOBILE</div>;
+		// mobil: oddiy bir ustun — missiya, rasm, asosiy imkoniyatlar va yordam kartasi
+		const features = [
+			{ title: t('Browse dealers'), text: t('Browse dealers across nine cities, see their cars and reviews, and contact the one that fits you.') },
+			{ title: t('Pay your way'), text: t('Cash, credit or barter — your choice') },
+			{ title: t('Community'), text: t('Talk cars, share reviews and pick up tips from other drivers.') },
+		];
+		return (
+			<Stack className={'m-about'}>
+				<span className={'m-about-tag'}>{t('About Autore')}</span>
+				<h1>{t('We’re on a mission to make buying and selling cars easy.')}</h1>
+				<p className={'m-about-lead'}>{t('Korea’s marketplace for new and used cars')}</p>
+				<img src="/img/banner/about-stats.jpg" alt="" className={'m-about-img'} />
+				<div className={'m-about-list'}>
+					{features.map((f, k) => (
+						<div className={'m-about-item'} key={f.title}>
+							<span className={'m-about-num'}>{String(k + 1).padStart(2, '0')}</span>
+							<div>
+								<strong>{f.title}</strong>
+								<p>{f.text}</p>
+							</div>
+						</div>
+					))}
+				</div>
+				<div className={'m-cs-call'}>
+					<div>
+						<span>{t('Need help? Talk to our expert.')}</span>
+						<strong>+82 10 4867 2909</strong>
+					</div>
+					<a href="tel:+821048672909">{t('Call')}</a>
+				</div>
+				<Link href={'/car'} className={'m-about-cta'}>
+					{t('Search cars')}
+				</Link>
+			</Stack>
+		);
 	} else {
 		return (
 			<Stack className={'about-page'}>

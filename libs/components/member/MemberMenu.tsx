@@ -8,6 +8,7 @@ import { REACT_APP_API_URL } from '../../config';
 import { useQuery } from '@apollo/client';
 import { GET_MEMBER } from '../../../apollo/user/query';
 import { T } from '../../types/common';
+import { useTranslation } from 'next-i18next';
 
 interface MemberMenuProps {
 	subscribeHandler: any;
@@ -18,6 +19,7 @@ const MemberMenu = (props: MemberMenuProps) => {
 	const { subscribeHandler, unsubscribeHandler } = props;
 	const device = useDeviceDetect();
 	const router = useRouter();
+	const { t } = useTranslation('common');
 	const category: any = router.query?.category;
 	const [member, setMember] = useState<Member | null>(null);
 	const { memberId } = router.query;
@@ -41,7 +43,79 @@ const MemberMenu = (props: MemberMenuProps) => {
 	});
 
 	if (device === 'mobile') {
-		return <div>MEMBER MENU MOBILE</div>;
+		// mobil: profil kartasi (Follow tugmasi, statistika) + bo'limlar gorizontal chip'larda
+		const isFollowing = !!(member?.meFollowed && member?.meFollowed[0]?.myFollowing);
+		const sections = [
+			...(member?.memberType === 'DEALER' ? [{ key: 'cars', label: t('Cars') }] : []),
+			{ key: 'articles', label: t('Articles') },
+			{ key: 'followers', label: t('Followers') },
+			{ key: 'followings', label: t('Followings') },
+		];
+		return (
+			<Stack className={'mb-menu'}>
+				<div className={'mb-profile'}>
+					<span className={'mb-avatar'}>
+						{member?.memberImage ? (
+							<img src={`${REACT_APP_API_URL}/${member?.memberImage}`} alt="" />
+						) : (
+							(member?.memberNick ?? 'U').slice(0, 1).toUpperCase()
+						)}
+					</span>
+					{member?.memberType && <span className={`mb-role is-${member.memberType.toLowerCase()}`}>{t(member.memberType)}</span>}
+					<Typography component={'h1'} className={'mb-name'}>
+						{member?.memberFullName || member?.memberNick || '\u00A0'}
+					</Typography>
+					{member?.memberAddress && <span className={'mb-address'}>{member.memberAddress}</span>}
+					<div className={'mb-actions'}>
+						{isFollowing ? (
+							<Button className={'mb-btn is-following'} onClick={() => unsubscribeHandler(member?._id, getMemberRefetch, memberId)}>
+								{t('Following')}
+							</Button>
+						) : (
+							<Button className={'mb-btn is-primary'} onClick={() => subscribeHandler(member?._id, getMemberRefetch, memberId)}>
+								{t('Follow')}
+							</Button>
+						)}
+						{member?.memberPhone && (
+							<a href={`tel:${member.memberPhone}`} className={'mb-btn is-outline'}>
+								{member.memberPhone}
+							</a>
+						)}
+					</div>
+					<ul className={'mb-stats'}>
+						<li>
+							<strong>{member?.memberCars ?? 0}</strong>
+							<span>{t('Cars')}</span>
+						</li>
+						<li>
+							<strong>{member?.memberFollowers ?? 0}</strong>
+							<span>{t('Followers')}</span>
+						</li>
+						<li>
+							<strong>{member?.memberFollowings ?? 0}</strong>
+							<span>{t('Following')}</span>
+						</li>
+						<li>
+							<strong>{member?.memberLikes ?? 0}</strong>
+							<span>{t('Likes')}</span>
+						</li>
+					</ul>
+				</div>
+				<nav className={'mb-chips'} aria-label={t('Member sections')}>
+					{sections.map((section) => (
+						<Link
+							key={section.key}
+							href={{ pathname: '/member', query: { ...router.query, category: section.key } }}
+							scroll={false}
+							className={category === section.key ? 'is-active' : ''}
+							aria-current={category === section.key ? 'page' : undefined}
+						>
+							{section.label}
+						</Link>
+					))}
+				</nav>
+			</Stack>
+		);
 	} else {
 		return (
 			<Stack width={'100%'} padding={'30px 24px'}>

@@ -16,6 +16,10 @@ import { LIKE_TARGET_BOARD_ARTICLE } from '../../apollo/user/mutation';
 import { GET_BOARD_ARTICLES } from '../../apollo/user/query';
 import { Messages } from '../../libs/config';
 import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
+import { useTranslation } from 'next-i18next';
+import ForumRoundedIcon from '@mui/icons-material/ForumRounded';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import { CATEGORY_KEYS, CATEGORY_META } from '../../libs/components/community/categories';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -27,6 +31,7 @@ const Community: NextPage = ({ initialInput, ...props }: T) => {
 	const device = useDeviceDetect();
 	const router = useRouter();
 	const { query } = router;
+	const { t } = useTranslation('common');
 	const articleCategory = query?.articleCategory as string;
 	const [searchCommunity, setSearchCommunity] = useState<BoardArticlesInquiry>(initialInput);
 	const [boardArticles, setBoardArticles] = useState<BoardArticle[]>([]);
@@ -110,179 +115,147 @@ const Community: NextPage = ({ initialInput, ...props }: T) => {
 		}
 	};
 
+	/** RENDER **/
+	const activeCategory: string = searchCommunity.search.articleCategory ?? 'FREE';
+	const activeMeta = CATEGORY_META[activeCategory] ?? CATEGORY_META.FREE;
+
+	// "Write" tugmasi: avvalgidek mypage'dagi maqola yozish bo'limiga o'tkazadi
+	const goWritePage = () =>
+		router.push({
+			pathname: '/mypage',
+			query: {
+				category: 'writeArticle',
+			},
+		});
+
+	// kategoriya tablari (desktop'da vertikal menyu, mobilda gorizontal chip'lar)
+	const categoryTabs = (orientation: 'vertical' | 'horizontal') => (
+		<TabList
+			orientation={orientation}
+			variant={orientation === 'horizontal' ? 'scrollable' : 'standard'}
+			scrollButtons={false}
+			aria-label="community categories"
+			TabIndicatorProps={{
+				style: { display: 'none' },
+			}}
+			onChange={tabChangeHandler}
+			className={'cm-tabs'}
+		>
+			{CATEGORY_KEYS.map((key: string) => {
+				const Icon = CATEGORY_META[key].icon;
+				return (
+					<Tab
+						key={key}
+						value={key}
+						icon={<Icon />}
+						iconPosition="start"
+						label={t(CATEGORY_META[key].label)}
+						className={`tab-button ${activeCategory == key ? 'active' : ''}`}
+					/>
+				);
+			})}
+		</TabList>
+	);
+
+	// maqolalar ro'yxati — har bir kategoriya uchun alohida TabPanel (avvalgidek)
+	const panels = CATEGORY_KEYS.map((key: string) => (
+		<TabPanel value={key} key={key} className={'cm-panel'}>
+			<div className="list-box cm-grid">
+				{totalCount ? (
+					boardArticles?.map((boardArticle: BoardArticle) => {
+						return (
+							<CommunityCard
+								boardArticle={boardArticle}
+								key={boardArticle?._id}
+								likeArticleHandler={likeArticleHandler}
+							/>
+						);
+					})
+				) : (
+					<div className={'cm-empty'}>
+						<span className={'cm-empty-icon'}>
+							<ForumRoundedIcon />
+						</span>
+						<strong>{t('No posts in {{category}} yet', { category: t(CATEGORY_META[key].label) })}</strong>
+						<p>{t('Be the first to start a conversation.')}</p>
+						<Button className={'cm-btn-primary'} onClick={goWritePage} startIcon={<EditRoundedIcon />}>
+							{t('Write the first post')}
+						</Button>
+					</div>
+				)}
+			</div>
+		</TabPanel>
+	));
+
+	// sahifalash — logika o'zgarmagan
+	const pagination =
+		totalCount > 0 ? (
+			<Stack className="cm-pagination">
+				<Pagination
+					count={Math.ceil(totalCount / searchCommunity.limit)}
+					page={searchCommunity.page}
+					shape="circular"
+					color="primary"
+					onChange={paginationHandler}
+				/>
+				<Typography className="cm-total">
+					{t('Total {{count}} articles available', { count: totalCount })}
+				</Typography>
+			</Stack>
+		) : null;
+
 	if (device === 'mobile') {
-		return <h1>COMMUNITY PAGE MOBILE</h1>;
+		return (
+			<div id="community-list-page" className="cm-v2 cm-mobile">
+				<TabContext value={activeCategory}>
+					<div className="cm-head">
+						<div>
+							<h1 className="cm-title">{t('Community')}</h1>
+							<p className="cm-sub">{t(activeMeta.sub)}</p>
+						</div>
+						<Button className={'cm-btn-primary cm-write-sm'} onClick={goWritePage} startIcon={<EditRoundedIcon />}>
+							{t('Write')}
+						</Button>
+					</div>
+					{categoryTabs('horizontal')}
+					{panels}
+					{pagination}
+				</TabContext>
+			</div>
+		);
 	} else {
 		return (
-			<div id="community-list-page">
-				<div className="container">
-					<TabContext value={searchCommunity.search.articleCategory ?? 'FREE'}>
-						<Stack className="main-box">
-							<Stack className="left-config">
-								<Stack className={'image-info'}>
-									<img src={'/img/logo/logoText.svg'} />
-									<Stack className={'community-name'}>
-										<Typography className={'name'}>Autore Community</Typography>
-									</Stack>
-								</Stack>
+			<div id="community-list-page" className="cm-v2">
+				<div className="cm-wrap">
+					<TabContext value={activeCategory}>
+						<div className="cm-layout">
+							<aside className="cm-side">
+								<div className="cm-side-head">
+									<span className="cm-eyebrow">Autore</span>
+									<h2>{t('Community')}</h2>
+									<p>{t('Talk cars, share reviews and pick up tips from other drivers.')}</p>
+								</div>
+								{categoryTabs('vertical')}
+								<Button className={'cm-btn-primary cm-write'} onClick={goWritePage} startIcon={<EditRoundedIcon />}>
+									{t('Write a post')}
+								</Button>
+							</aside>
 
-								<TabList
-									orientation="vertical"
-									aria-label="lab API tabs example"
-									TabIndicatorProps={{
-										style: { display: 'none' },
-									}}
-									onChange={tabChangeHandler}
-								>
-									<Tab
-										value={'FREE'}
-										label={'Free Board'}
-										className={`tab-button ${searchCommunity.search.articleCategory == 'FREE' ? 'active' : ''}`}
-									/>
-									<Tab
-										value={'REVIEW'}
-										label={'Review'}
-										className={`tab-button ${searchCommunity.search.articleCategory == 'REVIEW' ? 'active' : ''}`}
-									/>
-									<Tab
-										value={'NEWS'}
-										label={'News'}
-										className={`tab-button ${searchCommunity.search.articleCategory == 'NEWS' ? 'active' : ''}`}
-									/>
-									<Tab
-										value={'TIPS'}
-										label={'Tips'}
-										className={`tab-button ${searchCommunity.search.articleCategory == 'TIPS' ? 'active' : ''}`}
-									/>
-								</TabList>
-							</Stack>
-							<Stack className="right-config">
-								<Stack className="panel-config">
-									<Stack className="title-box">
-										<Stack className="left">
-											<Typography className="title">{searchCommunity.search.articleCategory} BOARD</Typography>
-											<Typography className="sub-title">
-												Express your opinions freely here without content restrictions
-											</Typography>
-										</Stack>
-										<Button
-											onClick={() =>
-												router.push({
-													pathname: '/mypage',
-													query: {
-														category: 'writeArticle',
-													},
-												})
-											}
-											className="right"
-										>
-											Write
-										</Button>
-									</Stack>
-
-									<TabPanel value="FREE">
-										<Stack className="list-box">
-											{totalCount ? (
-												boardArticles?.map((boardArticle: BoardArticle) => {
-													return (
-														<CommunityCard
-															boardArticle={boardArticle}
-															key={boardArticle?._id}
-															likeArticleHandler={likeArticleHandler}
-														/>
-													);
-												})
-											) : (
-												<Stack className={'no-data'}>
-													<img src="/img/icons/icoAlert.svg" alt="" />
-													<p>No Article found!</p>
-												</Stack>
-											)}
-										</Stack>
-									</TabPanel>
-									<TabPanel value="REVIEW">
-										<Stack className="list-box">
-											{totalCount ? (
-												boardArticles?.map((boardArticle: BoardArticle) => {
-													return (
-														<CommunityCard
-															boardArticle={boardArticle}
-															key={boardArticle?._id}
-															likeArticleHandler={likeArticleHandler}
-														/>
-													);
-												})
-											) : (
-												<Stack className={'no-data'}>
-													<img src="/img/icons/icoAlert.svg" alt="" />
-													<p>No Article found!</p>
-												</Stack>
-											)}
-										</Stack>
-									</TabPanel>
-									<TabPanel value="NEWS">
-										<Stack className="list-box">
-											{totalCount ? (
-												boardArticles?.map((boardArticle: BoardArticle) => {
-													return (
-														<CommunityCard
-															boardArticle={boardArticle}
-															key={boardArticle?._id}
-															likeArticleHandler={likeArticleHandler}
-														/>
-													);
-												})
-											) : (
-												<Stack className={'no-data'}>
-													<img src="/img/icons/icoAlert.svg" alt="" />
-													<p>No Article found!</p>
-												</Stack>
-											)}
-										</Stack>
-									</TabPanel>
-									<TabPanel value="TIPS">
-										<Stack className="list-box">
-											{totalCount ? (
-												boardArticles?.map((boardArticle: BoardArticle) => {
-													return (
-														<CommunityCard
-															boardArticle={boardArticle}
-															key={boardArticle?._id}
-															likeArticleHandler={likeArticleHandler}
-														/>
-													);
-												})
-											) : (
-												<Stack className={'no-data'}>
-													<img src="/img/icons/icoAlert.svg" alt="" />
-													<p>No Article found!</p>
-												</Stack>
-											)}
-										</Stack>
-									</TabPanel>
-								</Stack>
-							</Stack>
-						</Stack>
+							<section className="cm-main">
+								<header className="cm-head">
+									<div>
+										<h1 className="cm-title">{t(activeMeta.label)}</h1>
+										<p className="cm-sub">{t(activeMeta.sub)}</p>
+									</div>
+									{totalCount > 0 && (
+										<span className="cm-count">{t('{{count}} posts', { count: totalCount })}</span>
+									)}
+								</header>
+								{panels}
+								{pagination}
+							</section>
+						</div>
 					</TabContext>
-
-					{totalCount > 0 && (
-						<Stack className="pagination-config">
-							<Stack className="pagination-box">
-								<Pagination
-									count={Math.ceil(totalCount / searchCommunity.limit)}
-									page={searchCommunity.page}
-									shape="circular"
-									color="primary"
-									onChange={paginationHandler}
-								/>
-							</Stack>
-							<Stack className="total-result">
-								<Typography>
-									Total {totalCount} article{totalCount > 1 ? 's' : ''} available
-								</Typography>
-							</Stack>
-						</Stack>
-					)}
 				</div>
 			</div>
 		);

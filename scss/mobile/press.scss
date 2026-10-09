@@ -1,0 +1,187 @@
+/**
+ * MOBIL: bosilgandagi effekt (desktop'dagi hover o'rniga).
+ * Telefonda hover yo'q — shuning uchun barmoq tekkan paytda (:active) karta biroz "botadi",
+ * tugmalar fonini o'zgartiradi. Brauzerning ko'k/kulrang tap-highlight'i o'chiriladi.
+ * scss/mobile/main.scss oxirida import qilinadi.
+ */
+$press-ease: cubic-bezier(0.23, 1, 0.32, 1);
+
+@mixin press-card {
+	transition: transform 160ms $press-ease, box-shadow 160ms $press-ease, background-color 160ms ease;
+	&:active {
+		transform: scale(0.98);
+		box-shadow: 0 10px 24px -16px rgba(20, 23, 28, 0.45);
+	}
+}
+@mixin press-btn {
+	transition: transform 120ms $press-ease, background-color 120ms ease, border-color 120ms ease, filter 120ms ease;
+	&:active {
+		transform: scale(0.96);
+	}
+}
+
+#mobile-wrap,
+.m-sheet,
+.cl-drawer-paper {
+	a,
+	button,
+	[role='button'] {
+		-webkit-tap-highlight-color: transparent;
+	}
+}
+
+#mobile-wrap {
+	/* ---------- kartalar: bosilganda biroz kichrayadi + soya ---------- */
+	.card-config.cl-card,
+	.dc-card,
+	.community-general-card-config.cm-card,
+	.car-big-card-box,
+	.mp-row,
+	.mp-person,
+	.m-community-list .horizontal-card,
+	.m-about-item,
+	.mb-profile a {
+		@include press-card;
+	}
+	// ichidagi tugma bosilganda butun karta "botmasin"
+	.cl-card:has(.MuiIconButton-root:active),
+	.dc-card:has(.dc-like:active, .dc-btn:active),
+	.cm-card:has(.cm-like:active, .cm-card-author:active) {
+		transform: none;
+		box-shadow: none;
+	}
+	// karta rasmi bosilganda biroz yorishadi (desktop'dagi zoom o'rniga)
+	.cl-card .cl-card-img:active img,
+	.dc-card .dc-photo:active img,
+	.cm-card .cm-card-img:active img {
+		filter: brightness(0.92);
+	}
+
+	/* ---------- asosiy tugmalar: biroz kichrayadi va to'qroq rangga o'tadi ---------- */
+	.m-hero-btn,
+	.sp-btn,
+	.dc-btn,
+	.cl-btn-primary,
+	.cm-btn-primary,
+	.mp-btn-primary,
+	.mp-btn-link,
+	.dd-btn,
+	.mb-btn,
+	.m-join-submit,
+	.m-about-cta,
+	.cd-btn,
+	.cd-mbar-btn,
+	.cd-dealer-like,
+	.m-cs-call a,
+	.mp-follow,
+	.mp-like,
+	.dl-sort .MuiButton-root,
+	.cl-toolbar .MuiButton-root,
+	.cm-like-btn {
+		@include press-btn;
+	}
+	.m-hero-btn.is-primary:active,
+	.cl-btn-primary:active,
+	.cm-btn-primary:active,
+	.mp-btn-primary:active,
+	.mp-btn-link:active,
+	.dd-btn-primary:active,
+	.mb-btn.is-primary:active,
+	.m-join-submit:active,
+	.m-about-cta:active,
+	.cd-mbar-btn.is-primary:active,
+	.cd-call:active,
+	.mp-follow:not(.is-following):active {
+		background: $c-primary-dark;
+	}
+	.sp-btn:active,
+	.m-hero-btn.is-light:active {
+		background: #e8eeff;
+	}
+	.dc-btn:active {
+		background: #000000;
+	}
+
+	/* ---------- chip'lar, tablar, ro'yxat qatorlari: fon o'zgaradi ---------- */
+	.m-chip,
+	.cl-chip,
+	.mb-chips a,
+	.m-search-box,
+	.m-segment button,
+	.mp-segment button,
+	.cm-tabs .tab-button,
+	.mp-item a,
+	.m-notice-item button,
+	.m-faq-item button,
+	.m-footer-groups summary,
+	.m-see,
+	.m-icon-btn,
+	.m-lang {
+		transition: background-color 120ms ease, border-color 120ms ease, transform 120ms $press-ease;
+	}
+	.m-chip:active,
+	.mb-chips a:not(.is-active):active,
+	.m-search-box:active,
+	.m-lang:active,
+	.cl-chip:active {
+		background: $c-surface-2;
+		border-color: #cfd2d9;
+		transform: scale(0.97);
+	}
+	.m-segment button:not(.is-active):active,
+	.mp-segment button:not(.active-tab-name):active,
+	.mp-item:not(.focus) a:active,
+	.m-notice-item button:active,
+	.m-faq-item button:active {
+		background: $c-surface-2;
+	}
+	.m-footer-groups summary:active {
+		opacity: 0.7;
+	}
+	.m-see:active {
+		opacity: 0.6;
+	}
+
+	/* ---------- pastki tab bar: bosilgan tab ikonkasi orqasida fon ---------- */
+	.m-tab:active .m-tab-icon {
+		background: rgba(0, 87, 255, 0.14);
+		transform: scale(0.94);
+	}
+	.m-tab .m-tab-icon {
+		transition: background-color 120ms ease, transform 120ms $press-ease;
+	}
+}
+
+/* menyu oynasi (portal) */
+.m-sheet {
+	.m-sheet-links a,
+	.m-sheet-lang button,
+	.m-sheet-btn,
+	.m-sheet-login,
+	.m-sheet-logout {
+		transition: background-color 120ms ease, transform 120ms $press-ease;
+	}
+	.m-sheet-links a:active {
+		background: $c-bg;
+	}
+	.m-sheet-lang button:not(.is-active):active,
+	.m-sheet-btn:active,
+	.m-sheet-logout:active {
+		background: $c-surface-2;
+		transform: scale(0.98);
+	}
+	.m-sheet-login:active {
+		background: $c-primary-dark;
+		transform: scale(0.98);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	#mobile-wrap *,
+	.m-sheet * {
+		transition-duration: 0ms !important;
+	}
+	#mobile-wrap *:active {
+		transform: none !important;
+	}
+}

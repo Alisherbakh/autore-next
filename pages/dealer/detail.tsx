@@ -5,9 +5,22 @@ import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
 import CarBigCard from '../../libs/components/common/CarBigCard';
 import ReviewCard from '../../libs/components/dealer/ReviewCard';
 import { Box, Button, Pagination, Stack, Typography } from '@mui/material';
-import StarIcon from '@mui/icons-material/Star';
+import StarRoundedIcon from '@mui/icons-material/StarRounded';
+import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
+import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
+import PhoneRoundedIcon from '@mui/icons-material/PhoneRounded';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import PersonAddAlt1RoundedIcon from '@mui/icons-material/PersonAddAlt1Rounded';
+import NorthEastRoundedIcon from '@mui/icons-material/NorthEastRounded';
+import DirectionsCarRoundedIcon from '@mui/icons-material/DirectionsCarRounded';
+import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded';
+import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded';
+import FavoriteBorderRoundedIcon from '@mui/icons-material/FavoriteBorderRounded';
+import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
+import Moment from 'react-moment';
+import { useTranslation } from 'next-i18next';
 import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
-import { CREATE_COMMENT, LIKE_TARGET_CAR } from '../../apollo/user/mutation';
+import { CREATE_COMMENT, LIKE_TARGET_CAR, LIKE_TARGET_MEMBER, SUBSCRIBE, UNSUBSCRIBE } from '../../apollo/user/mutation';
 import { GET_COMMENTS, GET_MEMBER, GET_CARS } from '../../apollo/user/query';
 import { T } from '../../libs/types/common';
 import { useRouter } from 'next/router';
@@ -19,8 +32,15 @@ import { CarsInquiry } from '../../libs/types/car/car.input';
 import { CommentInput, CommentsInquiry } from '../../libs/types/comment/comment.input';
 import { Comment } from '../../libs/types/comment/comment';
 import { CommentGroup } from '../../libs/enums/comment.enum';
-import { Messages, REACT_APP_API_URL } from '../../libs/config';
+import { LIKED_COLOR, Messages, REACT_APP_API_URL } from '../../libs/config';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+
+// rasm bo'lmasa: nickdan 1–2 harf (DealerCard'dagi bilan bir xil)
+const getInitials = (name: string = ''): string => {
+	const parts = name.split(/[\s_.-]+/).filter(Boolean);
+	const letters = parts.length > 1 ? parts[0][0] + parts[1][0] : name.slice(0, 2);
+	return letters.toUpperCase() || 'D';
+};
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -32,6 +52,7 @@ const DealerDetail: NextPage = ({ initialInput, initialComment, ...props }: any)
 	const device = useDeviceDetect();
 	const router = useRouter();
 	const user = useReactiveVar(userVar);
+	const { t } = useTranslation('common');
 	const [dealerId, setDealerId] = useState<string | null>(null);
 	const [dealer, setDealer] = useState<Member | null>(null);
 	const [searchFilter, setSearchFilter] = useState<CarsInquiry>(initialInput);
@@ -51,6 +72,11 @@ const DealerDetail: NextPage = ({ initialInput, initialComment, ...props }: any)
 	const [createComment] = useMutation(CREATE_COMMENT);
 	// e'longa like bosish uchun mutatsiya
 	const [likeTargetCar] = useMutation(LIKE_TARGET_CAR);
+	// dealerni follow / unfollow qilish uchun mutatsiyalar (MemberPage'dagi bilan bir xil)
+	const [subscribe] = useMutation(SUBSCRIBE);
+	const [unsubscribe] = useMutation(UNSUBSCRIBE);
+	// dealerning o'ziga like bosish uchun mutatsiya (/dealer sahifasidagi bilan bir xil)
+	const [likeTargetMember] = useMutation(LIKE_TARGET_MEMBER);
 
 	// URL'dagi dealerId bo'yicha dealerning o'zini oladi, shu javob ichidan
 	// car va comment so'rovlari uchun filtrlarni ham to'ldiradi
@@ -192,7 +218,9 @@ const DealerDetail: NextPage = ({ initialInput, initialComment, ...props }: any)
 					input: id,
 				},
 			});
-			await getCarsRefetch({ input: searchFilter });
+			const result = await getCarsRefetch({ input: searchFilter });
+			// refetch natijasi bilan kartalarni darhol yangilaymiz (like rangi va soni)
+			if (result?.data?.getCars?.list) setDealerCars(result.data.getCars.list);
 			await sweetTopSmallSuccessAlert('success', 800);
 		} catch (err: any) {
 			console.log('ERROR, likeCarHandler:', err.message);
@@ -200,124 +228,295 @@ const DealerDetail: NextPage = ({ initialInput, initialComment, ...props }: any)
 		}
 	};
 
+	// dealerni follow qilish (MemberPage'dagi subscribeHandler bilan bir xil tartib),
+	// so'ng dealer ma'lumotini qayta olib, tugma holati va followers sonini yangilaydi
+	const subscribeHandler = async (id: string) => {
+		try {
+			if (!id) throw new Error(Messages.error1);
+			if (!user._id) throw new Error(Messages.error2);
+
+			await subscribe({
+				variables: {
+					input: id,
+				},
+			});
+			await sweetTopSmallSuccessAlert('Followed!', 800);
+			const result = await getMemberRefetch({ input: id });
+			if (result?.data?.getMember) setDealer(result.data.getMember);
+		} catch (err: any) {
+			sweetErrorHandling(err).then();
+		}
+	};
+
+	// follow'ni bekor qilish, so'ng dealer ma'lumotini yangilaydi
+	const unsubscribeHandler = async (id: string) => {
+		try {
+			if (!id) throw new Error(Messages.error1);
+			if (!user._id) throw new Error(Messages.error2);
+
+			await unsubscribe({
+				variables: {
+					input: id,
+				},
+			});
+			await sweetTopSmallSuccessAlert('Unfollowed!', 800);
+			const result = await getMemberRefetch({ input: id });
+			if (result?.data?.getMember) setDealer(result.data.getMember);
+		} catch (err: any) {
+			sweetErrorHandling(err).then();
+		}
+	};
+
+	// dealerga like bosish: login tekshiradi, mutatsiya yuboradi, dealer ma'lumotini yangilaydi
+	const likeMemberHandler = async (id: string) => {
+		try {
+			if (!id) return;
+			if (!user._id) throw new Error(Messages.error2);
+
+			await likeTargetMember({
+				variables: {
+					input: id,
+				},
+			});
+			const result = await getMemberRefetch({ input: id });
+			if (result?.data?.getMember) setDealer(result.data.getMember);
+			await sweetTopSmallSuccessAlert('success', 800);
+		} catch (err: any) {
+			console.log('ERROR, likeMemberHandler:', err.message);
+			sweetMixinErrorAlert(err.message).then();
+		}
+	};
+
+	/** RENDER **/
+	const dealerName: string = dealer?.memberFullName || dealer?.memberNick || '';
+	const dealerImage: string | null = dealer?.memberImage ? `${REACT_APP_API_URL}/${dealer?.memberImage}` : null;
+	const isMyself: boolean = !!user?._id && user?._id === dealer?._id;
+	const isFollowing: boolean = !!dealer?.meFollowed?.[0]?.myFollowing;
+	const isLiked: boolean = !!dealer?.meLiked?.[0]?.myFavorite;
+
+	// dealer "profil" kartasi: rasm, ism, manzil, tavsif, statistika va tugmalar (desktop + mobil)
+	const dealerHero = (
+		<section className={`dd-hero ${dealer ? '' : 'is-loading'}`}>
+			<div className={'dd-avatar'}>
+				{dealerImage ? (
+					<img src={dealerImage} alt={dealerName} />
+				) : (
+					<span aria-hidden="true">{getInitials(dealer?.memberNick)}</span>
+				)}
+			</div>
+
+			<div className={'dd-id'}>
+				<div className={'dd-tags'}>
+					<span className={'dd-badge'}>{t('DEALER')}</span>
+					{dealer?.createdAt && (
+						<span className={'dd-since'}>
+							<CalendarMonthRoundedIcon />
+							{t('Member since')} <Moment format={'MMM YYYY'}>{dealer.createdAt}</Moment>
+						</span>
+					)}
+				</div>
+				<h1 className={'dd-name'}>{dealerName || ' '}</h1>
+				{dealer?.memberAddress && (
+					<p className={'dd-address'}>
+						<PlaceRoundedIcon />
+						{dealer.memberAddress}
+					</p>
+				)}
+				<p className={`dd-desc ${dealer?.memberDesc ? '' : 'is-empty'}`}>
+					{dealer?.memberDesc || t('No description yet.')}
+				</p>
+
+				<div className={'dd-actions'}>
+					{!isMyself &&
+						(isFollowing ? (
+							<Button
+								className={'dd-btn dd-btn-following'}
+								onClick={() => unsubscribeHandler(dealer?._id as string)}
+								startIcon={<CheckRoundedIcon />}
+							>
+								<span className={'label-on'}>{t('Following')}</span>
+								<span className={'label-off'}>{t('Unfollow')}</span>
+							</Button>
+						) : (
+							<Button
+								className={'dd-btn dd-btn-primary'}
+								onClick={() => subscribeHandler(dealer?._id as string)}
+								startIcon={<PersonAddAlt1RoundedIcon />}
+							>
+								{t('Follow')}
+							</Button>
+						))}
+					<Button
+						className={`dd-btn dd-btn-like ${isLiked ? 'is-liked' : ''}`}
+						onClick={() => likeMemberHandler(dealer?._id as string)}
+						startIcon={
+							isLiked ? <FavoriteRoundedIcon style={{ color: LIKED_COLOR }} /> : <FavoriteBorderRoundedIcon />
+						}
+						aria-label={isLiked ? t('Unlike dealer') : t('Like dealer')}
+						aria-pressed={isLiked}
+					>
+						{dealer?.memberLikes ?? 0}
+					</Button>
+					{dealer?.memberPhone && (
+						<a className={'dd-btn dd-btn-outline'} href={`tel:${dealer.memberPhone}`}>
+							<PhoneRoundedIcon />
+							{dealer.memberPhone}
+						</a>
+					)}
+					<Button
+						className={'dd-btn dd-btn-ghost'}
+						onClick={() => redirectToMemberPageHandler(dealer?._id as string)}
+						endIcon={<NorthEastRoundedIcon />}
+					>
+						{t('View profile')}
+					</Button>
+				</div>
+			</div>
+
+			<ul className={'dd-stats'}>
+				<li>
+					<DirectionsCarRoundedIcon />
+					<strong>{dealer?.memberCars ?? 0}</strong>
+					<span>{t('Cars')}</span>
+				</li>
+				<li>
+					<PeopleAltRoundedIcon />
+					<strong>{dealer?.memberFollowers ?? 0}</strong>
+					<span>{t('Followers')}</span>
+				</li>
+				<li>
+					<FavoriteRoundedIcon />
+					<strong>{dealer?.memberLikes ?? 0}</strong>
+					<span>{t('Likes')}</span>
+				</li>
+				<li>
+					<VisibilityRoundedIcon />
+					<strong>{dealer?.memberViews ?? 0}</strong>
+					<span>{t('Views')}</span>
+				</li>
+			</ul>
+		</section>
+	);
+
+	// dealerning e'lonlari + sahifalash (logika o'zgarmagan)
+	const carsSection = (
+		<section className={'dd-section dd-cars-section'}>
+			<div className={'dd-section-head'}>
+				<h2>{dealerName ? t('Cars by {{name}}', { name: dealerName }) : t('Cars')}</h2>
+				{carTotal ? <span className={'dd-chip'}>{carTotal}</span> : null}
+			</div>
+			<Stack className={'dd-cars'}>
+				{dealerCars.map((car: Car) => {
+					return (
+						<div className={'wrap-main'} key={car?._id}>
+							<CarBigCard car={car} likeCarHandler={likeCarHandler} key={car?._id} />
+						</div>
+					);
+				})}
+			</Stack>
+			<Stack className={'dd-pagination'}>
+				{carTotal ? (
+					<>
+						<Stack className="pagination-box">
+							<Pagination
+								page={searchFilter.page}
+								count={Math.ceil(carTotal / searchFilter.limit) || 1}
+								onChange={carPaginationChangeHandler}
+								shape="circular"
+								color="primary"
+							/>
+						</Stack>
+						<span>{t('Total {{count}} cars available', { count: carTotal })}</span>
+					</>
+				) : (
+					<div className={'dd-empty'}>
+						<img src="/img/icons/icoAlert.svg" alt="" />
+						<p>{t('This dealer has no cars listed yet.')}</p>
+					</div>
+				)}
+			</Stack>
+		</section>
+	);
+
+	// sharhlar ro'yxati + sharh yozish formasi (logika o'zgarmagan)
+	const reviewsSection = (
+		<section className={'dd-section dd-reviews'}>
+			<div className={'dd-section-head'}>
+				<h2>{t('Reviews')}</h2>
+				{commentTotal !== 0 && (
+					<span className={'dd-chip'}>
+						<StarRoundedIcon />
+						{commentTotal}
+					</span>
+				)}
+			</div>
+			<div className={'dd-reviews-grid'}>
+				<div className={'dd-review-list'}>
+					{commentTotal !== 0 ? (
+						<>
+							{dealerComments?.map((comment: Comment) => {
+								return <ReviewCard comment={comment} key={comment?._id} />;
+							})}
+							<Box component={'div'} className={'pagination-box'}>
+								<Pagination
+									page={commentInquiry.page}
+									count={Math.ceil(commentTotal / commentInquiry.limit) || 1}
+									onChange={commentPaginationChangeHandler}
+									shape="circular"
+									color="primary"
+								/>
+							</Box>
+						</>
+					) : (
+						<div className={'dd-empty'}>
+							<StarRoundedIcon />
+							<p>{t('No reviews yet. Be the first to share your experience.')}</p>
+						</div>
+					)}
+				</div>
+
+				<div className={'dd-review-form'}>
+					<Typography className={'dd-form-title'}>{t('Leave a review')}</Typography>
+					<Typography className={'dd-form-sub'}>
+						{t('How was your experience with {{name}}?', { name: dealerName || t('this dealer') })}
+					</Typography>
+					<textarea
+						placeholder={t('Share details about the cars, service and communication…')}
+						onChange={({ target: { value } }: any) => {
+							setInsertCommentData({ ...insertCommentData, commentContent: value });
+						}}
+						value={insertCommentData.commentContent}
+					></textarea>
+					{!user?._id && <p className={'dd-hint'}>{t('Please log in to write a review.')}</p>}
+					<Button
+						className={'dd-submit'}
+						disabled={insertCommentData.commentContent === '' || user?._id === ''}
+						onClick={createCommentHandler}
+						endIcon={<NorthEastRoundedIcon />}
+					>
+						{t('Submit review')}
+					</Button>
+				</div>
+			</div>
+		</section>
+	);
+
 	if (device === 'mobile') {
-		return <div>DEALER DETAIL PAGE MOBILE</div>;
+		return (
+			<Stack className={'dealer-detail-page dd-v2 dd-mobile'}>
+				{dealerHero}
+				{carsSection}
+				{reviewsSection}
+			</Stack>
+		);
 	} else {
 		return (
-			<Stack className={'dealer-detail-page'}>
-				<Stack className={'container'}>
-					<Stack className={'dealer-info'}>
-						<img
-							src={dealer?.memberImage ? `${REACT_APP_API_URL}/${dealer?.memberImage}` : '/img/profile/defaultUser.svg'}
-							alt=""
-						/>
-						<Box component={'div'} className={'info'} onClick={() => redirectToMemberPageHandler(dealer?._id as string)}>
-							<strong>{dealer?.memberFullName ?? dealer?.memberNick}</strong>
-							<div>
-								<img src="/img/icons/call.svg" alt="" />
-								<span>{dealer?.memberPhone}</span>
-							</div>
-						</Box>
-					</Stack>
-					<Stack className={'dealer-home-list'}>
-						<Stack className={'card-wrap'}>
-							{dealerCars.map((car: Car) => {
-								return (
-									<div className={'wrap-main'} key={car?._id}>
-										<CarBigCard 
-										car={car}
-										likeCarHandler={likeCarHandler}
-										key={car?._id} />
-									</div>
-								);
-							})}
-						</Stack>
-						<Stack className={'pagination'}>
-							{carTotal ? (
-								<>
-									<Stack className="pagination-box">
-										<Pagination
-											page={searchFilter.page}
-											count={Math.ceil(carTotal / searchFilter.limit) || 1}
-											onChange={carPaginationChangeHandler}
-											shape="circular"
-											color="primary"
-										/>
-									</Stack>
-									<span>
-										Total {carTotal} car{carTotal > 1 ? 's' : ''} available
-									</span>
-								</>
-							) : (
-								<div className={'no-data'}>
-									<img src="/img/icons/icoAlert.svg" alt="" />
-									<p>No cars found!</p>
-								</div>
-							)}
-						</Stack>
-					</Stack>
-					<Stack className={'review-box'}>
-						<Stack className={'main-intro'}>
-							<span>Reviews</span>
-							<p>we are glad to see you again</p>
-						</Stack>
-						{commentTotal !== 0 && (
-							<Stack className={'review-wrap'}>
-								<Box component={'div'} className={'title-box'}>
-									<StarIcon />
-									<span>
-										{commentTotal} review{commentTotal > 1 ? 's' : ''}
-									</span>
-								</Box>
-								{dealerComments?.map((comment: Comment) => {
-									return <ReviewCard comment={comment} key={comment?._id} />;
-								})}
-								<Box component={'div'} className={'pagination-box'}>
-									<Pagination
-										page={commentInquiry.page}
-										count={Math.ceil(commentTotal / commentInquiry.limit) || 1}
-										onChange={commentPaginationChangeHandler}
-										shape="circular"
-										color="primary"
-									/>
-								</Box>
-							</Stack>
-						)}
-
-						<Stack className={'leave-review-config'}>
-							<Typography className={'main-title'}>Leave A Review</Typography>
-							<Typography className={'review-title'}>Review</Typography>
-							<textarea
-								onChange={({ target: { value } }: any) => {
-									setInsertCommentData({ ...insertCommentData, commentContent: value });
-								}}
-								value={insertCommentData.commentContent}
-							></textarea>
-							<Box className={'submit-btn'} component={'div'}>
-								<Button
-									className={'submit-review'}
-									disabled={insertCommentData.commentContent === '' || user?._id === ''}
-									onClick={createCommentHandler}
-								>
-									<Typography className={'title'}>Submit Review</Typography>
-									<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 17 17" fill="none">
-										<g clipPath="url(#clip0_6975_3642)">
-											<path
-												d="M16.1571 0.5H6.37936C6.1337 0.5 5.93491 0.698792 5.93491 0.944458C5.93491 1.19012 6.1337 1.38892 6.37936 1.38892H15.0842L0.731781 15.7413C0.558156 15.915 0.558156 16.1962 0.731781 16.3698C0.818573 16.4566 0.932323 16.5 1.04603 16.5C1.15974 16.5 1.27345 16.4566 1.36028 16.3698L15.7127 2.01737V10.7222C15.7127 10.9679 15.9115 11.1667 16.1572 11.1667C16.4028 11.1667 16.6016 10.9679 16.6016 10.7222V0.944458C16.6016 0.698792 16.4028 0.5 16.1571 0.5Z"
-												fill="#23262F"
-											/>
-										</g>
-										<defs>
-											<clipPath id="clip0_6975_3642">
-												<rect width="16" height="16" fill="white" transform="translate(0.601562 0.5)" />
-											</clipPath>
-										</defs>
-									</svg>
-								</Button>
-							</Box>
-						</Stack>
-					</Stack>
-				</Stack>
+			<Stack className={'dealer-detail-page dd-v2'}>
+				<div className={'dd-wrap'}>
+					{dealerHero}
+					{carsSection}
+					{reviewsSection}
+				</div>
 			</Stack>
 		);
 	}

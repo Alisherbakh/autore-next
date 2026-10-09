@@ -115,50 +115,41 @@ const MyPage: NextPage = () => {
 		}
 	};
 
-	if (device === 'mobile') {
-		return <div>MY PAGE</div>;
-	} else {
-		return (
-			<div id="my-page" style={{ position: 'relative' }}>
-				<div className="container">
-					<Stack className={'my-page'}>
-						<Stack className={'back-frame'}>
-							<Stack className={'left-config'}>
-								<MyMenu />
-							</Stack>
-							<Stack className="main-config" mb={'76px'}>
-								<Stack className={'list-config'}>
-									{category === 'addCar' && <AddCar />}
-									{category === 'myCars' && <MyCars />}
-									{category === 'myFavorites' && <MyFavorites />}
-									{category === 'recentlyVisited' && <RecentlyVisited />}
-									{category === 'myArticles' && <MyArticles />}
-									{category === 'writeArticle' && <WriteArticle />}
-									{category === 'myProfile' && <MyProfile />}
-									{category === 'followers' && (
-										<MemberFollowers
-											subscribeHandler={subscribeHandler}
-											unsubscribeHandler={unsubscribeHandler}
-											redirectToMemberPageHandler={redirectToMemberPageHandler}
-											likeMemberHandler={likeMemberHandler}
-										/>
-									)}
-									{category === 'followings' && (
-										<MemberFollowings
-											subscribeHandler={subscribeHandler}
-											unsubscribeHandler={unsubscribeHandler}
-											redirectToMemberPageHandler={redirectToMemberPageHandler}
-											likeMemberHandler={likeMemberHandler}
-										/>
-									)}
-								</Stack>
-							</Stack>
-						</Stack>
-					</Stack>
-				</div>
+	// mobil va desktop'da bir xil tuzilma — desktop'da 2 ustun (menyu + kontent), mobilda bir ustun
+	return (
+		<div id="my-page" className={`mp-v2 ${device === 'mobile' ? 'mp-mobile' : ''}`}>
+			<div className="mp-wrap">
+				<aside className={'left-config mp-side'}>
+					<MyMenu />
+				</aside>
+				<main className="main-config mp-content">
+					{category === 'addCar' && <AddCar />}
+					{category === 'myCars' && <MyCars />}
+					{category === 'myFavorites' && <MyFavorites />}
+					{category === 'recentlyVisited' && <RecentlyVisited />}
+					{category === 'myArticles' && <MyArticles />}
+					{category === 'writeArticle' && <WriteArticle />}
+					{category === 'myProfile' && <MyProfile />}
+					{category === 'followers' && (
+						<MemberFollowers
+							subscribeHandler={subscribeHandler}
+							unsubscribeHandler={unsubscribeHandler}
+							redirectToMemberPageHandler={redirectToMemberPageHandler}
+							likeMemberHandler={likeMemberHandler}
+						/>
+					)}
+					{category === 'followings' && (
+						<MemberFollowings
+							subscribeHandler={subscribeHandler}
+							unsubscribeHandler={unsubscribeHandler}
+							redirectToMemberPageHandler={redirectToMemberPageHandler}
+							likeMemberHandler={likeMemberHandler}
+						/>
+					)}
+				</main>
 			</div>
-		);
-	}
+		</div>
+	);
 };
 
 export default withLayoutBasic(MyPage);

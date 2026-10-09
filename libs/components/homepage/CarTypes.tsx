@@ -1,14 +1,29 @@
 import React from 'react';
 import { Stack } from '@mui/material';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { useTranslation } from 'next-i18next';
 import { CarType } from '../../enums/car.enum';
+import { formatEnum } from '../../utils';
 
-// "Pick a body style" bo'limi: kuzov turi bosilsa /car sahifasi shu tur filtri bilan ochiladi
+// "Pick a body style": studiya (fonsiz) mashina rasmlari bilan 8 ta kuzov turi.
+// Bosilsa /car sahifasi shu tur filtri bilan ochiladi (mantiq o'zgarmagan).
+// Rasmlar: public/img/types/studio/<tur>.webp — Kia / Genesis / BMW rasmiy saytlaridan (kurs loyihasi uchun).
+// Convertible — BMW (koreys brendlarida kabriolet yo'q), fon olib tashlangan.
+const STYLES: { type: CarType; model: string }[] = [
+	{ type: CarType.SEDAN, model: 'Kia K5' },
+	{ type: CarType.SUV, model: 'Kia Sorento' },
+	{ type: CarType.HATCHBACK, model: 'Kia Ray EV' },
+	{ type: CarType.COUPE, model: 'Genesis GV80 Coupe' },
+	{ type: CarType.WAGON, model: 'Genesis G70 Shooting Brake' },
+	{ type: CarType.VAN, model: 'Kia Carnival' },
+	{ type: CarType.CONVERTIBLE, model: 'BMW 4 Series Convertible' },
+	{ type: CarType.PICKUP, model: 'Kia Tasman' },
+];
+
 const CarTypes = () => {
 	const router = useRouter();
 	const { t } = useTranslation('common');
-	const types = Object.values(CarType);
 
 	const pushTypeHandler = async (type: CarType) => {
 		const input = { page: 1, limit: 9, sort: 'createdAt', direction: 'DESC', search: { typeList: [type] } };
@@ -16,22 +31,34 @@ const CarTypes = () => {
 	};
 
 	return (
-		<Stack className={'car-types'}>
+		<Stack component={'section'} className={'car-types hp-section'} aria-labelledby={'car-types-title'}>
 			<Stack className={'container'}>
-				<Stack className={'section-head'}>
-					<span className={'eyebrow'}>{t('BROWSE BY TYPE')}</span>
-					<h2>{t('Pick a body style')}</h2>
-				</Stack>
-				<div className={'type-grid'}>
-					{types.map((type: CarType) => (
-						<button type={'button'} className={'type-tile'} key={type} onClick={() => pushTypeHandler(type)}>
-							{/* haqiqiy mashina rasmi: public/img/types/<tur>.jpg (mualliflar — public/img/fiber/CREDITS.md) */}
-							<span className={'type-photo'}>
-								<img src={`/img/types/${type.toLowerCase()}.jpg`} alt={type} loading={'lazy'} />
+				<div className={'bs-head'}>
+					<div>
+						<h2 id={'car-types-title'}>{t('Pick a body style')}</h2>
+						<p>{t('Find the shape that fits your life.')}</p>
+					</div>
+					<Link href={'/car'} className={'bs-all'}>
+						{t('All cars')} →
+					</Link>
+				</div>
+				<div className={'bs-grid'}>
+					{STYLES.map((style) => (
+						<button type={'button'} className={'bs-tile'} key={style.type} onClick={() => pushTypeHandler(style.type)}>
+							<span className={'bs-text'}>
+								<strong>{t(formatEnum(style.type))}</strong>
+								<span>{style.model}</span>
 							</span>
-							<span className={'type-name'}>
-								<strong>{type}</strong>
-								<span>{t('Browse')} →</span>
+							<span className={'bs-stage'}>
+								<span className={'bs-shadow'} aria-hidden="true" />
+								<img src={`/img/types/studio/${style.type.toLowerCase()}.webp`} alt={style.model} loading={'lazy'} width={1000} height={442} />
+							</span>
+							<span className={'bs-go'}>
+								{t('Browse')}
+								<svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+									<path d="M5 12h14" />
+									<path d="m13 6 6 6-6 6" />
+								</svg>
 							</span>
 						</button>
 					))}

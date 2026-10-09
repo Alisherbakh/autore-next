@@ -1,5 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Box, Button, FormControl, MenuItem, Stack, Typography, Select, TextField } from '@mui/material';
+import { Button, Stack } from '@mui/material';
+import { useTranslation } from 'next-i18next';
+import { CATEGORY_KEYS, CATEGORY_META } from './categories';
 import { BoardArticleCategory } from '../../enums/board-article.enum';
 import { Editor } from '@toast-ui/react-editor';
 import { getJwtToken } from '../../auth';
@@ -14,6 +16,7 @@ import { Message } from '../../enums/common.enum';
 import { sweetErrorHandling, sweetTopSuccessAlert } from '../../sweetAlert';
 
 const TuiEditor = () => {
+	const { t } = useTranslation('common');
 	const editorRef = useRef<Editor>(null),
 		token = getJwtToken(),
 		router = useRouter();
@@ -128,40 +131,39 @@ const TuiEditor = () => {
 	};
 
 	return (
-		<Stack>
-			<Stack direction="row" style={{ margin: '40px' }} justifyContent="space-evenly">
-				<Box component={'div'} className={'form_row'} style={{ width: '300px' }}>
-					<Typography style={{ color: '#7f838d', margin: '10px' }} variant="h3">
-						Category
-					</Typography>
-					<FormControl sx={{ width: '100%', background: 'white' }}>
-						<Select
-							value={articleCategory}
-							onChange={changeCategoryHandler}
-							displayEmpty
-							inputProps={{ 'aria-label': 'Without label' }}
-						>
-							<MenuItem value={BoardArticleCategory.FREE}>
-								<span>Free</span>
-							</MenuItem>
-							<MenuItem value={BoardArticleCategory.TIPS}>Tips</MenuItem>
-							<MenuItem value={BoardArticleCategory.NEWS}>News</MenuItem>
-							<MenuItem value={BoardArticleCategory.REVIEW}>Review</MenuItem>
-						</Select>
-					</FormControl>
-				</Box>
-				<Box component={'div'} style={{ width: '300px', flexDirection: 'column' }}>
-					<Typography style={{ color: '#7f838d', margin: '10px' }} variant="h3">
-						Title
-					</Typography>
-					<TextField
+		<Stack className={'mp-write'}>
+			<div className={'mp-write-meta'}>
+				<div className={'mp-field'}>
+					<span className={'title'}>{t('Category')}</span>
+					<div className={'mp-cat-chips'} role="radiogroup">
+						{CATEGORY_KEYS.map((key: string) => {
+							const Icon = CATEGORY_META[key].icon;
+							return (
+								<button
+									type="button"
+									role="radio"
+									aria-checked={articleCategory === key}
+									key={key}
+									className={`mp-cat-chip ${articleCategory === key ? 'is-active' : ''}`}
+									onClick={() => changeCategoryHandler({ target: { value: key } })}
+								>
+									<Icon />
+									{t(CATEGORY_META[key].label)}
+								</button>
+							);
+						})}
+					</div>
+				</div>
+				<label className={'mp-field'}>
+					<span className={'title'}>{t('Title')}</span>
+					<input
+						type="text"
+						className={'description-input'}
+						placeholder={t('Give your post a clear title')}
 						onChange={articleTitleHandler}
-						id="filled-basic"
-						label="Type Title"
-						style={{ width: '300px', background: 'white' }}
 					/>
-				</Box>
-			</Stack>
+				</label>
+			</div>
 
 			<Editor
 				initialValue={'Type here'}
@@ -188,16 +190,11 @@ const TuiEditor = () => {
 				}}
 			/>
 
-			<Stack direction="row" justifyContent="center">
-				<Button
-					variant="contained"
-					color="primary"
-					style={{ margin: '30px', width: '250px', height: '45px' }}
-					onClick={handleRegisterButton}
-				>
-					Register
+			<div className={'mp-write-foot'}>
+				<Button className={'mp-btn-primary'} onClick={handleRegisterButton}>
+					{t('Publish post')}
 				</Button>
-			</Stack>
+			</div>
 		</Stack>
 	);
 };

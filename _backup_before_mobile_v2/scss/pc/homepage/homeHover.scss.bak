@@ -1,0 +1,139 @@
+/**
+ * BOSH SAHIFA — hover effektlari: Events kartalari, Community (News / Free Board) kartalari, "Find a dealer" tugmasi.
+ * main.scss oxirida import qilinadi. Faqat sichqoncha bor qurilmalarda (hover: hover) ishlaydi,
+ * "kamroq harakat" sozlamasi yoqilgan bo'lsa harakatlar o'chadi.
+ */
+$hh-ease: cubic-bezier(0.23, 1, 0.32, 1);
+
+#pc-wrap .home-page {
+	/* ---------- EVENTS ---------- */
+	.events .event-card {
+		transition: transform 320ms $hh-ease, box-shadow 320ms $hh-ease;
+		img {
+			transition: transform 700ms $hh-ease, filter 320ms ease;
+		}
+		&::after {
+			transition: opacity 320ms ease;
+		}
+		.info {
+			transition: transform 320ms $hh-ease;
+		}
+		.event-city {
+			transition: color 200ms ease;
+		}
+	}
+
+	/* ---------- COMMUNITY: News (gorizontal) va Free Board (vertikal) ---------- */
+	.community-board {
+		.horizontal-card {
+			border: 1px solid transparent;
+			transition: background-color 200ms ease, border-color 200ms ease, box-shadow 280ms $hh-ease,
+				transform 280ms $hh-ease;
+			img {
+				transition: transform 500ms $hh-ease;
+			}
+		}
+		.vertical-card {
+			transition: transform 280ms $hh-ease;
+			.community-img img {
+				transition: transform 600ms $hh-ease;
+			}
+			.community-rank {
+				transition: background-color 200ms ease, color 200ms ease;
+			}
+		}
+	}
+
+	/* ---------- "Find a dealer" (Sell promo bloki) ---------- */
+	.sell-promo .sp-btn {
+		gap: 10px;
+		transition: background-color 200ms ease, box-shadow 280ms $hh-ease, transform 160ms $hh-ease;
+		&::after {
+			content: '→';
+			display: inline-block;
+			font-weight: 800;
+			transition: transform 280ms $hh-ease;
+		}
+		&:focus-visible {
+			outline: 2px solid $c-primary;
+			outline-offset: 3px;
+		}
+		&:active {
+			transform: scale(0.97);
+		}
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.events .event-card:hover {
+			transform: translateY(-4px);
+			box-shadow: 0 24px 48px -24px rgba(16, 17, 22, 0.55);
+			img {
+				transform: scale(1.06);
+				filter: saturate(1.08);
+			}
+			&::after {
+				opacity: 0.9;
+			}
+			.info {
+				transform: translateY(-4px);
+			}
+			.event-city {
+				color: #d2e1ff;
+			}
+		}
+
+		.community-board .horizontal-card:hover {
+			border-color: $c-line;
+			background: $c-surface;
+			box-shadow: 0 14px 32px -18px rgba(20, 23, 28, 0.35);
+			transform: translateY(-2px);
+			img {
+				transform: scale(1.04);
+			}
+		}
+		.community-board .vertical-card:hover {
+			transform: translateY(-3px);
+			.community-img img {
+				transform: scale(1.06);
+			}
+			.community-rank {
+				background: $c-primary;
+				color: #ffffff;
+			}
+		}
+
+		.sell-promo .sp-btn:hover {
+			background: $c-primary-dark;
+			box-shadow: 0 14px 28px -12px rgba(0, 87, 255, 0.6);
+			transform: translateY(-2px);
+			&::after {
+				transform: translateX(4px);
+			}
+		}
+		.sell-promo .sp-btn:active {
+			transform: scale(0.97);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.events .event-card,
+		.events .event-card img,
+		.events .event-card .info,
+		.community-board .horizontal-card,
+		.community-board .horizontal-card img,
+		.community-board .vertical-card,
+		.community-board .vertical-card .community-img img,
+		.sell-promo .sp-btn,
+		.sell-promo .sp-btn::after {
+			transition: none;
+		}
+		.events .event-card:hover,
+		.events .event-card:hover img,
+		.events .event-card:hover .info,
+		.community-board .horizontal-card:hover,
+		.community-board .vertical-card:hover,
+		.sell-promo .sp-btn:hover {
+			transform: none;
+		}
+	}
+}

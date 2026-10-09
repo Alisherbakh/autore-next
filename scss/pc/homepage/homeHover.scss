@@ -1,0 +1,244 @@
+/**
+ * BOSH SAHIFA — hover effektlari: Events kartalari, Community (News / Free Board) kartalari, "Find a dealer" tugmasi.
+ * main.scss oxirida import qilinadi. Faqat sichqoncha bor qurilmalarda (hover: hover) ishlaydi,
+ * "kamroq harakat" sozlamasi yoqilgan bo'lsa harakatlar o'chadi.
+ */
+$hh-ease: cubic-bezier(0.23, 1, 0.32, 1);
+
+#pc-wrap .home-page {
+	/* ---------- EVENTS ---------- */
+	.events .event-card {
+		transition: transform 320ms $hh-ease, box-shadow 320ms $hh-ease;
+		img {
+			transition: transform 700ms $hh-ease, filter 320ms ease;
+		}
+		&::after {
+			transition: opacity 320ms ease;
+		}
+		.info {
+			transition: transform 320ms $hh-ease;
+		}
+		.event-city {
+			transition: color 200ms ease;
+		}
+	}
+
+	/* ---------- COMMUNITY: News (gorizontal) va Free Board (vertikal) ---------- */
+	.community-board {
+		.horizontal-card {
+			border: 1px solid transparent;
+			transition: background-color 200ms ease, border-color 200ms ease, box-shadow 280ms $hh-ease,
+				transform 280ms $hh-ease;
+			img {
+				transition: transform 500ms $hh-ease;
+			}
+		}
+		.vertical-card {
+			transition: transform 280ms $hh-ease;
+			.community-img img {
+				transition: transform 600ms $hh-ease;
+			}
+			.community-rank {
+				transition: background-color 200ms ease, color 200ms ease;
+			}
+		}
+	}
+
+	/* ---------- "Find a dealer" (Sell promo bloki) ---------- */
+	.sell-promo .sp-btn {
+		gap: 10px;
+		transition: background-color 200ms ease, box-shadow 280ms $hh-ease, transform 160ms $hh-ease;
+		&::after {
+			content: '→';
+			display: inline-block;
+			font-weight: 800;
+			transition: transform 280ms $hh-ease;
+		}
+		&:focus-visible {
+			outline: 2px solid $c-primary;
+			outline-offset: 3px;
+		}
+		&:active {
+			transform: scale(0.97);
+		}
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.events .event-card:hover {
+			transform: translateY(-4px);
+			box-shadow: 0 24px 48px -24px rgba(16, 17, 22, 0.55);
+			img {
+				transform: scale(1.06);
+				filter: saturate(1.08);
+			}
+			&::after {
+				opacity: 0.9;
+			}
+			.info {
+				transform: translateY(-4px);
+			}
+			.event-city {
+				color: #d2e1ff;
+			}
+		}
+
+		.community-board .horizontal-card:hover {
+			border-color: $c-line;
+			background: $c-surface;
+			box-shadow: 0 14px 32px -18px rgba(20, 23, 28, 0.35);
+			transform: translateY(-2px);
+			img {
+				transform: scale(1.04);
+			}
+		}
+		.community-board .vertical-card:hover {
+			transform: translateY(-3px);
+			.community-img img {
+				transform: scale(1.06);
+			}
+			.community-rank {
+				background: $c-primary;
+				color: #ffffff;
+			}
+		}
+
+		.sell-promo .sp-btn:hover {
+			background: $c-primary-dark;
+			box-shadow: 0 14px 28px -12px rgba(0, 87, 255, 0.6);
+			transform: translateY(-2px);
+			&::after {
+				transform: translateX(4px);
+			}
+		}
+		.sell-promo .sp-btn:active {
+			transform: scale(0.97);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.events .event-card,
+		.events .event-card img,
+		.events .event-card .info,
+		.community-board .horizontal-card,
+		.community-board .horizontal-card img,
+		.community-board .vertical-card,
+		.community-board .vertical-card .community-img img,
+		.sell-promo .sp-btn,
+		.sell-promo .sp-btn::after {
+			transition: none;
+		}
+		.events .event-card:hover,
+		.events .event-card:hover img,
+		.events .event-card:hover .info,
+		.community-board .horizontal-card:hover,
+		.community-board .vertical-card:hover,
+		.sell-promo .sp-btn:hover {
+			transform: none;
+		}
+	}
+}
+
+/* ---------- Header filter: "Car type" ro'yxati — studiya (render) rasmlari ---------- */
+#pc-wrap .sf-bar .sf-type {
+	background: linear-gradient(180deg, #f3f2ee 0%, #ffffff 75%);
+	border: 1px solid $c-line;
+	box-sizing: border-box;
+	img {
+		inset: auto 6% 6% 6%;
+		width: 88%;
+		height: 72%;
+		object-fit: contain;
+		object-position: center bottom;
+		filter: drop-shadow(0 10px 12px rgba(20, 23, 28, 0.18));
+	}
+	// yorug' fonda qorong'i gradient kerak emas — yozuv tepada, to'q rangda
+	&::after {
+		display: none;
+	}
+	span {
+		top: 10px;
+		bottom: auto;
+		left: 14px;
+		color: $c-text;
+		font-size: 14px;
+	}
+	&.active {
+		border-color: $c-primary;
+		background: linear-gradient(180deg, #e8eeff 0%, #ffffff 75%);
+	}
+	@media (hover: hover) and (pointer: fine) {
+		&:hover {
+			border-color: $c-text;
+		}
+		&:hover img {
+			transform: scale(1.05) translateY(-2px);
+		}
+	}
+}
+
+// ── Pay your way: kartadagi like (yurak) tugmasi ──
+#pc-wrap .pay-way {
+	.pw-item {
+		position: relative;
+		display: flex;
+		min-width: 0;
+		> .pw-car {
+			flex: 1;
+			min-width: 0;
+		}
+	}
+	.pw-fav {
+		position: absolute;
+		top: 12px;
+		right: 12px;
+		z-index: 2;
+		width: 36px;
+		height: 36px;
+		padding: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border: 0;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.92);
+		box-shadow: 0 2px 8px rgba(35, 38, 47, 0.18);
+		color: #23262f;
+		cursor: pointer;
+		transition: transform 160ms cubic-bezier(0.2, 0, 0, 1), background-color 150ms ease;
+		svg {
+			font-size: 20px;
+		}
+		&:active {
+			transform: scale(0.92);
+		}
+		&:focus-visible {
+			outline: 2px solid #ffffff;
+			outline-offset: 2px;
+		}
+	}
+	@media (hover: hover) and (pointer: fine) {
+		.pw-fav:hover {
+			background: #ffffff;
+			transform: scale(1.06);
+		}
+		// kartaga hover bo'lganda yurak ham karta bilan birga ko'tariladi
+		.pw-item:hover .pw-fav {
+			translate: 0 -4px;
+		}
+		.pw-item:hover .pw-car {
+			transform: translateY(-4px);
+			box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.6);
+			img {
+				transform: scale(1.04);
+			}
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.pw-fav,
+		.pw-item:hover .pw-fav {
+			transition: none;
+			transform: none;
+			translate: none;
+		}
+	}
+}

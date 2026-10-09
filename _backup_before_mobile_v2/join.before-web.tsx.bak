@@ -1,0 +1,295 @@
+import React, { useCallback, useState } from 'react';
+import { NextPage } from 'next';
+import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
+import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
+import { Box, Button, Checkbox, FormControlLabel, FormGroup, Stack } from '@mui/material';
+import { useRouter } from 'next/router';
+import { logIn, signUp } from '../../libs/auth';
+import { sweetMixinErrorAlert } from '../../libs/sweetAlert';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { useTranslation } from 'next-i18next';
+
+export const getStaticProps = async ({ locale }: any) => ({
+	props: {
+		...(await serverSideTranslations(locale, ['common'])),
+	},
+});
+
+const Join: NextPage = () => {
+	const router = useRouter();
+	const device = useDeviceDetect();
+	const { t } = useTranslation('common');
+	const [input, setInput] = useState({ nick: '', password: '', phone: '', type: 'USER' });
+	const [loginView, setLoginView] = useState<boolean>(true);
+
+	/** HANDLERS **/
+	// "SIGNUP"/"LOGIN" havolasi bosilganda: forma ko'rinishini login yoki ro'yxatdan o'tish rejimiga almashtiradi
+	const viewChangeHandler = (state: boolean) => {
+		setLoginView(state);
+	};
+
+	// "User"/"Dealer" checkbox'laridan biri bosilganda: tanlangan turni input.type'ga yozadi,
+	// belgi olib tashlansa standart "USER" turiga qaytaradi
+	const checkUserTypeHandler = (e: any) => {
+		const checked = e.target.checked;
+		if (checked) {
+			const value = e.target.name;
+			handleInput('type', value);
+		} else {
+			handleInput('type', 'USER');
+		}
+	};
+
+	// istalgan input maydoni (nick/password/phone/type) o'zgarganda umumiy input state'ini yangilaydi
+	const handleInput = useCallback((name: any, value: any) => {
+		setInput((prev) => {
+			return { ...prev, [name]: value };
+		});
+	}, []);
+
+	// "LOGIN" bosilganda: libs/auth/index.ts dagi logIn() funksiyasini chaqiradi (token oladi, userVar'ni to'ldiradi),
+	// muvaffaqiyatli bo'lsa referrer sahifasiga (yoki bosh sahifaga) qaytaradi
+	const doLogin = useCallback(async () => {
+		console.warn(input);
+		try {
+			await logIn(input.nick, input.password);
+			await router.push(`${router.query.referrer ?? '/'}`);
+		} catch (err: any) {
+			await sweetMixinErrorAlert(err.message);
+		}
+	}, [input]);
+
+	// "SIGNUP" bosilganda: libs/auth/index.ts dagi signUp() funksiyasini chaqiradi (ro'yxatdan o'tkazadi, token oladi),
+	// muvaffaqiyatli bo'lsa referrer sahifasiga (yoki bosh sahifaga) qaytaradi
+	const doSignUp = useCallback(async () => {
+		console.warn(input);
+		try {
+			await signUp(input.nick, input.password, input.phone, input.type);
+			await router.push(`${router.query.referrer ?? '/'}`);
+		} catch (err: any) {
+			await sweetMixinErrorAlert(err.message);
+		}
+	}, [input]);
+
+	console.log('+input: ', input);
+
+	if (device === 'mobile') {
+		// mobil: bitta ekran — Login / Sign up tablari (o'sha viewChangeHandler), maydonlar 16px (iOS zoom bo'lmasligi uchun)
+		const submit = loginView ? doLogin : doSignUp;
+		const disabled = loginView
+			? input.nick == '' || input.password == ''
+			: input.nick == '' || input.password == '' || input.phone == '' || input.type == '';
+		const onEnter = (event: any) => {
+			if (event.key == 'Enter' && !disabled) submit();
+		};
+		return (
+			<Stack className={'m-join'}>
+				<div className={'m-join-hero'}>
+					<span className={'m-join-brand'}>AUTORE</span>
+					<h1>{loginView ? t('Welcome back') : t('Create your account')}</h1>
+					<p>{t('Korea’s marketplace for new and used cars')}</p>
+				</div>
+				<div className={'m-join-card'}>
+					<div className={'m-segment'} role="tablist">
+						<button type="button" role="tab" aria-selected={loginView} className={loginView ? 'is-active' : ''} onClick={() => viewChangeHandler(true)}>
+							{t('Login')}
+						</button>
+						<button type="button" role="tab" aria-selected={!loginView} className={!loginView ? 'is-active' : ''} onClick={() => viewChangeHandler(false)}>
+							{t('Sign up')}
+						</button>
+					</div>
+					<label className={'m-field'}>
+						<span>{t('Nickname')}</span>
+						<input type="text" autoComplete="username" placeholder={t('Your nickname')} onChange={(e) => handleInput('nick', e.target.value)} onKeyDown={onEnter} />
+					</label>
+					<label className={'m-field'}>
+						<span>{t('Password')}</span>
+						<input
+							type="password"
+							autoComplete={loginView ? 'current-password' : 'new-password'}
+							placeholder={t('Your password')}
+							onChange={(e) => handleInput('password', e.target.value)}
+							onKeyDown={onEnter}
+						/>
+					</label>
+					{!loginView && (
+						<>
+							<label className={'m-field'}>
+								<span>{t('Phone')}</span>
+								<input type="tel" autoComplete="tel" placeholder={'010-0000-0000'} onChange={(e) => handleInput('phone', e.target.value)} onKeyDown={onEnter} />
+							</label>
+							<div className={'m-field'}>
+								<span>{t('I am a')}</span>
+								<div className={'m-join-types'} role="radiogroup" aria-label={t('Account type')}>
+									<button type="button" role="radio" aria-checked={input.type == 'USER'} className={input.type == 'USER' ? 'is-active' : ''} onClick={() => handleInput('type', 'USER')}>
+										{t('Buyer (User)')}
+									</button>
+									<button type="button" role="radio" aria-checked={input.type == 'DEALER'} className={input.type == 'DEALER' ? 'is-active' : ''} onClick={() => handleInput('type', 'DEALER')}>
+										{t('Dealer')}
+									</button>
+								</div>
+							</div>
+						</>
+					)}
+					<Button className={'m-join-submit'} disabled={disabled} onClick={submit}>
+						{loginView ? t('Login') : t('Create account')}
+					</Button>
+					<p className={'m-join-switch'}>
+						{loginView ? t('New to Autore?') : t('Already have an account?')}{' '}
+						<button type="button" onClick={() => viewChangeHandler(!loginView)}>
+							{loginView ? t('Sign up') : t('Login')}
+						</button>
+					</p>
+				</div>
+			</Stack>
+		);
+	} else {
+		return (
+			<Stack className={'join-page'}>
+				<Stack className={'container'}>
+					<Stack className={'main'}>
+						<Stack className={'left'}>
+							{/* @ts-ignore */}
+							<Box className={'logo'}>
+								<img src="/img/logo/logoText.svg" alt="" />
+								<span>Autore</span>
+							</Box>
+							<Box className={'info'}>
+								<span>{loginView ? 'login' : 'signup'}</span>
+								<p>{loginView ? 'Login' : 'Sign'} in with this account across the following sites.</p>
+							</Box>
+							<Box className={'input-wrap'}>
+								<div className={'input-box'}>
+									<span>Nickname</span>
+									<input
+										type="text"
+										placeholder={'Enter Nickname'}
+										onChange={(e) => handleInput('nick', e.target.value)}
+										required={true}
+										onKeyDown={(event) => {
+											if (event.key == 'Enter' && loginView) doLogin();
+											if (event.key == 'Enter' && !loginView) doSignUp();
+										}}
+									/>
+								</div>
+								<div className={'input-box'}>
+									<span>Password</span>
+									<input
+										type="text"
+										placeholder={'Enter Password'}
+										onChange={(e) => handleInput('password', e.target.value)}
+										required={true}
+										onKeyDown={(event) => {
+											if (event.key == 'Enter' && loginView) doLogin();
+											if (event.key == 'Enter' && !loginView) doSignUp();
+										}}
+									/>
+								</div>
+								{!loginView && (
+									<div className={'input-box'}>
+										<span>Phone</span>
+										<input
+											type="text"
+											placeholder={'Enter Phone'}
+											onChange={(e) => handleInput('phone', e.target.value)}
+											required={true}
+											onKeyDown={(event) => {
+												if (event.key == 'Enter') doSignUp();
+											}}
+										/>
+									</div>
+								)}
+							</Box>
+							<Box className={'register'}>
+								{!loginView && (
+									<div className={'type-option'}>
+										<span className={'text'}>I want to be registered as:</span>
+										<div>
+											<FormGroup>
+												<FormControlLabel
+													control={
+														<Checkbox
+															size="small"
+															name={'USER'}
+															onChange={checkUserTypeHandler}
+															checked={input?.type == 'USER'}
+														/>
+													}
+													label="User"
+												/>
+											</FormGroup>
+											<FormGroup>
+												<FormControlLabel
+													control={
+														<Checkbox
+															size="small"
+															name={'DEALER'}
+															onChange={checkUserTypeHandler}
+															checked={input?.type == 'DEALER'}
+														/>
+													}
+													label="Dealer"
+												/>
+											</FormGroup>
+										</div>
+									</div>
+								)}
+
+								{loginView && (
+									<div className={'remember-info'}>
+										<FormGroup>
+											<FormControlLabel control={<Checkbox defaultChecked size="small" />} label="Remember me" />
+										</FormGroup>
+										<a>Lost your password?</a>
+									</div>
+								)}
+
+								{loginView ? (
+									<Button
+										variant="contained"
+										endIcon={<img src="/img/icons/rightup.svg" alt="" />}
+										disabled={input.nick == '' || input.password == ''}
+										onClick={doLogin}
+									>
+										LOGIN
+									</Button>
+								) : (
+									<Button
+										variant="contained"
+										disabled={input.nick == '' || input.password == '' || input.phone == '' || input.type == ''}
+										onClick={doSignUp}
+										endIcon={<img src="/img/icons/rightup.svg" alt="" />}
+									>
+										SIGNUP
+									</Button>
+								)}
+							</Box>
+							<Box className={'ask-info'}>
+								{loginView ? (
+									<p>
+										Not registered yet?
+										<b
+											onClick={() => {
+												viewChangeHandler(false);
+											}}
+										>
+											SIGNUP
+										</b>
+									</p>
+								) : (
+									<p>
+										Have account?
+										<b onClick={() => viewChangeHandler(true)}> LOGIN</b>
+									</p>
+								)}
+							</Box>
+						</Stack>
+						<Stack className={'right'}></Stack>
+					</Stack>
+				</Stack>
+			</Stack>
+		);
+	}
+};
+
+export default withLayoutBasic(Join);

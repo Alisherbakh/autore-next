@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react';
+import useDeviceDetect from '../../hooks/useDeviceDetect';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import MenuList from '../admin/AdminMenuList';
@@ -24,6 +25,7 @@ const drawerWidth = 280;
 const withAdminLayout = (Component: ComponentType) => {
 	return (props: object) => {
 		const router = useRouter();
+		const device = useDeviceDetect();
 		const user = useReactiveVar(userVar);
 		const [settingsState, setSettingsStateState] = useState(false);
 		const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
@@ -67,6 +69,17 @@ const withAdminLayout = (Component: ComponentType) => {
 		};
 
 		if (!user || user?.memberType !== MemberType.ADMIN) return null;
+
+		// admin panel faqat kompyuterda ishlaydi — telefonda qisqa xabar ko'rsatiladi
+		if (device === 'mobile') {
+			return (
+				<div className={'m-admin-note'}>
+					<strong>Admin panel</strong>
+					<p>Please open the admin panel on a computer. It is designed for larger screens.</p>
+					<a href="/">Back to Autore</a>
+				</div>
+			);
+		}
 
 		return (
 			<main id="pc-wrap" className="admin">

@@ -41,7 +41,7 @@ const TrendCarCard = (props: TrendCarCardProps) => {
 	const specs = [
 		{ icon: '/img/icons/calendar.svg', text: String(car.carYear) },
 		{ icon: '/img/icons/speedometer.svg', text: `${car.carMileage?.toLocaleString()} km` },
-		{ icon: '/img/icons/fuel.svg', text: formatEnum(car.carFuelType) },
+		{ icon: '/img/icons/fuel.svg', text: t(formatEnum(car.carFuelType)) },
 		{ icon: '/img/icons/gear.svg', text: t(formatEnum(car.carTransmission)) },
 	];
 

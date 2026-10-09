@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Stack, Box } from '@mui/material';
+import { Stack } from '@mui/material';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import WestIcon from '@mui/icons-material/West';
 import EastIcon from '@mui/icons-material/East';
@@ -14,6 +14,7 @@ import { T } from '../../types/common';
 import { LIKE_TARGET_CAR } from '../../../apollo/user/mutation';
 import { Message } from '../../enums/common.enum';
 import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../sweetAlert';
+import SectionHead from './SectionHead';
 
 
 
@@ -92,21 +93,24 @@ const TopCars = (props: TopCarsProps) => {
 		);
 	} else {
 		return (
-			<Stack className={'top-cars'}>
+			<Stack component={'section'} className={'top-cars hp-section is-dark'}>
 				<Stack className={'container'}>
-					<Stack className={'info-box'}>
-						<Box component={'div'} className={'left'}>
-							<span>Top cars</span>
-							<p>Check out our Top Cars</p>
-						</Box>
-						<Box component={'div'} className={'right'}>
-							<div className={'pagination-box'}>
-								<WestIcon className={'swiper-top-prev'} />
+					<SectionHead
+						tone={'dark'}
+						title={'Top cars'}
+						sub={'Check out our Top Cars'}
+						actions={
+							<div className={'hp-nav'}>
+								<button type={'button'} className={'hp-nav-btn swiper-top-prev'} aria-label={'Previous'}>
+									<WestIcon />
+								</button>
 								<div className={'swiper-top-pagination'}></div>
-								<EastIcon className={'swiper-top-next'} />
+								<button type={'button'} className={'hp-nav-btn swiper-top-next'} aria-label={'Next'}>
+									<EastIcon />
+								</button>
 							</div>
-						</Box>
-					</Stack>
+						}
+					/>
 					<Stack className={'card-box'}>
 						<Swiper
 							className={'top-car-swiper'}

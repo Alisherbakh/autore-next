@@ -1,0 +1,1883 @@
+/**
+ * BOSH SAHIFA (desktop daraxti — #pc-wrap). Mobil bosh sahifa scss/mobile/main.scss da.
+ * Tizim: 8px qadam, bo'lim oralig'i 96 / 64 / 48px, karta burchagi $r-md,
+ * harakat — kuchli ease-out, 160–240ms; hover faqat sichqonchali qurilmalarda.
+ */
+$hp-ease: cubic-bezier(0.23, 1, 0.32, 1);
+$hp-graphite: #15171c; // "Top cars" to'q bandi va hero foni bilan bir oila
+
+@keyframes hp-rise {
+	from {
+		opacity: 0;
+		transform: translateY(12px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+#pc-wrap {
+	/* ---------- HERO: sarlavha + CTA, 3D galereya, qidiruv ---------- */
+	.header-main.hero-search.hero-gallery {
+		position: relative;
+		z-index: 3; // qidiruv dropdownlari keyingi bo'limlar ustida ochilishi uchun
+		height: auto;
+		padding: 128px 0 56px; // shaffof navbar ostidan boshlanadi
+		box-sizing: border-box;
+		// Seul tungi yo'l chiroqlari (public/img/fiber/CREDITS.md) + Graphite qatlam:
+		// sarlavha tepada o'qilishi uchun to'qroq, galereya atrofida ochiqroq, qidiruv ostida yana to'q
+		background: linear-gradient(
+				180deg,
+				rgba(16, 17, 22, 0.78) 0%,
+				rgba(16, 17, 22, 0.5) 40%,
+				rgba(16, 17, 22, 0.42) 62%,
+				rgba(16, 17, 22, 0.88) 100%
+			),
+			url('/img/banner/home-seoul-night.jpg') center / cover no-repeat;
+
+		.hero-intro {
+			width: min(1300px, calc(100% - 48px));
+			margin: 0 auto;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			text-align: center;
+			> * {
+				animation: hp-rise 640ms $hp-ease both;
+			}
+			> :nth-child(2) {
+				animation-delay: 70ms;
+			}
+			> :nth-child(3) {
+				animation-delay: 140ms;
+			}
+			> :nth-child(4) {
+				animation-delay: 210ms;
+			}
+		}
+		h1 {
+			margin: 0;
+			max-width: 20ch;
+			color: #ffffff;
+			font-family: $font;
+			font-size: clamp(40px, 3.4vw + 12px, 64px);
+			font-weight: 800;
+			line-height: 1.04;
+			letter-spacing: -0.035em;
+			text-wrap: balance;
+		}
+		.hero-sub {
+			margin: 20px 0 0;
+			max-width: 52ch;
+			text-wrap: pretty;
+			color: rgba(255, 255, 255, 0.8);
+			font-family: $font;
+			font-size: 18px;
+			line-height: 1.55;
+		}
+		.hero-actions {
+			margin-top: 32px;
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 12px;
+		}
+		.hero-btn {
+			height: 52px;
+			padding: 0 28px;
+			box-sizing: border-box;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 12px;
+			font-family: $font;
+			font-size: 16px;
+			font-weight: 700;
+			transition: transform 160ms $hp-ease, background-color 150ms ease, border-color 150ms ease;
+			&:active {
+				transform: scale(0.97);
+			}
+			&:focus-visible {
+				outline: 2px solid #ffffff;
+				outline-offset: 3px;
+			}
+			&.is-primary {
+				background: $c-primary;
+				color: #ffffff;
+			}
+			&.is-ghost {
+				border: 1px solid rgba(255, 255, 255, 0.42);
+				color: #ffffff;
+			}
+		}
+		.hero-trust {
+			margin: 28px 0 0;
+			padding: 0;
+			list-style: none;
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 8px 28px;
+			li {
+				display: inline-flex;
+				align-items: center;
+				gap: 8px;
+				color: rgba(255, 255, 255, 0.78);
+				font-family: $font;
+				font-size: 14px;
+				font-weight: 600;
+			}
+			svg {
+				color: #8db6ff;
+			}
+		}
+
+		// FiberContainer'ning inline o'lchamlari (marginTop 100px, height 512px) faqat shu yerda moslanadi
+		.threeJSContainer {
+			margin-top: 32px !important;
+			height: 380px !important;
+			cursor: ew-resize; // g'ildirak/trackpad bilan gorizontal aylantirish
+		}
+		// statik galereyada aylantirish yo'q — "Scroll to explore" yashiriladi
+		.threeJSContainer:has(.gallery-fallback) + .gallery-hint {
+			display: none;
+		}
+		// WebGL ishlamaganda (FiberContainer → StaticGallery): 3 ta rasm yonma-yon
+		.gallery-fallback {
+			height: 100%;
+			padding: 24px 48px;
+			box-sizing: border-box;
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			gap: 24px;
+			cursor: default;
+			img {
+				flex: 1;
+				min-width: 0;
+				height: 320px;
+				object-fit: cover;
+				border-radius: $r-md;
+			}
+		}
+		.gallery-hint {
+			margin-top: 8px;
+			align-self: center;
+			color: rgba(255, 255, 255, 0.72);
+			font-family: $font;
+			font-size: 13px;
+			font-weight: 600;
+		}
+
+		@media (hover: hover) and (pointer: fine) {
+			.hero-btn.is-primary:hover {
+				background: $c-primary-dark;
+			}
+			.hero-btn.is-ghost:hover {
+				border-color: #ffffff;
+				background: rgba(255, 255, 255, 0.08);
+			}
+		}
+		@media (prefers-reduced-motion: reduce) {
+			.hero-intro > * {
+				animation: none;
+			}
+			.hero-btn {
+				transition: none;
+				&:active {
+					transform: none;
+				}
+			}
+		}
+		@media (max-width: 768px) {
+			padding-top: 120px;
+			.hero-sub {
+				font-size: 16px;
+			}
+			.threeJSContainer {
+				height: 320px !important;
+			}
+		}
+		@media (max-width: 480px) {
+			.hero-actions {
+				width: 100%;
+				flex-direction: column;
+			}
+			.hero-btn {
+				width: 100%;
+			}
+		}
+	}
+
+	/* ---------- BOSH SAHIFA: umumiy bo'lim tizimi ---------- */
+	.home-page {
+		background: $c-bg;
+
+		.container {
+			// 1300px'dan tor oynalarda bo'limlar chetga yopishmasin va gorizontal aylanish bo'lmasin
+			width: min(1300px, calc(100% - 48px));
+			flex-direction: column;
+		}
+
+		.hp-section {
+			padding: 96px 0;
+		}
+
+		/* SectionHead */
+		.hp-head {
+			margin-bottom: 40px;
+			display: flex;
+			flex-wrap: wrap;
+			align-items: flex-end;
+			justify-content: space-between;
+			gap: 16px 32px;
+			h2 {
+				margin: 0;
+				color: $c-text;
+				font-family: $font;
+				font-size: clamp(28px, 1.6vw + 18px, 40px);
+				font-weight: 800;
+				line-height: 1.1;
+				letter-spacing: -0.03em;
+				text-wrap: balance;
+			}
+			p {
+				margin: 10px 0 0;
+				color: $c-muted;
+				font-family: $font;
+				font-size: 16px;
+				line-height: 1.5;
+			}
+			&.is-dark {
+				h2 {
+					color: #ffffff;
+				}
+				p {
+					color: rgba(255, 255, 255, 0.72);
+				}
+			}
+		}
+		.hp-head-actions {
+			display: flex;
+			align-items: center;
+			gap: 24px;
+		}
+		.hp-more {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			color: $c-text;
+			font-family: $font;
+			font-size: 15px;
+			font-weight: 700;
+			border-radius: 6px;
+			img {
+				transition: transform 200ms $hp-ease;
+			}
+			&:focus-visible {
+				outline: 2px solid $c-primary;
+				outline-offset: 4px;
+			}
+		}
+
+		/* swiper boshqaruvlari: oldingi / sahifa nuqtalari / keyingi */
+		.hp-nav {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			[class$='-pagination'] {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				width: auto;
+			}
+			.swiper-pagination-bullet {
+				width: 6px;
+				height: 6px;
+				margin: 0 !important;
+				background: rgba(35, 38, 47, 0.24);
+				opacity: 1;
+				transition: background-color 200ms ease, transform 200ms $hp-ease;
+			}
+			.swiper-pagination-bullet-active {
+				background: $c-primary;
+				transform: scale(1.35);
+			}
+		}
+		.hp-nav-btn {
+			flex-shrink: 0;
+			width: 44px;
+			height: 44px;
+			padding: 0;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			border: 1px solid $c-line;
+			border-radius: 50%;
+			background: $c-surface;
+			color: $c-text;
+			cursor: pointer;
+			transition: transform 160ms $hp-ease, border-color 150ms ease, opacity 150ms ease;
+			svg {
+				font-size: 20px;
+			}
+			&:active {
+				transform: scale(0.94);
+			}
+			&:focus-visible {
+				outline: 2px solid $c-primary;
+				outline-offset: 2px;
+			}
+			&.swiper-button-disabled {
+				opacity: 0.4;
+				cursor: default;
+			}
+		}
+		.hp-head.is-dark {
+			.hp-nav-btn {
+				border-color: rgba(255, 255, 255, 0.24);
+				background: transparent;
+				color: #ffffff;
+			}
+			.swiper-pagination-bullet {
+				background: rgba(255, 255, 255, 0.32);
+			}
+			.swiper-pagination-bullet-active {
+				background: #ffffff;
+			}
+		}
+
+		/* karusellar: kartalar slayd kengligini to'ldiradi */
+		.swiper {
+			width: 100%;
+		}
+		.tc-card {
+			width: 100%;
+			height: 100%;
+		}
+		.trend-car-slide,
+		.top-car-slide {
+			width: calc((100% - 3 * 15px) / 4);
+			height: auto;
+		}
+		.popular-car-slide {
+			width: calc((100% - 3 * 25px) / 4);
+			height: auto;
+		}
+
+		@media (hover: hover) and (pointer: fine) {
+			.hp-more:hover {
+				color: $c-primary;
+				img {
+					transform: translate(2px, -2px);
+				}
+			}
+			.hp-nav-btn:not(.swiper-button-disabled):hover {
+				border-color: $c-text;
+			}
+			.hp-head.is-dark .hp-nav-btn:not(.swiper-button-disabled):hover {
+				border-color: #ffffff;
+			}
+		}
+		@media (prefers-reduced-motion: reduce) {
+			.hp-more img,
+			.hp-nav-btn,
+			.swiper-pagination-bullet {
+				transition: none;
+			}
+			.hp-nav-btn:active {
+				transform: none;
+			}
+		}
+	}
+
+	/* ---------- BRENDLAR QATORI ---------- */
+	.home-page .brand-strip {
+		background: $c-surface;
+		border-bottom: 1px solid $c-line;
+		.container {
+			min-height: 88px;
+			padding: 16px 0;
+			box-sizing: border-box;
+			flex-direction: row; // MUI Stack standart ustun yo'nalishini bekor qiladi
+			align-items: center;
+			gap: 24px;
+		}
+		.brand-label {
+			flex-shrink: 0;
+			color: $c-text;
+			font-family: $font;
+			font-size: 14px;
+			font-weight: 700;
+		}
+		.brand-list {
+			margin: 0;
+			padding: 0;
+			list-style: none;
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+		}
+		button {
+			height: 36px;
+			padding: 0 16px;
+			border: 1px solid $c-line;
+			border-radius: 999px;
+			background: $c-surface;
+			color: $c-muted;
+			font-family: $font;
+			font-size: 13px;
+			font-weight: 700;
+			letter-spacing: 0.06em;
+			cursor: pointer;
+			transition: color 150ms ease, border-color 150ms ease, transform 160ms $hp-ease;
+			&:active {
+				transform: scale(0.96);
+			}
+			&:focus-visible {
+				outline: 2px solid $c-primary;
+				outline-offset: 2px;
+			}
+		}
+		@media (hover: hover) and (pointer: fine) {
+			button:hover {
+				border-color: $c-primary;
+				color: $c-primary-dark;
+			}
+		}
+		@media (prefers-reduced-motion: reduce) {
+			button {
+				transition: none;
+				&:active {
+					transform: none;
+				}
+			}
+		}
+	}
+
+	/* ---------- TREND CARS ---------- */
+	.home-page .trend-cars {
+		background: $c-bg;
+		.empty-list {
+			width: 100%;
+			padding: 56px 24px;
+			box-sizing: border-box;
+			border: 1px dashed $c-line;
+			border-radius: $r-md;
+			color: $c-muted;
+			font-family: $font;
+			font-size: 15px;
+			text-align: center;
+		}
+	}
+
+	/* ---------- KUZOV TURLARI (bento) ---------- */
+	.home-page .car-types {
+		background: $c-surface;
+		.type-grid {
+			display: grid;
+			grid-template-columns: repeat(12, minmax(0, 1fr));
+			gap: 16px;
+		}
+		.type-tile {
+			position: relative;
+			grid-column: span 4;
+			height: 220px;
+			padding: 0;
+			overflow: hidden;
+			border: 0;
+			border-radius: $r-md;
+			background: $c-surface-2;
+			cursor: pointer;
+			&.is-large {
+				grid-column: span 6;
+				height: 320px;
+				.type-name strong {
+					font-size: 28px;
+				}
+			}
+			img {
+				position: absolute;
+				inset: 0;
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				transition: transform 400ms $hp-ease;
+			}
+			// pastki qism to'qlashadi — oq yozuv rasm ustida o'qilishi uchun
+			&::after {
+				content: '';
+				position: absolute;
+				inset: 0;
+				background: linear-gradient(180deg, rgba(16, 17, 22, 0) 45%, rgba(16, 17, 22, 0.72) 100%);
+			}
+			&:focus-visible {
+				outline: 3px solid $c-primary;
+				outline-offset: 3px;
+			}
+		}
+		.type-name {
+			position: absolute;
+			left: 20px;
+			right: 20px;
+			bottom: 18px;
+			z-index: 1;
+			display: flex;
+			align-items: flex-end;
+			justify-content: space-between;
+			gap: 12px;
+			strong {
+				color: #ffffff;
+				font-family: $font;
+				font-size: 22px;
+				font-weight: 800;
+				letter-spacing: -0.02em;
+			}
+			span {
+				display: inline-flex;
+				align-items: center;
+				gap: 6px;
+				color: rgba(255, 255, 255, 0.88);
+				font-family: $font;
+				font-size: 13px;
+				font-weight: 700;
+				svg {
+					transition: transform 200ms $hp-ease;
+				}
+			}
+		}
+		@media (hover: hover) and (pointer: fine) {
+			.type-tile:hover {
+				img {
+					transform: scale(1.04);
+				}
+				.type-name svg {
+					transform: translateX(3px);
+				}
+			}
+		}
+		@media (prefers-reduced-motion: reduce) {
+			.type-tile img,
+			.type-name svg {
+				transition: none;
+			}
+			.type-tile:hover img,
+			.type-tile:hover .type-name svg {
+				transform: none;
+			}
+		}
+	}
+
+	/* ---------- POPULAR CARS ---------- */
+	.home-page .popular-cars {
+		background: $c-bg;
+	}
+
+	/* ---------- REKLAMA VIDEOSI ---------- */
+	.home-page .hp-ad {
+		padding-top: 0;
+		background: $c-bg;
+		.video-frame {
+			width: 100%;
+			aspect-ratio: 21 / 9;
+			overflow: hidden;
+			border-radius: $r-lg;
+			background: $hp-graphite;
+		}
+		video {
+			display: block;
+		}
+	}
+
+	/* ---------- TOP CARS: to'q band ---------- */
+	.home-page .top-cars {
+		background: $hp-graphite;
+		.tc-card {
+			border-color: transparent;
+		}
+	}
+
+	/* ---------- TOP DEALERS ---------- */
+	.home-page .top-dealers {
+		background: $c-surface;
+		.wrapper,
+		.card-wrapper {
+			width: 100%;
+		}
+		.top-dealers-slide {
+			width: calc((100% - 4 * 29px) / 5);
+			height: auto;
+		}
+		.hp-dealer {
+			height: 100%;
+			padding: 32px 16px 28px;
+			box-sizing: border-box;
+			align-items: center;
+			text-align: center;
+			border-radius: $r-md;
+			background: $c-bg;
+			img {
+				width: 88px;
+				height: 88px;
+				object-fit: cover;
+				border-radius: 50%;
+				background: $c-surface-2;
+				box-shadow: 0 0 0 4px $c-surface, 0 0 0 5px $c-line;
+			}
+			strong {
+				margin-top: 18px;
+				max-width: 100%;
+				overflow: hidden;
+				color: $c-text;
+				font-family: $font;
+				font-size: 16px;
+				font-weight: 700;
+				line-height: 1.4;
+				white-space: nowrap;
+				text-overflow: ellipsis;
+			}
+		}
+		.hp-dealer-type {
+			margin-top: 8px;
+			padding: 4px 10px;
+			border-radius: 999px;
+			background: rgba(0, 87, 255, 0.08);
+			color: $c-primary-dark;
+			font-family: $font;
+			font-size: 12px;
+			font-weight: 700;
+			letter-spacing: 0.04em;
+		}
+	}
+
+	/* ---------- EVENTS (bento: 1 katta + 2) ---------- */
+	.home-page .events {
+		background: $c-bg;
+		.card-wrapper {
+			display: grid;
+			grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+			grid-template-rows: repeat(2, 272px);
+			gap: 16px;
+		}
+		.event-card {
+			position: relative;
+			overflow: hidden;
+			border-radius: $r-md;
+			background: $hp-graphite;
+			&.is-featured {
+				grid-row: span 2;
+				h3 {
+					font-size: 34px;
+				}
+				p {
+					-webkit-line-clamp: 3;
+				}
+			}
+			img {
+				position: absolute;
+				inset: 0;
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+			}
+			&::after {
+				content: '';
+				position: absolute;
+				inset: 0;
+				background: linear-gradient(
+					180deg,
+					rgba(16, 17, 22, 0) 15%,
+					rgba(16, 17, 22, 0.6) 55%,
+					rgba(16, 17, 22, 0.94) 100%
+				);
+			}
+		}
+		.info {
+			position: absolute;
+			left: 28px;
+			right: 28px;
+			bottom: 24px;
+			z-index: 1;
+			display: flex;
+			flex-direction: column;
+			h3 {
+				margin: 0;
+				color: #ffffff;
+				font-family: $font;
+				font-size: 22px;
+				font-weight: 800;
+				line-height: 1.15;
+				letter-spacing: -0.02em;
+				text-wrap: balance;
+			}
+			.event-city {
+				margin-top: 6px;
+				color: #a9c6ff;
+				font-family: $font;
+				font-size: 14px;
+				font-weight: 700;
+			}
+			p {
+				margin: 10px 0 0;
+				max-width: 52ch;
+				display: -webkit-box;
+				-webkit-box-orient: vertical;
+				-webkit-line-clamp: 2;
+				overflow: hidden;
+				color: rgba(255, 255, 255, 0.84);
+				font-family: $font;
+				font-size: 15px;
+				line-height: 1.5;
+			}
+		}
+	}
+
+	/* ---------- COMMUNITY ---------- */
+	.home-page .community-board {
+		background: $c-surface;
+		.community-main {
+			display: grid;
+			grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+			gap: 48px;
+		}
+		.content-top {
+			margin-bottom: 20px;
+			a {
+				display: inline-flex;
+				align-items: center;
+				gap: 8px;
+				color: $c-text;
+				font-family: $font;
+				font-size: 20px;
+				font-weight: 800;
+				border-radius: 6px;
+				img {
+					transition: transform 200ms $hp-ease;
+				}
+				&:focus-visible {
+					outline: 2px solid $c-primary;
+					outline-offset: 4px;
+				}
+			}
+		}
+		.community-left .card-wrap {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 24px 20px;
+		}
+		.community-right .card-wrap {
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+		}
+		.vertical-card,
+		.horizontal-card {
+			color: $c-text;
+			white-space: normal;
+			border-radius: 12px;
+			&:focus-visible {
+				outline: 2px solid $c-primary;
+				outline-offset: 4px;
+			}
+			strong {
+				display: -webkit-box;
+				-webkit-box-orient: vertical;
+				-webkit-line-clamp: 2;
+				overflow: hidden;
+				font-family: $font;
+				font-size: 15px;
+				font-weight: 700;
+				line-height: 1.4;
+				transition: color 150ms ease;
+			}
+		}
+		.community-meta {
+			color: $c-muted;
+			font-family: $font;
+			font-size: 13px;
+		}
+		.vertical-card {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+		}
+		.community-img {
+			position: relative;
+			display: block;
+			margin-bottom: 4px;
+			aspect-ratio: 4 / 3;
+			overflow: hidden;
+			border-radius: 12px;
+			background: $c-surface-2;
+			img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+			}
+		}
+		// tartib raqami ma'lumot tashiydi: ro'yxat ko'rishlar soni bo'yicha saralangan
+		.community-rank {
+			position: absolute;
+			top: 10px;
+			left: 10px;
+			width: 28px;
+			height: 28px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 50%;
+			background: $c-surface;
+			color: $c-text;
+			font-family: $font;
+			font-size: 13px;
+			font-weight: 800;
+			font-variant-numeric: tabular-nums;
+		}
+		.horizontal-card {
+			padding: 12px;
+			display: grid;
+			grid-template-columns: 88px minmax(0, 1fr);
+			align-items: center;
+			gap: 16px;
+			background: $c-bg;
+			img {
+				width: 88px;
+				height: 66px;
+				object-fit: cover;
+				border-radius: 8px;
+				background: $c-surface-2;
+			}
+		}
+		.horizontal-text {
+			display: flex;
+			flex-direction: column;
+			gap: 6px;
+			min-width: 0;
+		}
+		.community-empty {
+			grid-column: 1 / -1;
+			margin: 0;
+			padding: 40px 24px;
+			border: 1px dashed $c-line;
+			border-radius: $r-md;
+			background: $c-bg;
+			color: $c-muted;
+			font-family: $font;
+			font-size: 15px;
+			text-align: center;
+		}
+		.community-skeleton {
+			height: 200px;
+			border-radius: 12px;
+			background: linear-gradient(90deg, $c-surface-2 0%, #f6f8fc 50%, $c-surface-2 100%);
+			background-size: 200% 100%;
+			animation: tc-shimmer 1.2s linear infinite;
+		}
+		.community-right .community-skeleton {
+			height: 90px;
+		}
+		@media (hover: hover) and (pointer: fine) {
+			.content-top a:hover img {
+				transform: translateX(3px);
+			}
+			.vertical-card:hover strong,
+			.horizontal-card:hover strong {
+				color: $c-primary-dark;
+			}
+		}
+		@media (prefers-reduced-motion: reduce) {
+			.content-top a img,
+			.vertical-card strong,
+			.horizontal-card strong {
+				transition: none;
+			}
+			.community-skeleton {
+				animation: none;
+			}
+		}
+	}
+
+	/* ---------- MOSLASHUVCHAN: tor desktop oynalari ---------- */
+	@media (max-width: 1024px) {
+		.home-page {
+			.hp-section {
+				padding: 80px 0;
+			}
+			.trend-car-slide,
+			.top-car-slide {
+				width: calc((100% - 2 * 15px) / 3);
+			}
+			.popular-car-slide {
+				width: calc((100% - 2 * 25px) / 3);
+			}
+			.top-dealers .top-dealers-slide {
+				width: calc((100% - 3 * 29px) / 4);
+			}
+			.car-types .type-tile {
+				grid-column: span 6;
+			}
+			.events .card-wrapper {
+				grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+				grid-template-rows: 360px 260px;
+				.is-featured {
+					grid-column: 1 / -1;
+					grid-row: auto;
+				}
+			}
+			.community-board .community-main {
+				grid-template-columns: minmax(0, 1fr);
+			}
+		}
+	}
+	@media (max-width: 768px) {
+		.home-page {
+			.hp-section {
+				padding: 64px 0;
+			}
+			.hp-head {
+				margin-bottom: 32px;
+			}
+			.trend-car-slide,
+			.top-car-slide {
+				width: calc((100% - 15px) / 2);
+			}
+			.popular-car-slide {
+				width: calc((100% - 25px) / 2);
+			}
+			.top-dealers .top-dealers-slide {
+				width: calc((100% - 2 * 29px) / 3);
+			}
+			.brand-strip .container {
+				flex-direction: column;
+				align-items: flex-start;
+				gap: 12px;
+			}
+			.car-types .type-tile.is-large {
+				height: 260px;
+			}
+			.hp-ad .video-frame {
+				aspect-ratio: 16 / 9;
+			}
+			.events .card-wrapper {
+				grid-template-columns: minmax(0, 1fr);
+				grid-template-rows: none;
+				grid-auto-rows: 280px;
+			}
+			.community-board .community-left .card-wrap {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+		}
+	}
+	@media (max-width: 480px) {
+		.home-page {
+			.container {
+				width: calc(100% - 32px);
+			}
+			.hp-section {
+				padding: 48px 0;
+			}
+			.trend-car-slide,
+			.top-car-slide,
+			.popular-car-slide {
+				width: 86%;
+			}
+			.top-dealers .top-dealers-slide {
+				width: calc((100% - 29px) / 2);
+			}
+			.car-types .type-tile,
+			.car-types .type-tile.is-large {
+				grid-column: 1 / -1;
+				height: 200px;
+			}
+			.events .is-featured h3 {
+				font-size: 26px;
+			}
+			.community-board .community-left .card-wrap {
+				grid-template-columns: minmax(0, 1fr);
+			}
+		}
+	}
+}
+
+/* ---------- QIDIRUV PANELI (HeaderFilter) — v01.scss dan o'zgarishsiz ko'chirilgan ---------- */
+#pc-wrap {
+	$ease-ui: cubic-bezier(0.23, 1, 0.32, 1);
+
+	.header-main.hero-search {
+		height: auto;
+		background: transparent;
+		background-image: none;
+		.container {
+			margin-top: 32px;
+			// 1300px'dan tor ekranlarda qidiruv paneli kesilmasin
+			width: min(1300px, calc(100% - 48px));
+		}
+	}
+
+	.sf-bar {
+		// ustunlar: [model qidiruvi | joylashuv | tur | brend | Advanced | Search]
+		// birinchi ustun 1.25fr — kengaygan qidiruv ochilganda shu nisbat bilan "kesiladi" (clip-path)
+		$query-share: 29.41%; // 1.25 / (1.25 + 3)
+
+		position: relative;
+		z-index: 4;
+		width: 100%;
+		box-sizing: border-box;
+		display: grid;
+		grid-template-columns: minmax(0, 1.25fr) repeat(3, minmax(0, 1fr)) auto auto;
+		align-items: center;
+		padding: 8px;
+		background: $c-surface;
+		border: 1px solid $c-line;
+		border-radius: $r-lg;
+		box-shadow: $shadow;
+
+		button {
+			appearance: none;
+			margin: 0;
+			border: 0;
+			background: none;
+			color: inherit;
+			font: inherit;
+			text-align: left;
+			cursor: pointer;
+			-webkit-tap-highlight-color: transparent;
+			&:focus-visible {
+				outline: 2px solid $c-primary;
+				outline-offset: 2px;
+			}
+		}
+
+		/* --- model qidiruvi: bo'sh holatda 1-ustun, fokusda 1–4 ustunlar ustiga kengayadi --- */
+		.sf-query {
+			grid-row: 1;
+			grid-column: 1 / 5;
+			position: relative;
+			z-index: 2;
+			height: 60px;
+			pointer-events: none; // ostidagi maydonlar bosilishi uchun; ichki qismlar o'zi yoqadi
+		}
+		.sf-query-field {
+			position: absolute;
+			inset: 0;
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			padding: 0 20px;
+			border-radius: $r-md;
+			background: $c-surface;
+			pointer-events: auto;
+			// bo'sh holatda faqat 1-ustun ko'rinadi; clip-path bosish maydonini ham cheklaydi
+			clip-path: inset(0 calc(100% - #{$query-share}) 0 0 round #{$r-md});
+			transition: clip-path 200ms $ease-ui, box-shadow 150ms ease;
+			img {
+				flex-shrink: 0;
+				opacity: 0.55;
+			}
+			input {
+				flex: 1;
+				min-width: 0;
+				// bo'sh holatda faqat ko'rinadigan 1-ustun kengligida — uzun placeholder "…" bilan tugaydi
+				max-width: calc(#{$query-share} - 70px);
+				height: 100%;
+				text-overflow: ellipsis;
+				border: 0;
+				outline: none; // fokus — butun maydon atrofidagi halqa (pastda)
+				background: transparent;
+				color: $c-text;
+				font-family: $font;
+				font-size: 16px;
+				font-weight: 600;
+				&::placeholder {
+					color: $c-muted;
+					font-weight: 500;
+				}
+				&::-webkit-search-cancel-button {
+					-webkit-appearance: none;
+				}
+			}
+		}
+		&.is-searching .sf-query-field {
+			input {
+				max-width: none;
+			}
+			clip-path: inset(0 0 0 0 round #{$r-md});
+			box-shadow: inset 0 0 0 2px rgba(0, 87, 255, 0.55);
+		}
+		// klaviatura bilan kelganda kengayish ham, panellar ham animatsiyasiz (darhol)
+		&[data-input='keyboard'] {
+			.sf-field svg,
+			.sf-query-field,
+			.sf-panel,
+			.sf-panel.on,
+			.sf-results,
+			.sf-results.on {
+				transition: none;
+			}
+		}
+
+		/* --- maydon tugmalari: kichik yorliq + qiymat --- */
+		.sf-field {
+			grid-row: 1;
+			min-width: 0;
+			height: 60px;
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) auto;
+			grid-template-rows: auto auto;
+			align-content: center;
+			column-gap: 8px;
+			row-gap: 2px;
+			padding: 0 16px 0 22px;
+			border-left: 1px solid $c-line;
+			border-radius: 0;
+			transition: background-color 150ms ease;
+			small {
+				grid-column: 1;
+				color: $c-muted;
+				font-size: 12px;
+				font-weight: 600;
+			}
+			span {
+				grid-column: 1;
+				overflow: hidden;
+				color: $c-text;
+				font-size: 16px;
+				font-weight: 700;
+				white-space: nowrap;
+				text-overflow: ellipsis;
+			}
+			svg {
+				grid-column: 2;
+				grid-row: 1 / 3;
+				align-self: center;
+				color: $c-muted;
+				transition: transform 200ms $ease-ui;
+			}
+			&.on {
+				border-radius: $r-md;
+				background: $c-surface-2;
+				svg {
+					transform: rotate(180deg);
+				}
+			}
+		}
+		.sf-field-1 {
+			grid-column: 2;
+		}
+		.sf-field-2 {
+			grid-column: 3;
+		}
+		.sf-field-3 {
+			grid-column: 4;
+		}
+
+		.sf-advanced {
+			grid-row: 1;
+			grid-column: 5;
+			height: 60px;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			padding: 0 20px;
+			border-left: 1px solid $c-line;
+			color: $c-text;
+			font-size: 15px;
+			font-weight: 700;
+			white-space: nowrap;
+			img {
+				filter: brightness(0.15); // oq ikonkani to'q qiladi
+			}
+		}
+		.sf-search {
+			grid-row: 1;
+			grid-column: 6;
+			height: 60px;
+			margin-left: 4px;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			padding: 0 26px;
+			border-radius: $r-md;
+			background: $c-primary;
+			color: #ffffff;
+			font-size: 16px;
+			font-weight: 800;
+			white-space: nowrap;
+			transition: background-color 150ms ease, transform 160ms $ease-ui;
+		}
+		.sf-field,
+		.sf-advanced,
+		.sf-search {
+			&:active {
+				transform: scale(0.97);
+			}
+		}
+		.sf-field {
+			transition: background-color 150ms ease, transform 160ms $ease-ui;
+		}
+
+		/* --- ochiladigan panellar (joylashuv, tur, brend) va natijalar --- */
+		.sf-panel,
+		.sf-results {
+			position: absolute;
+			top: calc(100% + 12px);
+			left: 0;
+			z-index: 5;
+			box-sizing: border-box;
+			background: $c-surface;
+			border: 1px solid $c-line;
+			border-radius: $r-lg;
+			box-shadow: $shadow;
+			// yopiq: biroz yuqorida va kichik — trigger tomondan ochiladi (scale(0) emas)
+			opacity: 0;
+			visibility: hidden;
+			pointer-events: none;
+			transform: translateY(-4px) scale(0.98);
+			// chiqish kirishdan tezroq: 120ms
+			transition: opacity 120ms $ease-ui, transform 120ms $ease-ui, visibility 0s linear 120ms;
+			&.on {
+				opacity: 1;
+				visibility: visible;
+				pointer-events: auto;
+				transform: none;
+				transition: opacity 180ms $ease-ui, transform 180ms $ease-ui, visibility 0s;
+			}
+		}
+		.sf-panel {
+			right: 0;
+			padding: 16px;
+		}
+		.sf-panel-location {
+			transform-origin: 30% 0;
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 8px;
+		}
+		.sf-panel-type {
+			transform-origin: 47% 0;
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 12px;
+		}
+		.sf-panel-brand {
+			transform-origin: 64% 0;
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 8px;
+		}
+
+		.sf-city {
+			display: flex;
+			align-items: center;
+			gap: 14px;
+			padding: 8px;
+			border: 1px solid transparent;
+			border-radius: $r-md;
+			transition: background-color 150ms ease, border-color 150ms ease;
+			img {
+				width: 96px;
+				height: 64px;
+				flex-shrink: 0;
+				object-fit: cover;
+				border-radius: $r-sm;
+			}
+			span {
+				color: $c-text;
+				font-size: 15px;
+				font-weight: 700;
+			}
+			&.active {
+				border-color: $c-primary;
+				background: rgba(0, 87, 255, 0.06);
+			}
+		}
+		.sf-type {
+			position: relative;
+			aspect-ratio: 2 / 1;
+			overflow: hidden;
+			border-radius: $r-md;
+			background: $c-surface-2;
+			img {
+				position: absolute;
+				inset: 0;
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				transition: transform 250ms ease;
+			}
+			// yozuv o'qilishi uchun pastdan to'q gradient
+			&::after {
+				content: '';
+				position: absolute;
+				inset: 0;
+				background: linear-gradient(0deg, rgba(16, 17, 22, 0.72) 0%, rgba(16, 17, 22, 0) 55%);
+			}
+			span {
+				position: absolute;
+				left: 14px;
+				bottom: 12px;
+				z-index: 1;
+				color: #ffffff;
+				font-size: 15px;
+				font-weight: 800;
+			}
+			&.active {
+				box-shadow: inset 0 0 0 3px $c-primary;
+			}
+		}
+		.sf-brand {
+			height: 48px;
+			padding: 0 16px;
+			border: 1px solid $c-line;
+			border-radius: $r-sm;
+			color: $c-text;
+			font-size: 15px;
+			font-weight: 700;
+			transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+			&.active {
+				border-color: $c-primary;
+				background: rgba(0, 87, 255, 0.06);
+				color: $c-primary-dark;
+			}
+		}
+
+		/* --- jonli natijalar --- */
+		.sf-results {
+			width: min(720px, 100%);
+			padding: 8px;
+			transform-origin: top left;
+		}
+		.sf-result {
+			width: 100%;
+			display: grid;
+			grid-template-columns: 64px minmax(0, 1fr) auto;
+			align-items: center;
+			gap: 14px;
+			padding: 8px 10px;
+			border-radius: $r-sm;
+			img {
+				width: 64px;
+				height: 44px;
+				object-fit: cover;
+				border-radius: 8px;
+				background: $c-surface-2;
+			}
+			.sf-result-text {
+				min-width: 0;
+				display: flex;
+				flex-direction: column;
+				gap: 2px;
+				strong {
+					overflow: hidden;
+					color: $c-text;
+					font-size: 15px;
+					font-weight: 700;
+					white-space: nowrap;
+					text-overflow: ellipsis;
+				}
+				small {
+					color: $c-muted;
+					font-size: 13px;
+					font-variant-numeric: tabular-nums;
+				}
+			}
+			.sf-result-price {
+				color: $c-text;
+				font-size: 15px;
+				font-weight: 800;
+				font-variant-numeric: tabular-nums;
+			}
+			&.active {
+				background: $c-surface-2;
+			}
+		}
+		.sf-results-all {
+			width: 100%;
+			height: 44px;
+			margin-top: 4px;
+			border-top: 1px solid $c-line;
+			border-radius: 0 0 $r-sm $r-sm;
+			color: $c-primary-dark;
+			font-size: 14px;
+			font-weight: 700;
+			text-align: center;
+		}
+		.sf-results-empty {
+			padding: 12px 10px 8px;
+			p {
+				margin: 0 0 12px;
+				color: $c-muted;
+				font-size: 14px;
+			}
+			div {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 8px;
+			}
+			button {
+				height: 36px;
+				padding: 0 14px;
+				border: 1px solid $c-line;
+				border-radius: 999px;
+				color: $c-text;
+				font-size: 14px;
+				font-weight: 700;
+			}
+		}
+		.sf-results-skeleton {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			padding: 8px;
+			span {
+				height: 44px;
+				border-radius: $r-sm;
+				background: $c-surface-2;
+			}
+		}
+		.sf-sr-only {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			clip: rect(0 0 0 0);
+			white-space: nowrap;
+		}
+
+		// hover faqat sichqoncha bor qurilmalarda (sensorli ekranda bosilganda "yopishib" qolmasin)
+		@media (hover: hover) and (pointer: fine) {
+			.sf-field:hover,
+			.sf-advanced:hover {
+				background: $c-surface-2;
+				border-radius: $r-md;
+			}
+			.sf-search:hover {
+				background: $c-primary-dark;
+			}
+			.sf-city:hover {
+				background: $c-surface-2;
+			}
+			.sf-type:hover img {
+				transform: scale(1.04);
+			}
+			.sf-brand:hover,
+			.sf-results-empty button:hover {
+				border-color: $c-text;
+			}
+			.sf-result:hover,
+			.sf-results-all:hover {
+				background: $c-surface-2;
+			}
+		}
+
+		// harakatni kamaytirish: siljish/kattalashish yo'q, faqat qisqa xiralashish
+		@media (prefers-reduced-motion: reduce) {
+			.sf-query-field,
+			.sf-field svg,
+			.sf-type img {
+				transition: none;
+			}
+			.sf-panel,
+			.sf-results {
+				transform: none;
+				transition: opacity 150ms ease, visibility 0s linear 150ms;
+				&.on {
+					transform: none;
+					transition: opacity 150ms ease, visibility 0s;
+				}
+			}
+			.sf-field:active,
+			.sf-advanced:active,
+			.sf-search:active {
+				transform: none;
+			}
+		}
+	}
+}
+
+/* ---------- QIDIRUV PANELI: tor desktop oynalari ----------
+   Keng ekranda bitta qator (6 ustun). Torroq oynada maydonlar ezilib ketmasligi uchun
+   model qidiruvi alohida qatorga chiqadi, maydonlar ostiga, Advanced + Search eng pastga. */
+#pc-wrap .sf-bar {
+	@media (max-width: 900px) {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		row-gap: 4px;
+		.sf-query {
+			grid-column: 1 / -1;
+		}
+		// kengaygan holat o'rniga doim to'liq qator
+		.sf-query-field {
+			clip-path: none;
+			input {
+				max-width: none;
+			}
+		}
+		.sf-field {
+			grid-row: 2;
+		}
+		.sf-field-1 {
+			grid-column: 1;
+			border-left: 0;
+		}
+		.sf-field-2 {
+			grid-column: 2;
+		}
+		.sf-field-3 {
+			grid-column: 3;
+		}
+		.sf-advanced {
+			grid-row: 3;
+			grid-column: 1;
+			justify-content: center;
+			border-left: 0;
+		}
+		.sf-search {
+			grid-row: 3;
+			grid-column: 2 / -1;
+			justify-content: center;
+			margin-left: 0;
+		}
+		.sf-panel-type,
+		.sf-panel-brand {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
+	@media (max-width: 520px) {
+		grid-template-columns: minmax(0, 1fr);
+		.sf-field {
+			grid-column: 1;
+			border-left: 0;
+			border-top: 1px solid $c-line;
+		}
+		.sf-field-1 {
+			grid-row: 2;
+		}
+		.sf-field-2 {
+			grid-row: 3;
+		}
+		.sf-field-3 {
+			grid-row: 4;
+		}
+		.sf-advanced {
+			grid-row: 5;
+			grid-column: 1;
+			border-top: 1px solid $c-line;
+		}
+		.sf-search {
+			grid-row: 6;
+			grid-column: 1;
+		}
+		.sf-panel-location,
+		.sf-panel-type,
+		.sf-panel-brand {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+}
+
+/* ---------- TREND CARS: premium mashina kartasi (TrendCarCard) ---------- */
+// 16:10 rasm (karta ichida "ramkadagi" foto), eng kuchli element — narx, 4 ta asosiy ko'rsatkich, saqlash tugmasi
+.tc-card {
+	$ease-ui: cubic-bezier(0.23, 1, 0.32, 1);
+
+	position: relative;
+	width: 300px;
+	box-sizing: border-box;
+	padding: 8px;
+	display: flex;
+	flex-direction: column;
+	background: $c-surface;
+	border: 1px solid $c-line;
+	border-radius: $r-md;
+	transition: border-color 150ms ease;
+
+	.tc-link {
+		display: flex;
+		flex-direction: column;
+		color: inherit;
+		white-space: normal;
+		text-decoration: none;
+		border-radius: 12px;
+		// Popular/Top kartalarda <button> — brauzer standart ko'rinishi olib tashlanadi
+		width: 100%;
+		padding: 0;
+		border: 0;
+		background: none;
+		font: inherit;
+		text-align: left;
+		cursor: pointer;
+		&:focus-visible {
+			outline: 2px solid $c-primary;
+			outline-offset: 4px;
+		}
+	}
+	.tc-media {
+		position: relative;
+		display: block;
+		aspect-ratio: 16 / 10;
+		overflow: hidden;
+		border-radius: 12px;
+		background: $c-surface-2;
+		img {
+			display: block;
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			transition: transform 300ms ease;
+		}
+	}
+	.tc-badge {
+		position: absolute;
+		left: 10px;
+		bottom: 10px;
+		padding: 5px 10px;
+		border-radius: 999px;
+		background: $c-accent;
+		color: #ffffff;
+		font-family: $font;
+		font-size: 12px;
+		font-weight: 700;
+	}
+	// reyting yuqori bo'lgan e'lon (Popular cars) — chap yuqori burchakda
+	.tc-badge.is-top {
+		top: 10px;
+		bottom: auto;
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		background: $c-primary;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		img {
+			filter: brightness(0) invert(1);
+		}
+	}
+	// pastki qator: kredit/barter belgisi + ko'rishlar / like soni
+	.tc-foot {
+		margin-top: 14px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+	}
+	.tc-tag {
+		padding: 4px 10px;
+		border-radius: 999px;
+		background: $c-surface-2;
+		color: $c-primary-dark;
+		font-family: $font;
+		font-size: 12px;
+		font-weight: 700;
+		text-transform: capitalize;
+	}
+	.tc-stats {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+	.tc-stat {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		color: $c-muted;
+		font-family: $font;
+		font-size: 13px;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		svg {
+			font-size: 16px;
+			opacity: 0.7;
+		}
+	}
+	.tc-body {
+		display: flex;
+		flex-direction: column;
+		padding: 14px 8px 8px;
+		min-width: 0;
+	}
+	.tc-title {
+		display: block;
+		overflow: hidden;
+		color: $c-text;
+		font-family: $font;
+		font-size: 15px;
+		font-weight: 600;
+		line-height: 1.35;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+	.tc-place {
+		display: block;
+		margin-top: 2px;
+		overflow: hidden;
+		color: $c-muted;
+		font-family: $font;
+		font-size: 13px;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+	// narx — kartaning eng kuchli elementi
+	.tc-price {
+		display: block;
+		margin-top: 10px;
+		color: $c-text;
+		font-family: $font;
+		font-size: 24px;
+		font-weight: 800;
+		line-height: 1.1;
+		letter-spacing: -0.02em;
+		font-variant-numeric: tabular-nums;
+	}
+	.tc-specs {
+		margin: 14px 0 0;
+		padding: 12px 0 0;
+		list-style: none;
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 8px 12px;
+		border-top: 1px solid $c-line;
+		li,
+		.tc-spec {
+			min-width: 0;
+			display: flex;
+			align-items: center;
+			gap: 7px;
+			img {
+				flex-shrink: 0;
+				opacity: 0.6;
+			}
+			span {
+				overflow: hidden;
+				color: $c-muted;
+				font-family: $font;
+				font-size: 13px;
+				font-weight: 500;
+				white-space: nowrap;
+				text-overflow: ellipsis;
+				font-variant-numeric: tabular-nums;
+			}
+		}
+	}
+
+	// saqlash (like) tugmasi — rasm ustida, havola ichida emas
+	.tc-fav {
+		position: absolute;
+		top: 16px;
+		right: 16px;
+		z-index: 1;
+		width: 36px;
+		height: 36px;
+		padding: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border: 0;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.92);
+		box-shadow: 0 2px 8px rgba(35, 38, 47, 0.14);
+		color: $c-text;
+		cursor: pointer;
+		transition: transform 160ms $ease-ui, background-color 150ms ease;
+		svg {
+			font-size: 20px;
+		}
+		&:active {
+			transform: scale(0.92);
+		}
+		&:focus-visible {
+			outline: 2px solid $c-primary;
+			outline-offset: 2px;
+		}
+		// saqlanganda bir martalik "pop" — holat o'zgarganini ko'rsatadi
+		&.just-liked svg {
+			animation: tc-heart-pop 220ms $ease-ui;
+		}
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		&:hover {
+			border-color: rgba(35, 38, 47, 0.2);
+			.tc-media img {
+				transform: scale(1.03);
+			}
+		}
+		.tc-fav:hover {
+			background: #ffffff;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.tc-media img,
+		.tc-fav {
+			transition: none;
+		}
+		&:hover .tc-media img {
+			transform: none;
+		}
+		.tc-fav:active {
+			transform: none;
+		}
+		.tc-fav.just-liked svg {
+			animation: none;
+		}
+	}
+}
+
+@keyframes tc-heart-pop {
+	0% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.18);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+// yuklanayotgan karta (skelet): haqiqiy karta bilan bir xil o'lcham
+.tc-card.tc-skeleton {
+	.tc-media,
+	.sk-line {
+		background: linear-gradient(90deg, $c-surface-2 0%, #f6f8fc 50%, $c-surface-2 100%);
+		background-size: 200% 100%;
+		animation: tc-shimmer 1.2s linear infinite;
+	}
+	.sk-line {
+		display: block;
+		height: 12px;
+		border-radius: 6px;
+	}
+	.sk-title {
+		width: 80%;
+		height: 14px;
+	}
+	.sk-place {
+		margin-top: 8px;
+		width: 50%;
+	}
+	.sk-price {
+		margin-top: 14px;
+		width: 60%;
+		height: 24px;
+	}
+	.tc-specs .sk-line {
+		width: 75%;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.tc-media,
+		.sk-line {
+			animation: none;
+		}
+	}
+}
+
+@keyframes tc-shimmer {
+	from {
+		background-position: 100% 0;
+	}
+	to {
+		background-position: -100% 0;
+	}
+}

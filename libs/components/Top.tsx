@@ -3,8 +3,9 @@ import Logo from './common/Logo';
 import { useState } from 'react';
 import { useRouter, withRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
-import { getJwtToken, logOut, updateUserInfo } from '../auth';
-import { Stack, Box } from '@mui/material';
+import { getJwtToken, logOut, logOutToHome, updateUserInfo } from '../auth';
+import { Stack, Box, Drawer } from '@mui/material';
+import { sweetConfirmAlert } from '../sweetAlert';
 import MenuItem from '@mui/material/MenuItem';
 import Button from '@mui/material/Button';
 import { alpha, styled } from '@mui/material/styles';
@@ -32,6 +33,8 @@ const Top = () => {
 	const [bgColor, setBgColor] = useState<boolean>(false);
 	const [logoutAnchor, setLogoutAnchor] = React.useState<null | HTMLElement>(null);
 	const logoutOpen = Boolean(logoutAnchor);
+	// mobil: pastdan ochiladigan menyu oynasi
+	const [sheetOpen, setSheetOpen] = useState<boolean>(false);
 
 	/** LIFECYCLES **/
 	// birinchi marta kirilganda localStorage'da til (locale) saqlanmagan bo'lsa "en"ni standart qilib belgilaydi,
@@ -161,24 +164,148 @@ const Top = () => {
 	const langName = lang === 'kr' ? t('Korean') : lang === 'ru' ? t('Russian') : t('English');
 
 	if (device == 'mobile') {
+		// mobil: tepada ilova paneli (logo + til + menyu), pastda doimiy tab bar, menyu — pastdan ochiladigan oyna
+		const tabs = [
+			{ href: '/', path: '/', label: t('Home'), icon: 'M3 10.5 12 3l9 7.5M5 9.5V21h14V9.5' },
+			{ href: '/car', path: '/car', label: t('Cars'), icon: 'M3 15l2-5h14l2 5v3H3zM7 18h.01M17 18h.01' },
+			{ href: '/dealer', path: '/dealer', label: t('Dealers'), icon: 'M3 9l1.5-5h15L21 9M4 9v11h16V9M9 20v-6h6v6' },
+			{
+				href: '/community?articleCategory=FREE',
+				path: '/community',
+				label: t('Community'),
+				icon: 'M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z',
+			},
+			{
+				href: user?._id ? '/mypage' : '/account/join',
+				path: user?._id ? '/mypage' : '/account',
+				label: t('My'),
+				icon: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c1.5-4 4.5-6 8-6s6.5 2 8 6',
+			},
+		];
+		const sheetLinks = [
+			...tabs.slice(0, 4),
+			{ href: '/cs', path: '/cs', label: t('Customer service'), icon: 'M4 13a8 8 0 0 1 16 0v4a2 2 0 0 1-2 2h-1v-6h3M4 13v4a2 2 0 0 0 2 2h1v-6H4' },
+			{ href: '/about', path: '/about', label: t('About Autore'), icon: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 8h.01' },
+		];
+		const userImage = user?.memberImage ? `${REACT_APP_API_URL}/${user?.memberImage}` : null;
+		const svgIcon = (d: string, size = 22) => (
+			<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+				<path d={d} />
+			</svg>
+		);
+
 		return (
-			<Stack className={'top'}>
-				<Link href={'/'}>
-					<div>{t('Home')}</div>
-				</Link>
-				<Link href={'/car'}>
-					<div>{t('Cars')}</div>
-				</Link>
-				<Link href={'/dealer'}>
-					<div> {t('Dealers')} </div>
-				</Link>
-				<Link href={'/community?articleCategory=FREE'}>
-					<div> {t('Community')} </div>
-				</Link>
-				<Link href={'/cs'}>
-					<div> {t('CS')} </div>
-				</Link>
-			</Stack>
+			<>
+				<header className={'m-appbar'}>
+					<Link href={'/'} className={'m-logo'} aria-label={'Autore home'}>
+						<Logo />
+					</Link>
+					<div className={'m-appbar-actions'}>
+						<button type="button" className={'m-lang'} onClick={() => setSheetOpen(true)} aria-label={t('Language')}>
+							{svgIcon('M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18', 16)}
+							{(lang ?? 'en').toUpperCase()}
+						</button>
+						<button type="button" className={'m-icon-btn'} onClick={() => setSheetOpen(true)} aria-label={t('Open menu')}>
+							{svgIcon('M4 7h16M4 12h16M4 17h16', 24)}
+						</button>
+					</div>
+				</header>
+
+				{/* mashina sahifasida pastda o'zining narx + qo'ng'iroq paneli bor — tab bar ko'rsatilmaydi */}
+				{router.pathname !== '/car/detail' && (
+				<nav className={'m-tabbar'} aria-label={t('Main')}>
+					{tabs.map((tab) => {
+						const active = isActive(tab.path);
+						return (
+							<Link key={tab.label} href={tab.href} className={`m-tab ${active ? 'is-active' : ''}`} aria-current={active ? 'page' : undefined}>
+								<span className={'m-tab-icon'}>{svgIcon(tab.icon)}</span>
+								{tab.label}
+							</Link>
+						);
+					})}
+				</nav>
+				)}
+
+				<Drawer
+					anchor={'bottom'}
+					open={sheetOpen}
+					onClose={() => setSheetOpen(false)}
+					PaperProps={{ className: 'm-sheet' }}
+				>
+					<span className={'m-sheet-handle'} aria-hidden="true" />
+					{user?._id ? (
+						<div className={'m-sheet-profile'}>
+							<span className={'m-sheet-avatar'}>
+								{userImage ? <img src={userImage} alt="" /> : (user?.memberNick ?? 'U').slice(0, 1).toUpperCase()}
+							</span>
+							<div className={'m-sheet-who'}>
+								<strong>{user?.memberNick}</strong>
+								<span className={`m-sheet-role is-${(user?.memberType ?? 'USER').toLowerCase()}`}>{t(user?.memberType ?? 'USER')}</span>
+							</div>
+							<Link href={'/mypage'} className={'m-sheet-btn'} onClick={() => setSheetOpen(false)}>
+								{t('My Page')}
+							</Link>
+						</div>
+					) : (
+						<Link href={'/account/join'} className={'m-sheet-login'} onClick={() => setSheetOpen(false)}>
+							{t('Login / Sign up')}
+						</Link>
+					)}
+
+					<nav className={'m-sheet-links'} aria-label={t('Pages')}>
+						{sheetLinks.map((link) => (
+							<Link key={link.label} href={link.href} onClick={() => setSheetOpen(false)} className={isActive(link.path) ? 'is-active' : ''}>
+								{svgIcon(link.icon)}
+								<span>{link.label}</span>
+								{svgIcon('m9 6 6 6-6 6', 18)}
+							</Link>
+						))}
+					</nav>
+
+					<div className={'m-sheet-lang'}>
+						<span>{t('Language')}</span>
+						<div role="radiogroup" aria-label={t('Language')}>
+							{[
+								{ code: 'en', label: 'English' },
+								{ code: 'kr', label: '한국어' },
+								{ code: 'ru', label: 'Русский' },
+							].map((item) => (
+								<button
+									type="button"
+									role="radio"
+									aria-checked={lang === item.code}
+									key={item.code}
+									className={lang === item.code ? 'is-active' : ''}
+									onClick={async () => {
+										setSheetOpen(false);
+										await langChoice(item.code);
+									}}
+								>
+									{item.label}
+								</button>
+							))}
+						</div>
+					</div>
+
+					{user?._id && (
+						<button
+							type="button"
+							className={'m-sheet-logout'}
+							onClick={async () => {
+								setSheetOpen(false);
+								if (await sweetConfirmAlert(t('Do you want to logout?'))) {
+									// mobil: chiqqandan keyin bosh sahifaga (tanlangan til saqlanadi)
+									const homePath = router.locale && router.locale !== router.defaultLocale ? `/${router.locale}` : '/';
+									logOutToHome(homePath);
+								}
+							}}
+						>
+							{svgIcon('M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10', 20)}
+							{t('Logout')}
+						</button>
+					)}
+				</Drawer>
+			</>
 		);
 	} else {
 		return (
