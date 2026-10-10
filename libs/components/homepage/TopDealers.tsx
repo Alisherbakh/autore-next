@@ -17,7 +17,7 @@ import { GET_DEALERS } from '../../../apollo/user/query';
 import { useMutation, useQuery } from '@apollo/client';
 import { LIKE_TARGET_MEMBER } from '../../../apollo/user/mutation';
 import { Messages } from '../../config';
-import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../sweetAlert';
+import { sweetMixinErrorAlert } from '../../sweetAlert';
 import { T } from '../../types/common';
 
 interface TopDealersProps {
@@ -57,7 +57,6 @@ const TopDealers = (props: TopDealersProps) => {
 			await likeTargetMember({ variables: { input: id } });
 			const result = await getDealersRefetch({ input: initialInput });
 			if (result?.data?.getDealers?.list) setTopDealers(result.data.getDealers.list);
-			await sweetTopSmallSuccessAlert('success', 800);
 		} catch (err: any) {
 			console.log('ERROR, likeMemberHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();

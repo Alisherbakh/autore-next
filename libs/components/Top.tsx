@@ -15,7 +15,7 @@ import { CaretDown } from 'phosphor-react';
 import useDeviceDetect from '../hooks/useDeviceDetect';
 import Link from 'next/link';
 import { useReactiveVar } from '@apollo/client';
-import { userVar } from '../../apollo/store';
+import { authModalVar, userVar } from '../../apollo/store';
 import { Logout } from '@mui/icons-material';
 import { REACT_APP_API_URL } from '../config';
 
@@ -376,12 +376,12 @@ const Top = () => {
 									</Menu>
 								</>
 							) : (
-								<Link href={'/account/join'} className={'join-box'}>
+								<button type="button" className={'join-box'} aria-haspopup={'dialog'} onClick={() => authModalVar({ open: true, loginView: true })}>
 									<AccountCircleOutlinedIcon aria-hidden="true" />
 									<span>
 										{t('Login')} / {t('Register')}
 									</span>
-								</Link>
+								</button>
 							)}
 
 							<div className={'lan-box'}>

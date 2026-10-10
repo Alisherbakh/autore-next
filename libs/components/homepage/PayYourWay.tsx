@@ -11,7 +11,7 @@ import { REACT_APP_API_URL, LIKED_COLOR } from '../../config';
 import { LIKE_TARGET_CAR } from '../../../apollo/user/mutation';
 import { userVar } from '../../../apollo/store';
 import { Message } from '../../enums/common.enum';
-import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../sweetAlert';
+import { sweetMixinErrorAlert } from '../../sweetAlert';
 import { T } from '../../types/common';
 import { formatEnum, formatterStr } from '../../utils';
 
@@ -61,7 +61,6 @@ const PayYourWay = () => {
 			if (!user._id) throw new Error(Message.NOT_AUTHENTICATED);
 			await likeTargetCar({ variables: { input: id } });
 			await refetch({ input });
-			await sweetTopSmallSuccessAlert('success', 800);
 		} catch (err: any) {
 			console.log('ERROR, likeCarHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();

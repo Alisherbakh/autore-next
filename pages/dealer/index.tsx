@@ -16,7 +16,7 @@ import { LIKE_TARGET_MEMBER } from '../../apollo/user/mutation';
 import { GET_DEALERS } from '../../apollo/user/query';
 import { T } from '../../libs/types/common';
 import { Messages } from '../../libs/config';
-import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
+import { sweetMixinErrorAlert } from '../../libs/sweetAlert';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -132,7 +132,6 @@ const DealerList: NextPage = ({ initialInput, ...props }: any) => {
 			});
 
 			await getDealersRefetch({ input: searchFilter });
-			await sweetTopSmallSuccessAlert('success', 800);
 		} catch (err: any) {
 			console.log('ERROR, likeCarHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();

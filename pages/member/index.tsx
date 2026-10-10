@@ -10,7 +10,7 @@ import MemberFollowers from '../../libs/components/member/MemberFollowers';
 import MemberArticles from '../../libs/components/member/MemberArticles';
 import { useMutation, useReactiveVar } from '@apollo/client';
 import { LIKE_TARGET_MEMBER, SUBSCRIBE, UNSUBSCRIBE } from '../../apollo/user/mutation';
-import { sweetErrorHandling, sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
+import { sweetErrorHandling, sweetMixinErrorAlert } from '../../libs/sweetAlert';
 import { Messages } from '../../libs/config';
 import MemberFollowings from '../../libs/components/member/MemberFollowings';
 import { userVar } from '../../apollo/store';
@@ -65,7 +65,6 @@ const MemberPage: NextPage = () => {
 					input: id,
 				},
 			});
-			await sweetTopSmallSuccessAlert('Followed!', 800);
 			await refetch({ input: query });
 		} catch (err: any) {
 			sweetErrorHandling(err).then();
@@ -84,7 +83,6 @@ const MemberPage: NextPage = () => {
 				},
 			});
 
-			await sweetTopSmallSuccessAlert('Unfollowed!', 800);
 			await refetch({ input: query });
 		} catch (err: any) {
 			sweetErrorHandling(err).then();
@@ -102,7 +100,6 @@ const MemberPage: NextPage = () => {
 					input: id,
 				},
 			});
-			await sweetTopSmallSuccessAlert('Success!', 800);
 			await refetch({ input: query });
 		} catch (err: any) {
 			console.log('ERROR, likeMemberHandler:', err.message);

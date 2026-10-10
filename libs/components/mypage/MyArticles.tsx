@@ -13,7 +13,7 @@ import { GET_BOARD_ARTICLES } from '../../../apollo/user/query';
 import { T } from '../../types/common';
 import { BoardArticle } from '../../types/board-article/board-article';
 import { Messages } from '../../config';
-import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../sweetAlert';
+import { sweetMixinErrorAlert } from '../../sweetAlert';
 
 const MyArticles: NextPage = ({ initialInput, ...props }: T) => {
 	const device = useDeviceDetect();
@@ -69,7 +69,6 @@ const MyArticles: NextPage = ({ initialInput, ...props }: T) => {
 			});
 			await boardArticlesRefetch({ input: searchCommunity }); // ro'yxatni yangilaydi (like soni yangilanishi uchun)
 
-			await sweetTopSmallSuccessAlert('Success!', 750); // qisqa muvaffaqiyat xabari (750ms)
 		} catch (err: any) {
 			console.log('ERROR, likeBoArticleHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();

@@ -26,7 +26,7 @@ import { T } from '../../libs/types/common';
 import { useRouter } from 'next/router';
 import { Car } from '../../libs/types/car/car';
 import { Member } from '../../libs/types/member/member';
-import { sweetErrorHandling, sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
+import { sweetErrorHandling, sweetMixinErrorAlert } from '../../libs/sweetAlert';
 import { userVar } from '../../apollo/store';
 import { CarsInquiry } from '../../libs/types/car/car.input';
 import { CommentInput, CommentsInquiry } from '../../libs/types/comment/comment.input';
@@ -221,7 +221,6 @@ const DealerDetail: NextPage = ({ initialInput, initialComment, ...props }: any)
 			const result = await getCarsRefetch({ input: searchFilter });
 			// refetch natijasi bilan kartalarni darhol yangilaymiz (like rangi va soni)
 			if (result?.data?.getCars?.list) setDealerCars(result.data.getCars.list);
-			await sweetTopSmallSuccessAlert('success', 800);
 		} catch (err: any) {
 			console.log('ERROR, likeCarHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();
@@ -240,7 +239,6 @@ const DealerDetail: NextPage = ({ initialInput, initialComment, ...props }: any)
 					input: id,
 				},
 			});
-			await sweetTopSmallSuccessAlert('Followed!', 800);
 			const result = await getMemberRefetch({ input: id });
 			if (result?.data?.getMember) setDealer(result.data.getMember);
 		} catch (err: any) {
@@ -259,7 +257,6 @@ const DealerDetail: NextPage = ({ initialInput, initialComment, ...props }: any)
 					input: id,
 				},
 			});
-			await sweetTopSmallSuccessAlert('Unfollowed!', 800);
 			const result = await getMemberRefetch({ input: id });
 			if (result?.data?.getMember) setDealer(result.data.getMember);
 		} catch (err: any) {
@@ -280,7 +277,6 @@ const DealerDetail: NextPage = ({ initialInput, initialComment, ...props }: any)
 			});
 			const result = await getMemberRefetch({ input: id });
 			if (result?.data?.getMember) setDealer(result.data.getMember);
-			await sweetTopSmallSuccessAlert('success', 800);
 		} catch (err: any) {
 			console.log('ERROR, likeMemberHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();

@@ -15,7 +15,7 @@ import { useMutation, useQuery } from '@apollo/client';
 import { LIKE_TARGET_BOARD_ARTICLE } from '../../apollo/user/mutation';
 import { GET_BOARD_ARTICLES } from '../../apollo/user/query';
 import { Messages } from '../../libs/config';
-import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
+import { sweetMixinErrorAlert } from '../../libs/sweetAlert';
 import { useTranslation } from 'next-i18next';
 import ForumRoundedIcon from '@mui/icons-material/ForumRounded';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
@@ -108,7 +108,6 @@ const Community: NextPage = ({ initialInput, ...props }: T) => {
 				},
 			});
 			await boardArticlesRefetch({ input: searchCommunity });
-			await sweetTopSmallSuccessAlert('success', 800);
 		} catch (err: any) {
 			console.log('ERROR, likeCarHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();

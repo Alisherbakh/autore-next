@@ -30,3 +30,6 @@ export const userVar = makeVar<CustomJwtPayload>({
 });
 //@ts-ignore
 export const socketVar = makeVar<WebSocket>();
+// login / sign up popup (faqat desktop): ochiqmi va qaysi tab (login yoki sign up) tanlangan
+// Top'dagi "Login / Register" tugmasi shu o'zgaruvchini o'zgartiradi, _app.tsx'dagi AuthModal uni o'qiydi
+export const authModalVar = makeVar<{ open: boolean; loginView: boolean }>({ open: false, loginView: true });

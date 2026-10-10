@@ -13,7 +13,7 @@ import { GET_CARS } from '../../../apollo/user/query';
 import { T } from '../../types/common';
 import { LIKE_TARGET_CAR } from '../../../apollo/user/mutation';
 import { Message } from '../../enums/common.enum';
-import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../sweetAlert';
+import { sweetMixinErrorAlert } from '../../sweetAlert';
 import SectionHead from './SectionHead';
 
 
@@ -57,7 +57,6 @@ const TopCars = (props: TopCarsProps) => {
 			});
 			await getCarsRefetch({ input: initialInput }); // ro'yxatni yangilaydi (like soni yangilanishi uchun)
 
-			await sweetTopSmallSuccessAlert('success', 800); // qisqa muvaffaqiyat xabari
 		} catch (err: any) {
 			console.log('ERROR, likeCarHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();

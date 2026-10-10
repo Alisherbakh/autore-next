@@ -17,7 +17,7 @@ import { Messages } from '../../libs/config';
 import MyMenu from '../../libs/components/mypage/MyMenu';
 import WriteArticle from '../../libs/components/mypage/WriteArticle';
 import MemberFollowers from '../../libs/components/member/MemberFollowers';
-import { sweetErrorHandling, sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
+import { sweetErrorHandling, sweetMixinErrorAlert } from '../../libs/sweetAlert';
 import MemberFollowings from '../../libs/components/member/MemberFollowings';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
@@ -61,7 +61,6 @@ const MyPage: NextPage = () => {
 					input: id,
 				},
 			});
-			await sweetTopSmallSuccessAlert('Subscribed!', 800);
 			await refetch({ input: query });
 		} catch (err: any) {
 			sweetErrorHandling(err).then();
@@ -79,7 +78,6 @@ const MyPage: NextPage = () => {
 					input: id,
 				},
 			});
-			await sweetTopSmallSuccessAlert('Unsubscribed!', 800);
 			await refetch({ input: query });
 		} catch (err: any) {
 			sweetErrorHandling(err).then();
@@ -97,7 +95,6 @@ const MyPage: NextPage = () => {
 					input: id,
 				},
 			});
-			await sweetTopSmallSuccessAlert('Success!', 800);
 			await refetch({ input: query });
 		} catch (err: any) {
 			console.log('ERROR, likeMemberHandler:', err.message);

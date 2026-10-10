@@ -13,7 +13,7 @@ import { CarsInquiry } from '../../types/car/car.input';
 import { useMutation, useQuery } from '@apollo/client';
 import { LIKE_TARGET_CAR } from '../../../apollo/user/mutation';
 import { Message } from '../../enums/common.enum';
-import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../sweetAlert';
+import { sweetMixinErrorAlert } from '../../sweetAlert';
 import { GET_CARS } from '../../../apollo/user/query';
 import { T } from '../../types/common';
 import SectionHead from './SectionHead';
@@ -54,7 +54,6 @@ const PopularCars = (props: PopularCarsProps) => {
 			await likeTargetCar({ variables: { input: id } });
 			const result = await getCarsRefetch({ input: initialInput });
 			if (result?.data?.getCars?.list) setPopularCars(result.data.getCars.list);
-			await sweetTopSmallSuccessAlert('success', 800);
 		} catch (err: any) {
 			console.log('ERROR, likeCarHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();

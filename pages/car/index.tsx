@@ -15,7 +15,7 @@ import { useMutation, useQuery } from '@apollo/client';
 import { GET_CARS } from '../../apollo/user/query';
 import { T } from '../../libs/types/common';
 import { LIKE_TARGET_CAR } from '../../apollo/user/mutation';
-import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
+import { sweetMixinErrorAlert } from '../../libs/sweetAlert';
 import { useTranslation } from 'next-i18next';
 import { formatterStr, formatEnum } from '../../libs/utils';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
@@ -109,7 +109,6 @@ const CarList: NextPage = ({ initialInput, ...props }: any) => {
 				// joriy filtr bilan qayta so'raydi (avval initialInput edi — like'dan keyin filtrlar tushib qolardi)
 				await getCarsRefetch({ input: searchFilter });
 	
-				await sweetTopSmallSuccessAlert('success', 800);
 			} catch (err: any) {
 				console.log('ERROR, likeCarHandler:', err.message);
 				sweetMixinErrorAlert(err.message).then();

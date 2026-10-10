@@ -5,7 +5,8 @@ import React, { useState } from 'react';
 import { light } from '../scss/MaterialTheme';
 import { ApolloProvider } from '@apollo/client';
 import { useApollo } from '../apollo/client';
-import { appWithTranslation } from 'next-i18next';//@ts-ignore
+import { appWithTranslation } from 'next-i18next';
+import AuthModal from '../libs/components/auth/AuthModal';//@ts-ignore
 import '../scss/app.scss';//@ts-ignore
 import '../scss/pc/main.scss';//@ts-ignore
 import '../scss/mobile/main.scss';
@@ -20,6 +21,8 @@ const App = ({ Component, pageProps }: AppProps) => {
 			<ThemeProvider theme={theme}>
 				<CssBaseline />
 				<Component {...pageProps} />
+				{/* desktop: Login / Sign up popup — har qanday sahifa ustida ochiladi */}
+				<AuthModal />
 			</ThemeProvider>
 		</ApolloProvider>
 	);

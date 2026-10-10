@@ -29,7 +29,6 @@ import {
 	sweetConfirmAlert,
 	sweetMixinErrorAlert,
 	sweetMixinSuccessAlert,
-	sweetTopSmallSuccessAlert,
 } from '../../libs/sweetAlert';
 import { useTranslation } from 'next-i18next';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
@@ -150,7 +149,6 @@ const CommunityDetail: NextPage = ({ initialInput, ...props }: T) => {
 				},
 			});
 			await boardArticleRefetch({ input: articleId });
-			await sweetTopSmallSuccessAlert('Success!', 800);
 		} catch (err: any) {
 			console.log('ERROR, likeBoArticleHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();

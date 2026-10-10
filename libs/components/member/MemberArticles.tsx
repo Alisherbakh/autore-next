@@ -12,7 +12,7 @@ import { useMutation, useQuery } from '@apollo/client';
 import { LIKE_TARGET_BOARD_ARTICLE } from '../../../apollo/user/mutation';
 import { GET_BOARD_ARTICLES } from '../../../apollo/user/query';
 import { Messages } from '../../config';
-import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../sweetAlert';
+import { sweetMixinErrorAlert } from '../../sweetAlert';
 
 const MemberArticles: NextPage = ({ initialInput, ...props }: any) => {
 	const device = useDeviceDetect();
@@ -70,7 +70,6 @@ const MemberArticles: NextPage = ({ initialInput, ...props }: any) => {
 				},
 			});
 			await boardArticlesRefetch({ input: searchFilter }); // ro'yxatni yangilaydi (like soni yangilanishi uchun)
-			await sweetTopSmallSuccessAlert('success', 800); // qisqa muvaffaqiyat xabari
 		} catch (err: any) {
 			console.log('ERROR, likeCarHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();

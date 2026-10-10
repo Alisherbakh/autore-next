@@ -37,7 +37,7 @@ import 'swiper/css/pagination';
 import { GET_COMMENTS, GET_CARS, GET_CAR, GET_DEALERS } from '../../apollo/user/query';
 import { T } from '../../libs/types/common';
 import { Direction, Message } from '../../libs/enums/common.enum';
-import { sweetErrorHandling, sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
+import { sweetErrorHandling, sweetMixinErrorAlert } from '../../libs/sweetAlert';
 import { CREATE_COMMENT, LIKE_TARGET_CAR, LIKE_TARGET_MEMBER } from '../../apollo/user/mutation';
 
 SwiperCore.use([Autoplay, Navigation, Pagination]);
@@ -96,7 +96,6 @@ const CarDetail: NextPage = ({ initialComment, ...props }: any) => {
 			if (!user._id) throw new Error(Message.NOT_AUTHENTICATED);
 			await likeTargetMember({ variables: { input: id } });
 			await getDealerRefetch();
-			await sweetTopSmallSuccessAlert('success', 800);
 		} catch (err: any) {
 			console.log('ERROR, likeDealerHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();
@@ -214,7 +213,6 @@ const CarDetail: NextPage = ({ initialComment, ...props }: any) => {
 					
 				 });
 	
-				await sweetTopSmallSuccessAlert('success', 800);
 			} catch (err: any) {
 				console.log('ERROR, likeCarHandler:', err.message);
 				sweetMixinErrorAlert(err.message).then();
