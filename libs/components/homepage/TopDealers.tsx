@@ -19,6 +19,7 @@ import { LIKE_TARGET_MEMBER } from '../../../apollo/user/mutation';
 import { Messages } from '../../config';
 import { sweetMixinErrorAlert } from '../../sweetAlert';
 import { T } from '../../types/common';
+import { optimisticLikeInList } from '../../optimistic';
 
 interface TopDealersProps {
 	initialInput: DealersInquiry;
@@ -54,9 +55,14 @@ const TopDealers = (props: TopDealersProps) => {
 		try {
 			if (!id) return;
 			if (!user._id) throw new Error(Messages.error2);
-			await likeTargetMember({ variables: { input: id } });
-			const result = await getDealersRefetch({ input: initialInput });
-			if (result?.data?.getDealers?.list) setTopDealers(result.data.getDealers.list);
+			// optimistic: yurakcha va son DARHOL o'zgaradi, so'rov orqada ketadi (xato bo'lsa avvalgi holatga qaytadi)
+			await optimisticLikeInList(
+				setTopDealers,
+				id,
+				'memberLikes',
+				() => likeTargetMember({ variables: { input: id } }),
+				'likeTargetMember',
+			);
 		} catch (err: any) {
 			console.log('ERROR, likeMemberHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();

@@ -15,8 +15,7 @@ import { LIKE_TARGET_CAR } from '../../../apollo/user/mutation';
 import { Message } from '../../enums/common.enum';
 import { sweetMixinErrorAlert } from '../../sweetAlert';
 import SectionHead from './SectionHead';
-
-
+import { optimisticLikeInList } from '../../optimistic';
 
 interface TopCarsProps {
 	initialInput: CarsInquiry;
@@ -49,14 +48,16 @@ const TopCars = (props: TopCarsProps) => {
 	// TopCarCard'dagi like ikonkasi bosilganda ishga tushadi
 	const likeCarHandler = async (user: T, id: string) => {
 		try {
-			if (!id) return; // e'lon id'si bo'lmasa, davom etmaydi
-			if (!user._id) throw new Error(Message.NOT_AUTHENTICATED); // login qilinmagan bo'lsa xato chiqaradi
-
-			await likeTargetCar({
-				variables: { input: id }, // like bosilayotgan e'lonning ID'si
-			});
-			await getCarsRefetch({ input: initialInput }); // ro'yxatni yangilaydi (like soni yangilanishi uchun)
-
+			if (!id) return;
+			if (!user._id) throw new Error(Message.NOT_AUTHENTICATED);
+			// optimistic: yurakcha va son DARHOL o'zgaradi, so'rov orqada ketadi (xato bo'lsa avvalgi holatga qaytadi)
+			await optimisticLikeInList(
+				setTopCars,
+				id,
+				'carLikes',
+				() => likeTargetCar({ variables: { input: id } }),
+				'likeTargetCar',
+			);
 		} catch (err: any) {
 			console.log('ERROR, likeCarHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();
@@ -81,7 +82,7 @@ const TopCars = (props: TopCarsProps) => {
 							{topCars.map((car: Car) => {
 								return (
 									<SwiperSlide className={'top-car-slide'} key={car?._id}>
-										<TopCarCard car={car} likeCarHandler={likeCarHandler}/>
+										<TopCarCard car={car} likeCarHandler={likeCarHandler} />
 									</SwiperSlide>
 								);
 							})}
@@ -127,7 +128,7 @@ const TopCars = (props: TopCarsProps) => {
 							{topCars.map((car: Car) => {
 								return (
 									<SwiperSlide className={'top-car-slide'} key={car?._id}>
-										<TopCarCard car={car} likeCarHandler={likeCarHandler}/>
+										<TopCarCard car={car} likeCarHandler={likeCarHandler} />
 									</SwiperSlide>
 								);
 							})}

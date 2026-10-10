@@ -20,6 +20,7 @@ import { useTranslation } from 'next-i18next';
 import ForumRoundedIcon from '@mui/icons-material/ForumRounded';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import { CATEGORY_KEYS, CATEGORY_META } from '../../libs/components/community/categories';
+import { optimisticLikeInList } from '../../libs/optimistic';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -98,18 +99,19 @@ const Community: NextPage = ({ initialInput, ...props }: T) => {
 	// maqolaga like bosish: sahifaga o'tishni to'xtatadi (stopPropagation), login tekshiradi, mutatsiya yuboradi
 	const likeArticleHandler = async (e: any, user: any, id: string) => {
 		try {
-			e.stopPropagation();
+			e.stopPropagation(); // karta o'ziga bosilgandek sahifaga o'tib ketmasligi uchun
 			if (!id) return;
-			if (!user._id) throw new Error(Messages.error2);
-
-			await likeTargetBoardArticle({
-				variables: {
-					input: id,
-				},
-			});
-			await boardArticlesRefetch({ input: searchCommunity });
+			if (!user?._id) throw new Error(Messages.error2);
+			// optimistic: yurakcha va son DARHOL o'zgaradi, so'rov orqada ketadi (xato bo'lsa avvalgi holatga qaytadi)
+			await optimisticLikeInList(
+				setBoardArticles,
+				id,
+				'articleLikes',
+				() => likeTargetBoardArticle({ variables: { input: id } }),
+				'likeTargetBoardArticle',
+			);
 		} catch (err: any) {
-			console.log('ERROR, likeCarHandler:', err.message);
+			console.log('ERROR, likeArticleHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();
 		}
 	};
@@ -197,9 +199,7 @@ const Community: NextPage = ({ initialInput, ...props }: T) => {
 					color="primary"
 					onChange={paginationHandler}
 				/>
-				<Typography className="cm-total">
-					{t('Total {{count}} articles available', { count: totalCount })}
-				</Typography>
+				<Typography className="cm-total">{t('Total {{count}} articles available', { count: totalCount })}</Typography>
 			</Stack>
 		) : null;
 
@@ -246,9 +246,7 @@ const Community: NextPage = ({ initialInput, ...props }: T) => {
 										<h1 className="cm-title">{t(activeMeta.label)}</h1>
 										<p className="cm-sub">{t(activeMeta.sub)}</p>
 									</div>
-									{totalCount > 0 && (
-										<span className="cm-count">{t('{{count}} posts', { count: totalCount })}</span>
-									)}
+									{totalCount > 0 && <span className="cm-count">{t('{{count}} posts', { count: totalCount })}</span>}
 								</header>
 								{panels}
 								{pagination}

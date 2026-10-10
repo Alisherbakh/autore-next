@@ -15,7 +15,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import WestIcon from '@mui/icons-material/West';
 import EastIcon from '@mui/icons-material/East';
-import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
+import { useApolloClient, useMutation, useQuery, useReactiveVar } from '@apollo/client';
 import { useRouter } from 'next/router';
 import { Car } from '../../libs/types/car/car';
 import { Member } from '../../libs/types/member/member';
@@ -31,14 +31,15 @@ import { Pagination as MuiPagination } from '@mui/material';
 import Link from 'next/link';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { useTranslation } from 'next-i18next';//@ts-ignore
-import 'swiper/css';//@ts-ignore
+import { useTranslation } from 'next-i18next'; //@ts-ignore
+import 'swiper/css'; //@ts-ignore
 import 'swiper/css/pagination';
 import { GET_COMMENTS, GET_CARS, GET_CAR, GET_DEALERS } from '../../apollo/user/query';
 import { T } from '../../libs/types/common';
 import { Direction, Message } from '../../libs/enums/common.enum';
 import { sweetErrorHandling, sweetMixinErrorAlert } from '../../libs/sweetAlert';
 import { CREATE_COMMENT, LIKE_TARGET_CAR, LIKE_TARGET_MEMBER } from '../../apollo/user/mutation';
+import { patchInList, toggleLike, toggleLikeInCache, toggleLikeInList } from '../../libs/optimistic';
 
 SwiperCore.use([Autoplay, Navigation, Pagination]);
 
@@ -71,6 +72,7 @@ const CarDetail: NextPage = ({ initialComment, ...props }: any) => {
 	const [likeTargetCar] = useMutation(LIKE_TARGET_CAR);
 	// dealerga like bosish uchun mutatsiya (dealer kartasidagi yurak)
 	const [likeTargetMember] = useMutation(LIKE_TARGET_MEMBER);
+	const client = useApolloClient(); // optimistic like uchun Apollo cache'ga yozish
 
 	// dealer kartasi uchun: dealer like qilingan-qilinmaganini (meLiked) va likes sonini oladi.
 	// GET_MEMBER emas, GET_DEALERS ishlatiladi: getMember dealerga view yozadi (nestar'da mashina sahifasi dealer view'ini oshirmaydi),
@@ -90,13 +92,16 @@ const CarDetail: NextPage = ({ initialComment, ...props }: any) => {
 
 	// dealerga like bosish: login tekshiradi, mutatsiya yuboradi, dealer ma'lumotini yangilaydi
 	const likeDealerHandler = async () => {
+		const id = car?.memberData?._id;
+		if (!id) return;
+		if (!user._id) return sweetMixinErrorAlert(Message.NOT_AUTHENTICATED).then();
+		// optimistic: dealer kartasi GET_DEALERS `data`sidan chiziladi — Apollo cache'dagi Member yozuvini darhol o'zgartiramiz
+		const wasLiked = dealerLiked;
+		toggleLikeInCache(client.cache, 'Member', id, 'memberLikes', wasLiked);
 		try {
-			const id = car?.memberData?._id;
-			if (!id) return;
-			if (!user._id) throw new Error(Message.NOT_AUTHENTICATED);
-			await likeTargetMember({ variables: { input: id } });
-			await getDealerRefetch();
+			await likeTargetMember({ variables: { input: id } }); // javobdagi aniq memberLikes cache'ga o'zi yoziladi
 		} catch (err: any) {
+			toggleLikeInCache(client.cache, 'Member', id, 'memberLikes', !wasLiked);
 			console.log('ERROR, likeDealerHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();
 		}
@@ -192,32 +197,28 @@ const CarDetail: NextPage = ({ initialComment, ...props }: any) => {
 	/** HANDLERS **/
 	// like ikonkasi bosilganda ishga tushadi (asosiy e'lon yoki "Destination Car" kartalaridan biri uchun)
 	const likeCarHandler = async (user: T, id: string) => {
-			try {                // auth bolgan user  ,  like bosilyotgan car
-				if (!id) return;
-				if (!user._id) throw new Error(Message.NOT_AUTHENTICATED);
-	
-				await likeTargetCar({
-					variables: { input: id },
-				});
-				await getCarRefetch({ input: id});
-				await getCarsRefetch({ 
-					input: {
-						page: 1,
-					limit: 4,
-					sort: 'createdAt',
-					direction: Direction.DESC,
-					search: {
-						locationList: [car?.carLocation],
-					},
-					}
-					
-				 });
-	
-			} catch (err: any) {
-				console.log('ERROR, likeCarHandler:', err.message);
-				sweetMixinErrorAlert(err.message).then();
-			}
+		if (!id) return;
+		if (!user._id) return sweetMixinErrorAlert(Message.NOT_AUTHENTICATED).then();
+		// optimistic: asosiy e'lon va pastdagi o'xshash e'lonlar kartasida yurakcha/son DARHOL o'zgaradi
+		const flip = () => {
+			setCar((prev) => (prev && prev._id === id ? toggleLike(prev, 'carLikes') : prev));
+			setDestinationCars((list) => toggleLikeInList(list, id, 'carLikes'));
 		};
+		flip();
+		try {
+			const res = await likeTargetCar({ variables: { input: id } });
+			const likes = res?.data?.likeTargetCar?.carLikes;
+			if (typeof likes === 'number') {
+				// server qaytargan aniq son bilan tenglashtiramiz
+				setCar((prev) => (prev && prev._id === id ? { ...prev, carLikes: likes } : prev));
+				setDestinationCars((list) => patchInList(list, id, { carLikes: likes }));
+			}
+		} catch (err: any) {
+			flip(); // xato: avvalgi holatga qaytaramiz
+			console.log('ERROR, likeCarHandler:', err.message);
+			sweetMixinErrorAlert(err.message).then();
+		}
+	};
 
 	// izohlar Pagination komponentidan chaqiriladi: sahifa raqamini yozadi, useEffect avtomatik qayta so'raydi
 	const commentPaginationChangeHandler = async (event: ChangeEvent<unknown>, value: number) => {
@@ -272,9 +273,17 @@ const CarDetail: NextPage = ({ initialComment, ...props }: any) => {
 	const specs = [
 		{ label: 'Year', value: car?.carYear ?? '—', d: 'M4 6h16v14H4zM4 10h16M9 3v4M15 3v4' },
 		{ label: 'Mileage', value: `${car?.carMileage?.toLocaleString() ?? 0} km`, d: 'M12 13l4-4M4 17a8 8 0 1 1 16 0' },
-		{ label: 'Fuel', value: label(car?.carFuelType), d: 'M4 20V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v15M3 20h12M14 9h2a2 2 0 0 1 2 2v5a1.5 1.5 0 0 0 3 0V8l-3-3M7 8h4' },
+		{
+			label: 'Fuel',
+			value: label(car?.carFuelType),
+			d: 'M4 20V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v15M3 20h12M14 9h2a2 2 0 0 1 2 2v5a1.5 1.5 0 0 0 3 0V8l-3-3M7 8h4',
+		},
 		{ label: 'Transmission', value: label(car?.carTransmission), d: 'M6 4v16M12 4v16M18 4v8M6 12h12' },
-		{ label: 'Body type', value: label(car?.carType), d: 'M3 14l2-5a2 2 0 0 1 2-1h8a2 2 0 0 1 2 1l3 5v3H3zM7 17v2M17 17v2' },
+		{
+			label: 'Body type',
+			value: label(car?.carType),
+			d: 'M3 14l2-5a2 2 0 0 1 2-1h8a2 2 0 0 1 2 1l3 5v3H3zM7 17v2M17 17v2',
+		},
 		{ label: 'Brand', value: formatEnum(car?.carBrand), d: 'M12 3l8 4v6c0 4-3.5 7-8 8-4.5-1-8-4-8-8V7z' },
 	];
 	const details = [
@@ -288,7 +297,10 @@ const CarDetail: NextPage = ({ initialComment, ...props }: any) => {
 		{ k: 'Seats', v: car?.carSeats ?? '—' },
 		{ k: 'Engine size', v: car?.carEngineSize ? `${car.carEngineSize.toLocaleString()} cc` : '—' },
 		{ k: 'Color', v: car?.carColor ? pretty(car.carColor) : '—' },
-		{ k: 'Options', v: [car?.carBarter && t('Barter'), car?.carCredit && t('Credit')].filter(Boolean).join(' / ') || '—' },
+		{
+			k: 'Options',
+			v: [car?.carBarter && t('Barter'), car?.carCredit && t('Credit')].filter(Boolean).join(' / ') || '—',
+		},
 		{ k: 'Location', v: label(car?.carLocation) },
 	];
 
@@ -386,7 +398,17 @@ const CarDetail: NextPage = ({ initialComment, ...props }: any) => {
 								{specs.map((s) => (
 									<div className={'cd-spec'} key={s.label}>
 										<span className={'cd-spec-icon'}>
-											<svg viewBox="0 0 24 24" width={20} height={20} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+											<svg
+												viewBox="0 0 24 24"
+												width={20}
+												height={20}
+												fill="none"
+												stroke="currentColor"
+												strokeWidth="1.8"
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												aria-hidden="true"
+											>
 												<path d={s.d} />
 											</svg>
 										</span>
@@ -459,7 +481,9 @@ const CarDetail: NextPage = ({ initialComment, ...props }: any) => {
 									</div>
 								)}
 								<div className={'cd-review-form'}>
-									{commentTotal === 0 && <span className={'cd-muted'}>{t('No reviews yet. Be the first to share your experience.')}</span>}
+									{commentTotal === 0 && (
+										<span className={'cd-muted'}>{t('No reviews yet. Be the first to share your experience.')}</span>
+									)}
 									<label htmlFor={'cd-review'}>{t('Your review')}</label>
 									<textarea
 										id={'cd-review'}
@@ -490,9 +514,15 @@ const CarDetail: NextPage = ({ initialComment, ...props }: any) => {
 									<div className={'cd-price'}>₩{formatterStr(car?.carPrice)}</div>
 								</div>
 								<div className={'cd-badges'}>
-									{car?.carStatus === CarStatus.RESERVED && <span className={'cd-badge is-reserved'}>{t('Reserved')}</span>}
-									<span className={`cd-badge ${car?.carBarter ? 'is-on' : ''}`}>{car?.carBarter ? `✓ ${t('Barter available')}` : t('No barter')}</span>
-									<span className={`cd-badge ${car?.carCredit ? 'is-on' : ''}`}>{car?.carCredit ? `✓ ${t('Credit available')}` : t('No credit')}</span>
+									{car?.carStatus === CarStatus.RESERVED && (
+										<span className={'cd-badge is-reserved'}>{t('Reserved')}</span>
+									)}
+									<span className={`cd-badge ${car?.carBarter ? 'is-on' : ''}`}>
+										{car?.carBarter ? `✓ ${t('Barter available')}` : t('No barter')}
+									</span>
+									<span className={`cd-badge ${car?.carCredit ? 'is-on' : ''}`}>
+										{car?.carCredit ? `✓ ${t('Credit available')}` : t('No credit')}
+									</span>
 								</div>
 
 								<div className={'cd-divider'} />
@@ -605,7 +635,10 @@ const CarDetail: NextPage = ({ initialComment, ...props }: any) => {
 								{t('Call dealer')}
 							</a>
 						) : (
-							<Link href={{ pathname: '/dealer/detail', query: { dealerId: dealer?._id } }} className={'cd-mbar-btn is-primary'}>
+							<Link
+								href={{ pathname: '/dealer/detail', query: { dealerId: dealer?._id } }}
+								className={'cd-mbar-btn is-primary'}
+							>
 								{t('View dealer')}
 							</Link>
 						)}

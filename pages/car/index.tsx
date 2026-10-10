@@ -21,6 +21,7 @@ import { formatterStr, formatEnum } from '../../libs/utils';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import DirectionsCarRoundedIcon from '@mui/icons-material/DirectionsCarRounded';
+import { optimisticLikeInList } from '../../libs/optimistic';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -87,33 +88,30 @@ const CarList: NextPage = ({ initialInput, ...props }: any) => {
 	// Pagination komponentidan chaqiriladi: yangi sahifa raqamini URL'ga yozadi va state'ni yangilaydi
 	const handlePaginationChange = async (event: ChangeEvent<unknown>, value: number) => {
 		searchFilter.page = value;
-		await router.push(
-			`/car?input=${JSON.stringify(searchFilter)}`,
-			`/car?input=${JSON.stringify(searchFilter)}`,
-			{
-				scroll: false,
-			},
-		);
+		await router.push(`/car?input=${JSON.stringify(searchFilter)}`, `/car?input=${JSON.stringify(searchFilter)}`, {
+			scroll: false,
+		});
 		setCurrentPage(value);
 	};
 
 	// CarCard'dagi like ikonkasi bosilganda ishga tushadi
 	const likeCarHandler = async (user: T, id: string) => {
-			try {                // auth bolgan user  ,  like bosilyotgan car
-				if (!id) return;// like bosmoqchi bolgan car id
-				if (!user._id) throw new Error(Message.NOT_AUTHENTICATED);
-	
-				await likeTargetCar({
-					variables: { input: id },
-				});
-				// joriy filtr bilan qayta so'raydi (avval initialInput edi — like'dan keyin filtrlar tushib qolardi)
-				await getCarsRefetch({ input: searchFilter });
-	
-			} catch (err: any) {
-				console.log('ERROR, likeCarHandler:', err.message);
-				sweetMixinErrorAlert(err.message).then();
-			}
-		};
+		try {
+			if (!id) return;
+			if (!user._id) throw new Error(Message.NOT_AUTHENTICATED);
+			// optimistic: yurakcha va son DARHOL o'zgaradi, so'rov orqada ketadi (xato bo'lsa avvalgi holatga qaytadi)
+			await optimisticLikeInList(
+				setCars,
+				id,
+				'carLikes',
+				() => likeTargetCar({ variables: { input: id } }),
+				'likeTargetCar',
+			);
+		} catch (err: any) {
+			console.log('ERROR, likeCarHandler:', err.message);
+			sweetMixinErrorAlert(err.message).then();
+		}
+	};
 
 	// "Sort by" tugmasi bosilganda saralash menyusini ochadi
 	const sortingClickHandler = (e: MouseEvent<HTMLElement>) => {
@@ -192,7 +190,10 @@ const CarList: NextPage = ({ initialInput, ...props }: any) => {
 		prices &&
 		(prices.start !== initialInput.search.pricesRange.start || prices.end !== initialInput.search.pricesRange.end)
 	)
-		activeChips.push({ key: 'pricesRange', label: `₩${formatterStr(prices.start) || 0} – ₩${formatterStr(prices.end)}` });
+		activeChips.push({
+			key: 'pricesRange',
+			label: `₩${formatterStr(prices.start) || 0} – ₩${formatterStr(prices.end)}`,
+		});
 
 	const sortMenu = (
 		<Menu
@@ -288,19 +289,11 @@ const CarList: NextPage = ({ initialInput, ...props }: any) => {
 					<p className={'cl-sub'}>{total ? t('{{count}} cars found', { count: total }) : ' '}</p>
 				</div>
 				<div className={'cl-toolbar'}>
-					<Button
-						className={'cl-filter-btn'}
-						onClick={() => setFilterOpen(true)}
-						startIcon={<TuneRoundedIcon />}
-					>
+					<Button className={'cl-filter-btn'} onClick={() => setFilterOpen(true)} startIcon={<TuneRoundedIcon />}>
 						{t('Filters')}
 						{activeChips.length > 0 && <span className={'cl-filter-count'}>{activeChips.length}</span>}
 					</Button>
-					<Button
-						className={'cl-sort-btn'}
-						onClick={sortingClickHandler}
-						endIcon={<KeyboardArrowDownRoundedIcon />}
-					>
+					<Button className={'cl-sort-btn'} onClick={sortingClickHandler} endIcon={<KeyboardArrowDownRoundedIcon />}>
 						{t(filterSortName)}
 					</Button>
 					{sortMenu}
@@ -341,9 +334,7 @@ const CarList: NextPage = ({ initialInput, ...props }: any) => {
 								<strong className={'cl-found'}>
 									{total ? t('{{count}} cars found', { count: total }) : t('Cars')}
 								</strong>
-								{searchFilter?.search?.text ? (
-									<span className={'cl-query'}>“{searchFilter.search.text}”</span>
-								) : null}
+								{searchFilter?.search?.text ? <span className={'cl-query'}>“{searchFilter.search.text}”</span> : null}
 							</div>
 							<div className={'cl-sort'}>
 								<span>{t('Sort by')}</span>

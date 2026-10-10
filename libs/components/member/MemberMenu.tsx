@@ -9,6 +9,7 @@ import { useQuery } from '@apollo/client';
 import { GET_MEMBER } from '../../../apollo/user/query';
 import { T } from '../../types/common';
 import { useTranslation } from 'next-i18next';
+import { toggleFollow } from '../../optimistic';
 
 interface MemberMenuProps {
 	subscribeHandler: any;
@@ -42,6 +43,16 @@ const MemberMenu = (props: MemberMenuProps) => {
 		},
 	});
 
+	/** OPTIMISTIC follow **/
+	// Follow/Unfollow bosilishi bilan tugma va followers soni DARHOL o'zgaradi, so'rov orqada ketadi;
+	// handler false qaytarsa (xato) — avvalgi holatga qaytariladi
+	const followOptimistic = async (handler: any) => {
+		if (!member?._id) return;
+		setMember((prev) => toggleFollow(prev as Member, 'memberFollowers'));
+		const ok = await handler(member._id, getMemberRefetch, memberId);
+		if (ok === false) setMember((prev) => toggleFollow(prev as Member, 'memberFollowers'));
+	};
+
 	if (device === 'mobile') {
 		// mobil: profil kartasi (Follow tugmasi, statistika) + bo'limlar gorizontal chip'larda
 		const isFollowing = !!(member?.meFollowed && member?.meFollowed[0]?.myFollowing);
@@ -61,18 +72,20 @@ const MemberMenu = (props: MemberMenuProps) => {
 							(member?.memberNick ?? 'U').slice(0, 1).toUpperCase()
 						)}
 					</span>
-					{member?.memberType && <span className={`mb-role is-${member.memberType.toLowerCase()}`}>{t(member.memberType)}</span>}
+					{member?.memberType && (
+						<span className={`mb-role is-${member.memberType.toLowerCase()}`}>{t(member.memberType)}</span>
+					)}
 					<Typography component={'h1'} className={'mb-name'}>
 						{member?.memberFullName || member?.memberNick || '\u00A0'}
 					</Typography>
 					{member?.memberAddress && <span className={'mb-address'}>{member.memberAddress}</span>}
 					<div className={'mb-actions'}>
 						{isFollowing ? (
-							<Button className={'mb-btn is-following'} onClick={() => unsubscribeHandler(member?._id, getMemberRefetch, memberId)}>
+							<Button className={'mb-btn is-following'} onClick={() => followOptimistic(unsubscribeHandler)}>
 								{t('Following')}
 							</Button>
 						) : (
-							<Button className={'mb-btn is-primary'} onClick={() => subscribeHandler(member?._id, getMemberRefetch, memberId)}>
+							<Button className={'mb-btn is-primary'} onClick={() => followOptimistic(subscribeHandler)}>
 								{t('Follow')}
 							</Button>
 						)}
@@ -140,8 +153,13 @@ const MemberMenu = (props: MemberMenuProps) => {
 						<>
 							<Button
 								variant="outlined"
-								sx={{ background: '#FFFFFF', color: '#23262F', borderColor: '#E3E1DA', ':hover': { background: '#EEF1F7', borderColor: '#23262F' } }}
-								onClick={() => unsubscribeHandler(member?._id, getMemberRefetch, memberId)}
+								sx={{
+									background: '#FFFFFF',
+									color: '#23262F',
+									borderColor: '#E3E1DA',
+									':hover': { background: '#EEF1F7', borderColor: '#23262F' },
+								}}
+								onClick={() => followOptimistic(unsubscribeHandler)}
 							>
 								Unfollow
 							</Button>
@@ -151,7 +169,7 @@ const MemberMenu = (props: MemberMenuProps) => {
 						<Button
 							variant="contained"
 							sx={{ background: '#0057FF', color: '#FFFFFF', ':hover': { background: '#0047D1' } }}
-							onClick={() => subscribeHandler(member?._id, getMemberRefetch, memberId)}
+							onClick={() => followOptimistic(subscribeHandler)}
 						>
 							Follow
 						</Button>

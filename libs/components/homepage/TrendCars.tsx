@@ -18,6 +18,7 @@ import { T } from '../../types/common';
 import { LIKE_TARGET_CAR } from '../../../apollo/user/mutation';
 import { Message } from '../../enums/common.enum';
 import { sweetMixinErrorAlert } from '../../sweetAlert';
+import { optimisticLikeInList } from '../../optimistic';
 
 interface TrendCarsProps {
 	initialInput: CarsInquiry;
@@ -50,14 +51,16 @@ const TrendCars = (props: TrendCarsProps) => {
 	// TrendCarCard'dagi like ikonkasi bosilganda ishga tushadi
 	const likeCarHandler = async (user: T, id: string) => {
 		try {
-			if (!id) return; // e'lon id'si bo'lmasa, davom etmaydi
-			if (!user._id) throw new Error(Message.NOT_AUTHENTICATED); // login qilinmagan bo'lsa xato chiqaradi
-
-			await likeTargetCar({
-				variables: { input: id }, // like bosilayotgan e'lonning ID'si
-			});
-			await getCarsRefetch({ input: initialInput }); // ro'yxatni yangilaydi (like soni yangilanishi uchun)
-
+			if (!id) return;
+			if (!user._id) throw new Error(Message.NOT_AUTHENTICATED);
+			// optimistic: yurakcha va son DARHOL o'zgaradi, so'rov orqada ketadi (xato bo'lsa avvalgi holatga qaytadi)
+			await optimisticLikeInList(
+				setTrendCars,
+				id,
+				'carLikes',
+				() => likeTargetCar({ variables: { input: id } }),
+				'likeTargetCar',
+			);
 		} catch (err: any) {
 			console.log('ERROR, likeCarHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();

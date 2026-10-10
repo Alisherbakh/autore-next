@@ -50,55 +50,53 @@ const MyPage: NextPage = () => {
 
 	/** HANDLERS **/
 	// foydalanuvchiga obuna bo'lish, so'ng caller bergan refetch orqali ro'yxatni yangilaydi
-	const subscribeHandler = async (id: string, refetch: any, query: any) => {
+	// follow: so'rovni yuboradi. Tugma/son holatini chaqiruvchi komponent o'zi DARHOL (optimistic) o'zgartiradi;
+	// natija: true — muvaffaqiyatli, false — xato (komponent holatni avvalgisiga qaytaradi)
+	const subscribeHandler = async (id: string, refetch: any, query: any): Promise<boolean> => {
 		try {
-			console.log('id: ', id);
 			if (!id) throw new Error(Messages.error1);
 			if (!user._id) throw new Error(Messages.error2);
-
-			await subscribe({
-				variables: {
-					input: id,
-				},
-			});
-			await refetch({ input: query });
+			await subscribe({ variables: { input: id } });
+			if (refetch) refetch({ input: query }).then(); // aniq sonlar uchun orqada (kutmasdan) yangilaymiz
+			return true;
 		} catch (err: any) {
+			console.log('ERROR, subscribeHandler:', err.message);
 			sweetErrorHandling(err).then();
+			return false;
 		}
 	};
 
 	// obunani bekor qilish, so'ng ro'yxatni yangilaydi
-	const unsubscribeHandler = async (id: string, refetch: any, query: any) => {
+	// unfollow: so'rovni yuboradi. Tugma/son holatini chaqiruvchi komponent o'zi DARHOL (optimistic) o'zgartiradi;
+	// natija: true — muvaffaqiyatli, false — xato (komponent holatni avvalgisiga qaytaradi)
+	const unsubscribeHandler = async (id: string, refetch: any, query: any): Promise<boolean> => {
 		try {
 			if (!id) throw new Error(Messages.error1);
 			if (!user._id) throw new Error(Messages.error2);
-
-			await unsubscribe({
-				variables: {
-					input: id,
-				},
-			});
-			await refetch({ input: query });
+			await unsubscribe({ variables: { input: id } });
+			if (refetch) refetch({ input: query }).then(); // aniq sonlar uchun orqada (kutmasdan) yangilaymiz
+			return true;
 		} catch (err: any) {
+			console.log('ERROR, unsubscribeHandler:', err.message);
 			sweetErrorHandling(err).then();
+			return false;
 		}
 	};
 
 	// foydalanuvchiga like bosish, so'ng ro'yxatni yangilaydi
-	const likeMemberHandler = async (id: string, refetch: any, query: any) => {
+	// like: so'rovni yuboradi. Tugma/son holatini chaqiruvchi komponent o'zi DARHOL (optimistic) o'zgartiradi;
+	// natija: true — muvaffaqiyatli, false — xato (komponent holatni avvalgisiga qaytaradi)
+	const likeMemberHandler = async (id: string, refetch: any, query: any): Promise<boolean> => {
 		try {
-			if (!id) return;
+			if (!id) return false;
 			if (!user._id) throw new Error(Messages.error2);
-
-			await likeTargetMember({
-				variables: {
-					input: id,
-				},
-			});
-			await refetch({ input: query });
+			await likeTargetMember({ variables: { input: id } });
+			if (refetch) refetch({ input: query }).then(); // aniq sonlar uchun orqada (kutmasdan) yangilaymiz
+			return true;
 		} catch (err: any) {
 			console.log('ERROR, likeMemberHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();
+			return false;
 		}
 	};
 

@@ -25,14 +25,11 @@ import EditIcon from '@mui/icons-material/Edit';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { BoardArticle } from '../../libs/types/board-article/board-article';
 import { Messages } from '../../libs/config';
-import {
-	sweetConfirmAlert,
-	sweetMixinErrorAlert,
-	sweetMixinSuccessAlert,
-} from '../../libs/sweetAlert';
+import { sweetConfirmAlert, sweetMixinErrorAlert, sweetMixinSuccessAlert } from '../../libs/sweetAlert';
 import { useTranslation } from 'next-i18next';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import { CATEGORY_KEYS, CATEGORY_META } from '../../libs/components/community/categories';
+import { optimisticLikeItem } from '../../libs/optimistic';
 const ToastViewerComponent = dynamic(() => import('../../libs/components/community/TViewer'), { ssr: false });
 
 export const getStaticProps = async ({ locale }: any) => ({
@@ -137,23 +134,18 @@ const CommunityDetail: NextPage = ({ initialInput, ...props }: T) => {
 	// maqolaga like bosish (bir vaqtda ikki marta bosilmasligi uchun likeLoading bilan himoyalangan)
 	const likeBoArticleHandler = async (user: any, id: any) => {
 		try {
-			if (likeLoading) return;
 			if (!id) return;
 			if (!user._id) throw new Error(Messages.error2);
-
-			setLikeLoading(true);
-
-			await likeTargetBoardArticle({
-				variables: {
-					input: id,
-				},
-			});
-			await boardArticleRefetch({ input: articleId });
+			// optimistic: yurakcha va son DARHOL o'zgaradi, so'rov orqada ketadi (xato bo'lsa avvalgi holatga qaytadi)
+			await optimisticLikeItem(
+				setBoardArticle,
+				'articleLikes',
+				() => likeTargetBoardArticle({ variables: { input: id } }),
+				'likeTargetBoardArticle',
+			);
 		} catch (err: any) {
 			console.log('ERROR, likeBoArticleHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();
-		} finally {
-			setLikeLoading(false);
 		}
 	};
 
@@ -215,7 +207,6 @@ const CommunityDetail: NextPage = ({ initialInput, ...props }: T) => {
 				await sweetMixinSuccessAlert('Successfully updated!');
 			}
 			await getCommentsRefetch({ input: searchFilter });
-			
 		} catch (error: any) {
 			await sweetMixinErrorAlert(error.message);
 		} finally {
@@ -258,7 +249,8 @@ const CommunityDetail: NextPage = ({ initialInput, ...props }: T) => {
 	};
 
 	/** RENDER **/
-	const categoryMeta = CATEGORY_META[articleCategory] ?? CATEGORY_META[boardArticle?.articleCategory ?? 'FREE'] ?? CATEGORY_META.FREE;
+	const categoryMeta =
+		CATEGORY_META[articleCategory] ?? CATEGORY_META[boardArticle?.articleCategory ?? 'FREE'] ?? CATEGORY_META.FREE;
 	const CategoryIcon = categoryMeta.icon;
 	const liked: boolean = !!(boardArticle?.meLiked && boardArticle?.meLiked[0]?.myFavorite);
 	const articleCover: string | null = boardArticle?.articleImage

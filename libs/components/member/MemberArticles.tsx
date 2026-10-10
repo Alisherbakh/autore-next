@@ -13,6 +13,7 @@ import { LIKE_TARGET_BOARD_ARTICLE } from '../../../apollo/user/mutation';
 import { GET_BOARD_ARTICLES } from '../../../apollo/user/query';
 import { Messages } from '../../config';
 import { sweetMixinErrorAlert } from '../../sweetAlert';
+import { optimisticLikeInList } from '../../optimistic';
 
 const MemberArticles: NextPage = ({ initialInput, ...props }: any) => {
 	const device = useDeviceDetect();
@@ -60,18 +61,19 @@ const MemberArticles: NextPage = ({ initialInput, ...props }: any) => {
 	// CommunityCard'dagi like ikonkasi bosilganda ishga tushadi
 	const likeArticleHandler = async (e: any, user: any, id: string) => {
 		try {
-			e.stopPropagation(); // karta o'ziga bosilgandek sahifaga o'tib ketmasligi uchun hodisani to'xtatadi
-			if (!id) return; // maqola id'si bo'lmasa, davom etmaydi
-			if (!user._id) throw new Error(Messages.error2); // login qilinmagan bo'lsa xato chiqaradi
-
-			await likeTargetBoardArticle({
-				variables: {
-					input: id, // like bosilayotgan maqolaning ID'si
-				},
-			});
-			await boardArticlesRefetch({ input: searchFilter }); // ro'yxatni yangilaydi (like soni yangilanishi uchun)
+			e.stopPropagation(); // karta o'ziga bosilgandek sahifaga o'tib ketmasligi uchun
+			if (!id) return;
+			if (!user?._id) throw new Error(Messages.error2);
+			// optimistic: yurakcha va son DARHOL o'zgaradi, so'rov orqada ketadi (xato bo'lsa avvalgi holatga qaytadi)
+			await optimisticLikeInList(
+				setMemberBoArticles,
+				id,
+				'articleLikes',
+				() => likeTargetBoardArticle({ variables: { input: id } }),
+				'likeTargetBoardArticle',
+			);
 		} catch (err: any) {
-			console.log('ERROR, likeCarHandler:', err.message);
+			console.log('ERROR, likeArticleHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();
 		}
 	};
@@ -88,7 +90,11 @@ const MemberArticles: NextPage = ({ initialInput, ...props }: any) => {
 					)}
 					{memberBoArticles?.map((boardArticle: BoardArticle) => {
 						return (
-							<CommunityCard boardArticle={boardArticle} likeArticleHandler={likeArticleHandler} key={boardArticle?._id} />
+							<CommunityCard
+								boardArticle={boardArticle}
+								likeArticleHandler={likeArticleHandler}
+								key={boardArticle?._id}
+							/>
 						);
 					})}
 				</div>

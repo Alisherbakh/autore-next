@@ -17,6 +17,7 @@ import { sweetMixinErrorAlert } from '../../sweetAlert';
 import { GET_CARS } from '../../../apollo/user/query';
 import { T } from '../../types/common';
 import SectionHead from './SectionHead';
+import { optimisticLikeInList } from '../../optimistic';
 
 interface PopularCarsProps {
 	initialInput: CarsInquiry;
@@ -51,9 +52,14 @@ const PopularCars = (props: PopularCarsProps) => {
 		try {
 			if (!id) return;
 			if (!user._id) throw new Error(Message.NOT_AUTHENTICATED);
-			await likeTargetCar({ variables: { input: id } });
-			const result = await getCarsRefetch({ input: initialInput });
-			if (result?.data?.getCars?.list) setPopularCars(result.data.getCars.list);
+			// optimistic: yurakcha va son DARHOL o'zgaradi, so'rov orqada ketadi (xato bo'lsa avvalgi holatga qaytadi)
+			await optimisticLikeInList(
+				setPopularCars,
+				id,
+				'carLikes',
+				() => likeTargetCar({ variables: { input: id } }),
+				'likeTargetCar',
+			);
 		} catch (err: any) {
 			console.log('ERROR, likeCarHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();

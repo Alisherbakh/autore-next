@@ -13,6 +13,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import { userVar } from '../../../apollo/store';
 import { T } from '../../types/common';
+import { isFollowedItem, isLikedItem } from '../../optimistic';
 
 interface MemberFollowsProps {
 	initialInput: FollowInquiry;
@@ -23,7 +24,7 @@ interface MemberFollowsProps {
 }
 
 const MemberFollowers = (props: MemberFollowsProps) => {
-	const { initialInput,likeMemberHandler, subscribeHandler, unsubscribeHandler, redirectToMemberPageHandler } = props;
+	const { initialInput, likeMemberHandler, subscribeHandler, unsubscribeHandler, redirectToMemberPageHandler } = props;
 	const device = useDeviceDetect();
 	const router = useRouter();
 	const { t } = useTranslation('common');
@@ -66,6 +67,36 @@ const MemberFollowers = (props: MemberFollowsProps) => {
 		getMemberFollowersRefetch({ input: followInquiry }).then();
 	}, [followInquiry]);
 
+	/** OPTIMISTIC (like / follow) **/
+	// tugma bosilishi bilan yurakcha/son yoki Follow holati DARHOL o'zgaradi, so'rov orqada ketadi;
+	// handler false qaytarsa (xato) — holat avvalgisiga qaytariladi
+	const flipInList = (memberId: string, kind: 'like' | 'follow') =>
+		setMemberFollowers((list) =>
+			(list ?? []).map((item: any) => {
+				if (item?.followerData?._id !== memberId) return item;
+				const was = kind === 'like' ? isLikedItem(item) : isFollowedItem(item);
+				const countKey = kind === 'like' ? 'memberLikes' : 'memberFollowers';
+				const flag =
+					kind === 'like'
+						? { meLiked: [{ ...(item.meLiked?.[0] ?? {}), myFavorite: !was }] }
+						: { meFollowed: [{ ...(item.meFollowed?.[0] ?? {}), myFollowing: !was }] };
+				return {
+					...item,
+					...flag,
+					followerData: {
+						...item.followerData,
+						[countKey]: Math.max(0, (item.followerData?.[countKey] ?? 0) + (was ? -1 : 1)),
+					},
+				};
+			}),
+		);
+	const runOptimistic = async (memberId: string | undefined, kind: 'like' | 'follow', handler: any) => {
+		if (!memberId) return;
+		flipInList(memberId, kind);
+		const ok = await handler(memberId, getMemberFollowersRefetch, followInquiry);
+		if (ok === false) flipInList(memberId, kind);
+	};
+
 	/** HANDLERS **/
 	// Pagination komponentidan chaqiriladi: sahifa raqamini yozadi (yuqoridagi useEffect avtomatik qayta so'raydi)
 	const paginationHandler = async (event: ChangeEvent<unknown>, value: number) => {
@@ -78,9 +109,7 @@ const MemberFollowers = (props: MemberFollowsProps) => {
 		<div id="mp-followers" className={'mp-section'}>
 			<Stack className="main-title-box">
 				<Stack className="right-box">
-					<Typography className="main-title">
-						{category === 'followers' ? t('Followers') : t('Followings')}
-					</Typography>
+					<Typography className="main-title">{category === 'followers' ? t('Followers') : t('Followings')}</Typography>
 					<Typography className="sub-title">
 						{category === 'followers' ? t('People who follow this profile.') : t('People this profile follows.')}
 					</Typography>
@@ -118,7 +147,7 @@ const MemberFollowers = (props: MemberFollowsProps) => {
 								<button
 									type="button"
 									className={`mp-like ${liked ? 'is-liked' : ''}`}
-									onClick={() => likeMemberHandler(follower?.followerData?._id, getMemberFollowersRefetch, followInquiry)}
+									onClick={() => runOptimistic(follower?.followerData?._id, 'like', likeMemberHandler)}
 									aria-label={liked ? t('Unlike') : t('Like')}
 								>
 									{liked ? <FavoriteIcon style={{ color: LIKED_COLOR }} /> : <FavoriteBorderIcon />}
@@ -130,7 +159,7 @@ const MemberFollowers = (props: MemberFollowsProps) => {
 									{follower.meFollowed && follower.meFollowed[0]?.myFollowing ? (
 										<Button
 											className={'mp-follow is-following'}
-											onClick={() => unsubscribeHandler(follower?.followerData?._id, null, followInquiry)}
+											onClick={() => runOptimistic(follower?.followerData?._id, 'follow', unsubscribeHandler)}
 										>
 											<span className={'label-on'}>{t('Following')}</span>
 											<span className={'label-off'}>{t('Unfollow')}</span>
@@ -138,7 +167,7 @@ const MemberFollowers = (props: MemberFollowsProps) => {
 									) : (
 										<Button
 											className={'mp-follow'}
-											onClick={() => subscribeHandler(follower?.followerData?._id, null, followInquiry)}
+											onClick={() => runOptimistic(follower?.followerData?._id, 'follow', subscribeHandler)}
 										>
 											{t('Follow')}
 										</Button>

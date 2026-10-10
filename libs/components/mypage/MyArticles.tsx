@@ -14,6 +14,7 @@ import { T } from '../../types/common';
 import { BoardArticle } from '../../types/board-article/board-article';
 import { Messages } from '../../config';
 import { sweetMixinErrorAlert } from '../../sweetAlert';
+import { optimisticLikeInList } from '../../optimistic';
 
 const MyArticles: NextPage = ({ initialInput, ...props }: T) => {
 	const device = useDeviceDetect();
@@ -58,17 +59,17 @@ const MyArticles: NextPage = ({ initialInput, ...props }: T) => {
 	// CommunityCard'dagi like ikonkasi bosilganda ishga tushadi
 	const likeBoArticleHandler = async (e: any, user: any, id: string) => {
 		try {
-			e.stopPropagation(); // karta o'ziga bosilgandek sahifaga o'tib ketmasligi uchun hodisani to'xtatadi
-			if (!id) return; // maqola id'si bo'lmasa, davom etmaydi
-			if (!user?._id) throw new Error(Messages.error2); // login qilinmagan bo'lsa xato chiqaradi
-
-			await likeTargetBoardArticle({
-				variables: {
-					input: id, // like bosilayotgan maqolaning ID'si
-				},
-			});
-			await boardArticlesRefetch({ input: searchCommunity }); // ro'yxatni yangilaydi (like soni yangilanishi uchun)
-
+			e.stopPropagation(); // karta o'ziga bosilgandek sahifaga o'tib ketmasligi uchun
+			if (!id) return;
+			if (!user?._id) throw new Error(Messages.error2);
+			// optimistic: yurakcha va son DARHOL o'zgaradi, so'rov orqada ketadi (xato bo'lsa avvalgi holatga qaytadi)
+			await optimisticLikeInList(
+				setBoardArticles,
+				id,
+				'articleLikes',
+				() => likeTargetBoardArticle({ variables: { input: id } }),
+				'likeTargetBoardArticle',
+			);
 		} catch (err: any) {
 			console.log('ERROR, likeBoArticleHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();
@@ -96,16 +97,16 @@ const MyArticles: NextPage = ({ initialInput, ...props }: T) => {
 						);
 					})
 				) : (
-						<div className={'mp-empty'}>
-							<span className={'mp-empty-icon'}>
-								<ArticleRoundedIcon />
-							</span>
-							<strong>{t('No posts yet')}</strong>
-							<p>{t('Share a story, a review or a tip with other drivers.')}</p>
-							<Link href={'/mypage?category=writeArticle'} className={'mp-btn-link'}>
-								{t('Write a post')}
-							</Link>
-						</div>
+					<div className={'mp-empty'}>
+						<span className={'mp-empty-icon'}>
+							<ArticleRoundedIcon />
+						</span>
+						<strong>{t('No posts yet')}</strong>
+						<p>{t('Share a story, a review or a tip with other drivers.')}</p>
+						<Link href={'/mypage?category=writeArticle'} className={'mp-btn-link'}>
+							{t('Write a post')}
+						</Link>
+					</div>
 				)}
 			</div>
 			{boardArticles?.length > 0 ? (
@@ -117,7 +118,9 @@ const MyArticles: NextPage = ({ initialInput, ...props }: T) => {
 						color="primary"
 						onChange={paginationHandler}
 					/>
-					<Typography className="mp-total">{t('Total {{count}} articles available', { count: totalCount ?? 0 })}</Typography>
+					<Typography className="mp-total">
+						{t('Total {{count}} articles available', { count: totalCount ?? 0 })}
+					</Typography>
 				</Stack>
 			) : null}
 		</div>

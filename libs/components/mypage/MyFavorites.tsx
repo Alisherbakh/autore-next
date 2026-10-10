@@ -53,21 +53,22 @@ const MyFavorites: NextPage = () => {
 
 	// CarCard'dagi like ikonkasi bosilganda ishga tushadi (user va e'lon id'si prop orqali keladi)
 	const likeCarHandler = async (user: any, id: string) => {
+		if (!id) return;
+		if (!user._id) return sweetMixinErrorAlert(Messages.error2).then();
+		// optimistic: bu sahifa faqat sevimlilarni ko'rsatadi — like olib tashlangan karta DARHOL yo'qoladi,
+		// so'rov orqada ketadi; xato bo'lsa ro'yxat avvalgi holatiga qaytadi
+		const prevList = myFavorites;
+		const prevTotal = total;
+		setMyFavorites((list) => (list ?? []).filter((car) => car?._id !== id));
+		setTotal((count) => Math.max(0, count - 1));
 		try {
-			if (!id) return; // e'lon id'si bo'lmasa, davom etmaydi
-			if (!user._id) throw new Error(Messages.error2); // login qilinmagan bo'lsa xato chiqaradi ("Please login first!")
-
-			await likeTargetCar({
-				variables: {
-					input: id, // like bosilayotgan e'lonning ID'si
-				},
-			});
-			// bu sahifa faqat "sevimlilar"ni ko'rsatgani uchun, like bosish odatda uni ro'yxatdan chiqarib yuboradi —
-			// shuning uchun ro'yxatni backend'dan qayta so'raymiz, u holda o'chgan element ekranda ham yo'qoladi
-			await getFavoritesRefetch({ input: searchFavorites });
+			await likeTargetCar({ variables: { input: id } });
+			getFavoritesRefetch({ input: searchFavorites }).then(); // sahifani to'ldirish uchun orqada (kutmasdan) yangilaymiz
 		} catch (err: any) {
-			console.log('ERROR, likeCarHandler:', err.message); // konsolga xato matnini chiqaradi
-			sweetMixinErrorAlert(err.message).then(); // foydalanuvchiga alert ko'rsatadi
+			setMyFavorites(prevList);
+			setTotal(prevTotal);
+			console.log('ERROR, likeCarHandler:', err.message);
+			sweetMixinErrorAlert(err.message).then();
 		}
 	};
 
@@ -86,16 +87,16 @@ const MyFavorites: NextPage = () => {
 						return <CarCard car={car} likeCarHandler={likeCarHandler} myFavorites={true} key={car?._id} />;
 					})
 				) : (
-						<div className={'mp-empty'}>
-							<span className={'mp-empty-icon'}>
-								<FavoriteBorderRoundedIcon />
-							</span>
-							<strong>{t('No favorites yet')}</strong>
-							<p>{t('Tap the heart on any car to save it here.')}</p>
-							<Link href={'/car'} className={'mp-btn-link'}>
-								{t('Browse cars')}
-							</Link>
-						</div>
+					<div className={'mp-empty'}>
+						<span className={'mp-empty-icon'}>
+							<FavoriteBorderRoundedIcon />
+						</span>
+						<strong>{t('No favorites yet')}</strong>
+						<p>{t('Tap the heart on any car to save it here.')}</p>
+						<Link href={'/car'} className={'mp-btn-link'}>
+							{t('Browse cars')}
+						</Link>
+					</div>
 				)}
 			</div>
 			{myFavorites?.length ? (

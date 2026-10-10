@@ -20,7 +20,13 @@ import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import Moment from 'react-moment';
 import { useTranslation } from 'next-i18next';
 import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
-import { CREATE_COMMENT, LIKE_TARGET_CAR, LIKE_TARGET_MEMBER, SUBSCRIBE, UNSUBSCRIBE } from '../../apollo/user/mutation';
+import {
+	CREATE_COMMENT,
+	LIKE_TARGET_CAR,
+	LIKE_TARGET_MEMBER,
+	SUBSCRIBE,
+	UNSUBSCRIBE,
+} from '../../apollo/user/mutation';
 import { GET_COMMENTS, GET_MEMBER, GET_CARS } from '../../apollo/user/query';
 import { T } from '../../libs/types/common';
 import { useRouter } from 'next/router';
@@ -34,6 +40,7 @@ import { Comment } from '../../libs/types/comment/comment';
 import { CommentGroup } from '../../libs/enums/comment.enum';
 import { LIKED_COLOR, Messages, REACT_APP_API_URL } from '../../libs/config';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { optimisticLikeInList, optimisticLikeItem, toggleFollow } from '../../libs/optimistic';
 
 // rasm bo'lmasa: nickdan 1–2 harf (DealerCard'dagi bilan bir xil)
 const getInitials = (name: string = ''): string => {
@@ -212,15 +219,14 @@ const DealerDetail: NextPage = ({ initialInput, initialComment, ...props }: any)
 		try {
 			if (!id) return;
 			if (!user._id) throw new Error(Messages.error2);
-
-			await likeTargetCar({
-				variables: {
-					input: id,
-				},
-			});
-			const result = await getCarsRefetch({ input: searchFilter });
-			// refetch natijasi bilan kartalarni darhol yangilaymiz (like rangi va soni)
-			if (result?.data?.getCars?.list) setDealerCars(result.data.getCars.list);
+			// optimistic: yurakcha va son DARHOL o'zgaradi, so'rov orqada ketadi (xato bo'lsa avvalgi holatga qaytadi)
+			await optimisticLikeInList(
+				setDealerCars,
+				id,
+				'carLikes',
+				() => likeTargetCar({ variables: { input: id } }),
+				'likeTargetCar',
+			);
 		} catch (err: any) {
 			console.log('ERROR, likeCarHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();
@@ -233,15 +239,15 @@ const DealerDetail: NextPage = ({ initialInput, initialComment, ...props }: any)
 		try {
 			if (!id) throw new Error(Messages.error1);
 			if (!user._id) throw new Error(Messages.error2);
-
-			await subscribe({
-				variables: {
-					input: id,
-				},
-			});
-			const result = await getMemberRefetch({ input: id });
-			if (result?.data?.getMember) setDealer(result.data.getMember);
 		} catch (err: any) {
+			return sweetErrorHandling(err).then();
+		}
+		// optimistic: tugma "Following" bo'ladi va followers soni +1 — DARHOL; xato bo'lsa qaytariladi
+		setDealer((prev) => toggleFollow(prev as Member, 'memberFollowers'));
+		try {
+			await subscribe({ variables: { input: id } });
+		} catch (err: any) {
+			setDealer((prev) => toggleFollow(prev as Member, 'memberFollowers'));
 			sweetErrorHandling(err).then();
 		}
 	};
@@ -251,15 +257,15 @@ const DealerDetail: NextPage = ({ initialInput, initialComment, ...props }: any)
 		try {
 			if (!id) throw new Error(Messages.error1);
 			if (!user._id) throw new Error(Messages.error2);
-
-			await unsubscribe({
-				variables: {
-					input: id,
-				},
-			});
-			const result = await getMemberRefetch({ input: id });
-			if (result?.data?.getMember) setDealer(result.data.getMember);
 		} catch (err: any) {
+			return sweetErrorHandling(err).then();
+		}
+		// optimistic: tugma "Follow" bo'ladi va followers soni -1 — DARHOL; xato bo'lsa qaytariladi
+		setDealer((prev) => toggleFollow(prev as Member, 'memberFollowers'));
+		try {
+			await unsubscribe({ variables: { input: id } });
+		} catch (err: any) {
+			setDealer((prev) => toggleFollow(prev as Member, 'memberFollowers'));
 			sweetErrorHandling(err).then();
 		}
 	};
@@ -269,14 +275,13 @@ const DealerDetail: NextPage = ({ initialInput, initialComment, ...props }: any)
 		try {
 			if (!id) return;
 			if (!user._id) throw new Error(Messages.error2);
-
-			await likeTargetMember({
-				variables: {
-					input: id,
-				},
-			});
-			const result = await getMemberRefetch({ input: id });
-			if (result?.data?.getMember) setDealer(result.data.getMember);
+			// optimistic: yurakcha va son DARHOL o'zgaradi, so'rov orqada ketadi (xato bo'lsa avvalgi holatga qaytadi)
+			await optimisticLikeItem(
+				setDealer,
+				'memberLikes',
+				() => likeTargetMember({ variables: { input: id } }),
+				'likeTargetMember',
+			);
 		} catch (err: any) {
 			console.log('ERROR, likeMemberHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();
@@ -345,9 +350,7 @@ const DealerDetail: NextPage = ({ initialInput, initialComment, ...props }: any)
 					<Button
 						className={`dd-btn dd-btn-like ${isLiked ? 'is-liked' : ''}`}
 						onClick={() => likeMemberHandler(dealer?._id as string)}
-						startIcon={
-							isLiked ? <FavoriteRoundedIcon style={{ color: LIKED_COLOR }} /> : <FavoriteBorderRoundedIcon />
-						}
+						startIcon={isLiked ? <FavoriteRoundedIcon style={{ color: LIKED_COLOR }} /> : <FavoriteBorderRoundedIcon />}
 						aria-label={isLiked ? t('Unlike dealer') : t('Like dealer')}
 						aria-pressed={isLiked}
 					>

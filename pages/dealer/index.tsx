@@ -17,6 +17,7 @@ import { GET_DEALERS } from '../../apollo/user/query';
 import { T } from '../../libs/types/common';
 import { Messages } from '../../libs/config';
 import { sweetMixinErrorAlert } from '../../libs/sweetAlert';
+import { optimisticLikeInList } from '../../libs/optimistic';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -113,9 +114,13 @@ const DealerList: NextPage = ({ initialInput, ...props }: any) => {
 	// Pagination komponentidan chaqiriladi: yangi sahifa raqamini URL'ga yozadi va state'ni yangilaydi
 	const paginationChangeHandler = async (event: ChangeEvent<unknown>, value: number) => {
 		searchFilter.page = value;
-		await router.push(`/dealer?input=${JSON.stringify(searchFilter)}`, `/dealer?input=${JSON.stringify(searchFilter)}`, {
-			scroll: false,
-		});
+		await router.push(
+			`/dealer?input=${JSON.stringify(searchFilter)}`,
+			`/dealer?input=${JSON.stringify(searchFilter)}`,
+			{
+				scroll: false,
+			},
+		);
 		setCurrentPage(value);
 	};
 
@@ -124,16 +129,16 @@ const DealerList: NextPage = ({ initialInput, ...props }: any) => {
 		try {
 			if (!id) return;
 			if (!user._id) throw new Error(Messages.error2);
-
-			await likeTargetMember({
-				variables: {
-					input: id,
-				},
-			});
-
-			await getDealersRefetch({ input: searchFilter });
+			// optimistic: yurakcha va son DARHOL o'zgaradi, so'rov orqada ketadi (xato bo'lsa avvalgi holatga qaytadi)
+			await optimisticLikeInList(
+				setDealers,
+				id,
+				'memberLikes',
+				() => likeTargetMember({ variables: { input: id } }),
+				'likeTargetMember',
+			);
 		} catch (err: any) {
-			console.log('ERROR, likeCarHandler:', err.message);
+			console.log('ERROR, likeMemberHandler:', err.message);
 			sweetMixinErrorAlert(err.message).then();
 		}
 	};
