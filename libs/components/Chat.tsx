@@ -2,15 +2,19 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Avatar, Box, Stack } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
+import CloseIcon from '@mui/icons-material/Close';
 import MarkChatUnreadIcon from '@mui/icons-material/MarkChatUnread';
 import { useRouter } from 'next/router';
 import ScrollableFeed from 'react-scrollable-feed';
-import { RippleBadge } from '../../scss/MaterialTheme/styled';
 import { useReactiveVar } from '@apollo/client';
 import { socketVar, userVar } from '../../apollo/store';
 import { Member } from '../types/member/member';
 import { Messages, REACT_APP_API_URL } from '../config';
 import { sweetErrorAlert } from '../sweetAlert';
+import useDeviceDetect from '../hooks/useDeviceDetect';
+import AiAssistant from './AiAssistant';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import { useTranslation } from 'next-i18next';
 
 const NewMessage = (type: any) => {
 	if (type === 'right') {
@@ -60,10 +64,14 @@ const Chat = () => {
 	const router = useRouter();
 	const user = useReactiveVar(userVar); // joriy login qilgan foydalanuvchi ma'lumotlari (reactive variable orqali)
 	const socket = useReactiveVar(socketVar); // client.ts'dagi LoggingWebSocket yaratgan aktiv WebSocket ulanishi
+	const device = useDeviceDetect(); // 'mobile' yoki 'desktop'
+	const [tab, setTab] = useState<'ai' | 'live'>('ai'); // AI yordamchi yoki Live chat
+	const { t } = useTranslation('common');
 
 	/** LIFECYCLES **/
 	// socket o'zgarganda: WebSocket'dan xabar kelganda ishlaydigan handler'ni ulaydi
 	useEffect(() => {
+		if (!socket) return; // socket hali ulanmagan bo'lsa (masalan birinchi render) — kutadi
 		socket.onmessage = (msg) => {
 			const data = JSON.parse(msg.data); // kelgan xabarni (JSON string) obyektga aylantiradi
 			console.log('WebSocket message:', data); // kelgan xabarni konsolga chiqaradi
@@ -79,12 +87,11 @@ const Chat = () => {
 					break;
 				case 'message':
 					const newMessage: MessagePayload = data; // event="message": yangi kelgan bitta xabar
-					messagesList.push(newMessage); // mavjud ro'yxatga qo'shadi
-					setMessagesList([...messagesList]); // yangi massiv sifatida state'ga yozadi (re-render bo'lishi uchun)
+					setMessagesList((prev) => [...prev, newMessage]); // eski ro'yxatni o'zgartirmasdan, yangi massiv sifatida qo'shadi
 					break;
 			}
 		};
-	}, [socket, messagesList]);
+	}, [socket]);
 
 	// sahifa ochilgandan 100ms keyin chat tugmasini ko'rsatadi (darhol emas, kichik animatsiya effekti uchun)
 	useEffect(() => {
@@ -99,6 +106,15 @@ const Chat = () => {
 	useEffect(() => {
 		setOpenButton(false);
 	}, [router.pathname]);
+
+	// mobil: chat to'liq ekranda ochiq bo'lsa, orqadagi sahifa scroll bo'lmasin
+	useEffect(() => {
+		if (device !== 'mobile') return;
+		document.body.style.overflow = open ? 'hidden' : '';
+		return () => {
+			document.body.style.overflow = ''; // komponent yo'qolganda (sahifa almashganda) scroll'ni qaytaradi
+		};
+	}, [open, device]);
 
 	/** HANDLERS **/
 	// chat oynasini ochadi/yopadi (toggle)
@@ -136,7 +152,7 @@ const Chat = () => {
 	};
 
 	return (
-		<Stack className="chatting">
+		<Stack className={`chatting ${router.pathname === '/car/detail' ? 'raised' : ''}`}>
 			{openButton ? (
 				<button className="chat-button" onClick={handleOpenChat}>
 					{open ? <CloseFullscreenIcon /> : <MarkChatUnreadIcon />}
@@ -144,10 +160,47 @@ const Chat = () => {
 			) : null}
 			<Stack className={`chat-frame ${open ? 'open' : ''}`}>
 				<Box className={'chat-top'} component={'div'}>
-					<div className={'chat-title'}>Online Chat</div>
-					<RippleBadge style={{ margin: '-18px 0 0 21px' }} badgeContent={onlineUsers} />
+					{/* ikki tab — AI yordamchi va Live chat (mobil va PC) */}
+					<div className={'chat-tabs'} role="tablist">
+						<button
+							type="button"
+							role="tab"
+							aria-selected={tab === 'ai'}
+							className={`chat-tab ${tab === 'ai' ? 'active' : ''}`}
+							onClick={() => setTab('ai')}
+						>
+							<AutoAwesomeIcon />
+							{t('AI assistant')}
+						</button>
+						<button
+							type="button"
+							role="tab"
+							aria-selected={tab === 'live'}
+							className={`chat-tab ${tab === 'live' ? 'active' : ''}`}
+							onClick={() => setTab('live')}
+						>
+							{t('Live chat')}
+							<span className={'chat-tab-count'}>{onlineUsers}</span>
+						</button>
+					</div>
+					{/* mobil: to'liq ekranda pastdagi tugma ko'rinmaydi, shuning uchun yopish tugmasi tepada */}
+					{device === 'mobile' && (
+						<button type="button" className={'chat-close'} onClick={handleOpenChat} aria-label={'Close chat'}>
+							<CloseIcon />
+						</button>
+					)}
 				</Box>
-				<Box className={'chat-content'} id="chat-content" ref={chatContentRef} component={'div'}>
+				{/* AI tab — yashirilganda ham suhbat saqlanib qoladi */}
+				<Box className={'chat-pane'} component={'div'} style={tab === 'ai' ? undefined : { display: 'none' }}>
+					<AiAssistant onNavigate={() => setOpen(false)} />
+				</Box>
+				<Box
+					className={'chat-content'}
+					id="chat-content"
+					ref={chatContentRef}
+					component={'div'}
+					style={tab === 'ai' ? { display: 'none' } : undefined}
+				>
 					<ScrollableFeed>
 						<Stack className={'chat-main'}>
 							<Box flexDirection={'row'} style={{ display: 'flex' }} sx={{ m: '10px 0px' }} component={'div'}>
@@ -180,7 +233,7 @@ const Chat = () => {
 						</Stack>
 					</ScrollableFeed>
 				</Box>
-				<Box className={'chat-bott'} component={'div'}>
+				<Box className={'chat-bott'} component={'div'} style={tab === 'ai' ? { display: 'none' } : undefined}>
 					<input
 						type={'text'}
 						name={'message'}

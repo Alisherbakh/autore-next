@@ -45,6 +45,9 @@ const withLayoutFull = (Component: any) => {
 							<Component {...props} />
 						</Stack>
 
+						{/* chatting (mobil): to'liq ekranli chat oynasi */}
+						<Chat />
+
 						<Stack id={'footer'}>
 							<Footer />
 						</Stack>

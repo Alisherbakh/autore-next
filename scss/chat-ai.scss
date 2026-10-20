@@ -1,0 +1,319 @@
+/**
+ * CHAT: AI yordamchi + Live chat tablari — mobil va PC uchun umumiy.
+ * Komponentlar: libs/components/Chat.tsx (tablar), libs/components/AiAssistant.tsx (AI tab).
+ * scss/app.scss oxirida import qilinadi.
+ */
+
+$chat-ease: cubic-bezier(0.23, 1, 0.32, 1);
+
+#mobile-wrap .chatting .chat-frame,
+#pc-wrap .chatting .chat-frame {
+	// tepadagi tablar
+	.chat-tabs {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		gap: 6px;
+		padding: 4px;
+		border-radius: 999px;
+		background: $c-surface-2;
+	}
+	.chat-tab {
+		flex: 1;
+		min-width: 0;
+		height: 36px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+		border: none;
+		border-radius: 999px;
+		background: transparent;
+		color: $c-muted;
+		font-family: $font;
+		font-size: 14px;
+		font-weight: 700;
+		white-space: nowrap;
+		-webkit-tap-highlight-color: transparent;
+		transition: background 0.2s $chat-ease, color 0.2s $chat-ease;
+		svg {
+			font-size: 18px;
+		}
+		&.active {
+			background: $c-surface;
+			color: $c-primary;
+			box-shadow: 0 1px 3px rgba(35, 38, 47, 0.12);
+		}
+	}
+	.chat-tab-count {
+		min-width: 20px;
+		height: 20px;
+		padding: 0 6px;
+		box-sizing: border-box;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 999px;
+		background: $c-primary;
+		color: #ffffff;
+		font-size: 11px;
+		font-weight: 800;
+	}
+
+	// AI tab konteyneri
+	.chat-pane {
+		flex: 1;
+		min-height: 0;
+		display: flex;
+		flex-direction: column;
+	}
+	.ai-assistant {
+		flex: 1;
+		min-height: 0;
+		display: flex;
+		flex-direction: column;
+	}
+	.ai-feed {
+		flex: 1;
+		min-height: 0;
+		padding: 12px 14px;
+		box-sizing: border-box;
+		> div {
+			height: 100%; // ScrollableFeed konteyneri
+		}
+	}
+	.ai-main {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		padding-bottom: 6px;
+	}
+
+	// xabarlar
+	.ai-msg {
+		display: flex;
+		align-items: flex-end;
+		gap: 8px;
+	}
+	.ai-msg-user {
+		justify-content: flex-end;
+		.ai-bubble {
+			border-radius: 16px 16px 4px 16px;
+			background: $c-primary;
+			color: #ffffff;
+		}
+	}
+	.ai-avatar {
+		flex-shrink: 0;
+		width: 30px;
+		height: 30px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 50%;
+		background: rgba(0, 87, 255, 0.1);
+		color: $c-primary;
+		svg {
+			font-size: 18px;
+		}
+	}
+	.ai-bubble {
+		max-width: 80%;
+		padding: 10px 14px;
+		border-radius: 16px 16px 16px 4px;
+		background: $c-surface-2;
+		color: $c-text;
+		font-size: 15px;
+		line-height: 1.45;
+		word-break: break-word;
+	}
+	.ai-group {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	// "yozmoqda..." nuqtalari
+	.ai-typing {
+		display: flex;
+		gap: 4px;
+		padding: 14px 16px;
+		span {
+			width: 6px;
+			height: 6px;
+			border-radius: 50%;
+			background: $c-muted;
+			animation: aiTyping 1.2s infinite ease-in-out;
+			&:nth-child(2) {
+				animation-delay: 0.15s;
+			}
+			&:nth-child(3) {
+				animation-delay: 0.3s;
+			}
+		}
+	}
+
+	// mashina kartalari — gorizontal scroll
+	.ai-cars {
+		display: flex;
+		gap: 10px;
+		margin: 0 -14px;
+		padding: 2px 14px 4px 52px; // avatar kengligi bilan tekislangan
+		overflow-x: auto;
+		scroll-snap-type: x mandatory;
+		-webkit-overflow-scrolling: touch;
+		scrollbar-width: none;
+		&::-webkit-scrollbar {
+			display: none;
+		}
+	}
+	.ai-car {
+		flex: 0 0 200px;
+		scroll-snap-align: start;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		border: 1px solid $c-line;
+		border-radius: 14px;
+		background: $c-surface;
+		color: $c-text;
+		text-decoration: none;
+		-webkit-tap-highlight-color: transparent;
+		&:active {
+			transform: scale(0.98);
+		}
+		img {
+			width: 100%;
+			height: 112px;
+			object-fit: cover;
+			background: $c-surface-2;
+		}
+	}
+	.ai-car-body {
+		padding: 10px 12px 12px;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		strong {
+			overflow: hidden;
+			font-size: 14px;
+			font-weight: 700;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+		.ai-car-price {
+			color: $c-primary;
+			font-size: 15px;
+			font-weight: 800;
+		}
+		small {
+			color: $c-muted;
+			font-size: 12px;
+		}
+	}
+	.ai-see-all {
+		align-self: flex-start;
+		margin-left: 38px;
+		height: 36px;
+		padding: 0 14px;
+		border: 1px solid $c-primary;
+		border-radius: 999px;
+		background: transparent;
+		color: $c-primary;
+		font-family: $font;
+		font-size: 14px;
+		font-weight: 700;
+		-webkit-tap-highlight-color: transparent;
+		&:active {
+			background: rgba(0, 87, 255, 0.08);
+		}
+	}
+
+	// tayyor savollar
+	.ai-chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		padding-left: 38px;
+	}
+	.ai-chip {
+		height: 34px;
+		padding: 0 14px;
+		border: 1px solid $c-line;
+		border-radius: 999px;
+		background: $c-surface;
+		color: $c-text;
+		font-family: $font;
+		font-size: 13px;
+		font-weight: 600;
+		-webkit-tap-highlight-color: transparent;
+		&:active {
+			border-color: $c-primary;
+			color: $c-primary;
+		}
+		&:disabled {
+			opacity: 0.5;
+		}
+	}
+
+	// AI ogohlantirish yozuvi
+	.ai-note {
+		flex-shrink: 0;
+		padding: 6px 16px 0;
+		color: $c-muted;
+		font-size: 11px;
+		text-align: center;
+	}
+
+	.send-msg-btn:disabled {
+		opacity: 0.5;
+	}
+}
+
+@keyframes aiTyping {
+	0%,
+	60%,
+	100% {
+		opacity: 0.3;
+		transform: translateY(0);
+	}
+	30% {
+		opacity: 1;
+		transform: translateY(-3px);
+	}
+}
+
+/* PC: chat oynasi biroz kattaroq (mashina kartalari sig'ishi uchun) va tablar uchun joy */
+// "body" — V01 (#pc-wrap#pc-wrap .chatting .chat-frame) dan keyin yuklansa ham o'lcham shu yerdan olinsin
+body #pc-wrap#pc-wrap .chatting .chat-frame {
+	width: 400px;
+	height: 600px;
+	max-height: calc(100vh - 180px);
+	right: -440px; // yopiq holatda to'liq yashirinsin (kenglik 400px + soya)
+	&.open {
+		right: 30px;
+	}
+	.chat-top {
+		gap: 8px;
+		padding: 0 14px;
+	}
+	.ai-car {
+		flex-basis: 180px;
+		cursor: pointer;
+		&:hover {
+			border-color: $c-primary;
+		}
+	}
+	.ai-chip,
+	.ai-see-all,
+	.chat-tab {
+		cursor: pointer;
+	}
+	.ai-chip:hover:not(:disabled) {
+		border-color: $c-primary;
+		color: $c-primary;
+	}
+	.chat-tab:not(.active):hover {
+		color: $c-text;
+	}
+}

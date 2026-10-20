@@ -349,3 +349,32 @@ export const UNSUBSCRIBE = gql`
 		}
 	}
 `;
+
+/**************************
+ *      AI ASSISTANT      *
+ *************************/
+
+// AI yordamchi: foydalanuvchi matni → AI filtr → bazadagi mashinalar
+export const ASK_ASSISTANT = gql`
+	mutation AskAssistant($input: AiAskInput!) {
+		askAssistant(input: $input) {
+			reply
+			total
+			searchInput
+			chips
+			fallback
+			cars {
+				_id
+				carTitle
+				carPrice
+				carBrand
+				carModel
+				carYear
+				carMileage
+				carFuelType
+				carLocation
+				carImages
+			}
+		}
+	}
+`;

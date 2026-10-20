@@ -1,0 +1,197 @@
+/**
+ * MOBIL CHAT — Live chat (WebSocket) telefonda.
+ * Tugma: o'ng pastda, tab bar ustida. Oyna: to'liq ekran, pastdan chiqadi.
+ * Desktop stillari (#pc-wrap .chatting) o'zgarmaydi — bu fayl faqat #mobile-wrap uchun.
+ * scss/mobile/main.scss ichida import qilinadi.
+ */
+
+$chat-tabbar-h: 64px; // mobileV2.scss'dagi $m-tabbar-h bilan bir xil
+$chat-ease: cubic-bezier(0.23, 1, 0.32, 1);
+
+#mobile-wrap .chatting {
+	// chat ochish tugmasi
+	.chat-button {
+		position: fixed;
+		right: 16px;
+		bottom: calc(#{$chat-tabbar-h} + env(safe-area-inset-bottom) + 16px);
+		z-index: 1150; // tab bar (1100) ustida, chat oynasi (1200) ostida
+		width: 52px;
+		height: 52px;
+		padding: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border: none;
+		border-radius: 50%;
+		background: $c-primary;
+		box-shadow: 0 10px 24px rgba(0, 87, 255, 0.32);
+		-webkit-tap-highlight-color: transparent;
+		transition: transform 0.15s $chat-ease;
+		svg {
+			color: #ffffff;
+		}
+		&:active {
+			transform: scale(0.94);
+		}
+	}
+
+	// /car/detail: tab bar o'rnida narx paneli (.cd-mbar) bor — tugma uning ustida turadi
+	&.raised .chat-button {
+		bottom: calc(84px + env(safe-area-inset-bottom));
+	}
+
+	// chat oynasi — to'liq ekran
+	.chat-frame {
+		position: fixed;
+		inset: 0;
+		width: 100%;
+		height: 100vh;
+		height: 100dvh; // klaviatura ochilganda ham to'g'ri balandlik
+		z-index: 1200;
+		display: flex;
+		flex-direction: column;
+		background: $c-surface;
+		font-family: $font;
+		transform: translateY(100%);
+		visibility: hidden;
+		transition: transform 0.3s $chat-ease, visibility 0s linear 0.3s;
+		&.open {
+			transform: translateY(0);
+			visibility: visible;
+			transition: transform 0.3s $chat-ease;
+		}
+
+		.chat-top {
+			flex-shrink: 0;
+			height: 56px;
+			padding: env(safe-area-inset-top) 6px 0 16px;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			border-bottom: 1px solid $c-line;
+			background: $c-bg;
+			.chat-title {
+				color: $c-text;
+				font-size: 17px;
+				font-weight: 800;
+				letter-spacing: -0.01em;
+			}
+			.MuiBadge-badge {
+				background: $c-primary;
+				color: #ffffff;
+				font-weight: 800;
+			}
+			.chat-close {
+				margin-left: auto;
+				width: 44px;
+				height: 44px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				border: none;
+				border-radius: 50%;
+				background: transparent;
+				color: $c-text;
+				-webkit-tap-highlight-color: transparent;
+				&:active {
+					background: $c-surface-2;
+				}
+			}
+		}
+
+		.chat-content {
+			flex: 1;
+			min-height: 0; // flex ichida scroll ishlashi uchun
+			padding: 12px 14px;
+			box-sizing: border-box;
+			display: flex;
+			flex-direction: column;
+			background: $c-surface;
+			> div {
+				height: 100%; // ScrollableFeed konteyneri
+			}
+			.chat-main {
+				display: flex;
+				flex-direction: column;
+				.welcome {
+					margin: 0 auto;
+					padding: 6px 12px;
+					border-radius: 999px;
+					background: $c-surface-2;
+					color: $c-muted;
+					font-size: 12px;
+					font-weight: 700;
+				}
+				.MuiAvatar-root {
+					width: 32px;
+					height: 32px;
+					border: 1px solid $c-line;
+					background: $c-surface-2;
+				}
+				.msg-left {
+					max-width: 75%;
+					margin-left: 8px;
+					padding: 10px 14px;
+					border-radius: 16px 16px 16px 4px;
+					background: $c-surface-2;
+					color: $c-text;
+					font-size: 15px;
+					line-height: 1.45;
+					word-break: break-word;
+				}
+				.msg-right {
+					max-width: 75%;
+					padding: 10px 14px;
+					border-radius: 16px 16px 4px 16px;
+					background: $c-primary;
+					color: #ffffff;
+					font-size: 15px;
+					line-height: 1.45;
+					word-break: break-word;
+				}
+			}
+		}
+
+		.chat-bott {
+			flex-shrink: 0;
+			padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			border-top: 1px solid $c-line;
+			background: $c-surface;
+			.msg-input {
+				flex: 1;
+				min-width: 0;
+				height: 44px;
+				padding: 0 16px;
+				box-sizing: border-box;
+				border: 1px solid $c-line;
+				border-radius: 999px;
+				background: $c-bg;
+				color: $c-text;
+				font-family: $font;
+				font-size: 16px; // iPhone input bosilganda zoom qilmasligi uchun (16px dan kam bo'lmasin)
+				outline: none;
+				&:focus {
+					border-color: $c-primary;
+				}
+			}
+			.send-msg-btn {
+				flex-shrink: 0;
+				width: 44px;
+				height: 44px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				border: none;
+				border-radius: 50%;
+				background: $c-primary;
+				-webkit-tap-highlight-color: transparent;
+				&:active {
+					background: $c-primary-dark;
+				}
+			}
+		}
+	}
+}
